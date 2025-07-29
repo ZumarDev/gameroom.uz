@@ -132,13 +132,7 @@
                                     </td>
                                     <td>{{ session.start_time.strftime('%m/%d %H:%M') }}</td>
                                     <td>{{ session.end_time.strftime('%H:%M') if session.end_time else 'N/A' }}</td>
-                                    <td>
-                                        {% if session.session_type == 'fixed' %}
-                                            {{ session.duration_minutes }}daq
-                                        {% else %}
-                                            {{ session.calculate_duration_minutes() }}daq
-                                        {% endif %}
-                                    </td>
+                                    <td>{{ session.calculate_duration_minutes() }}daq</td>
                                     <td><strong>{{ "{:,.0f}".format(session.total_price) }} som</strong></td>
                                 </tr>
                                 {% endfor %}

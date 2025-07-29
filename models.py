@@ -76,6 +76,19 @@ class Session(db.Model):
             return int(delta.total_seconds() / 60)
         return 0
     
+    def get_display_duration(self):
+        """Get duration to display - actual duration if completed, planned if ongoing"""
+        if self.end_time and self.start_time:
+            # Completed session - show actual duration
+            actual_duration = self.calculate_duration_minutes()
+            return f"{actual_duration} daqiqa (haqiqiy)"
+        elif self.session_type == 'fixed' and self.duration_minutes:
+            # Ongoing fixed session - show planned duration
+            return f"{self.duration_minutes} daqiqa"
+        else:
+            # VIP or unknown
+            return "VIP"
+    
     def calculate_vip_price(self, rate_per_minute=500):
         """Calculate VIP session price based on duration"""
         if self.session_type == 'vip' and self.end_time:
@@ -101,12 +114,18 @@ class Session(db.Model):
         if self.session_type == 'fixed':
             if self.end_time and not self.is_active:
                 # Session completed - calculate actual time played
-                actual_duration = self.end_time - self.start_time
-                actual_minutes = actual_duration.total_seconds() / 60
+                if self.start_time:
+                    actual_duration = self.end_time - self.start_time
+                    actual_minutes = actual_duration.total_seconds() / 60
+                else:
+                    actual_minutes = self.duration_minutes or 0
             else:
                 # Session ongoing - calculate current duration for real-time pricing
-                actual_duration = datetime.utcnow() - self.start_time
-                actual_minutes = actual_duration.total_seconds() / 60
+                if self.start_time:
+                    actual_duration = datetime.utcnow() - self.start_time
+                    actual_minutes = actual_duration.total_seconds() / 60
+                else:
+                    actual_minutes = self.duration_minutes or 0
             
             # Always calculate per minute for accurate pricing
             price_per_minute = price_per_30min / 30
@@ -114,13 +133,16 @@ class Session(db.Model):
             
         else:  # VIP session
             # Calculate based on actual duration per minute
-            if self.end_time:
+            if self.end_time and self.start_time:
                 actual_duration = self.end_time - self.start_time
-            else:
+                minutes = actual_duration.total_seconds() / 60
+            elif self.start_time:
                 actual_duration = datetime.utcnow() - self.start_time
+                minutes = actual_duration.total_seconds() / 60
+            else:
+                minutes = 0
             
             # Calculate price per minute for more accurate billing
-            minutes = actual_duration.total_seconds() / 60
             price_per_minute = price_per_30min / 30
             self.session_price = minutes * price_per_minute
         
