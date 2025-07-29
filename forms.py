@@ -25,15 +25,13 @@ class RegisterForm(FlaskForm):
     confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('password', message='Parollar mos emas')])
     secret_key = StringField('Maxfiy kalit', validators=[DataRequired()])
 
+class ProductCategoryForm(FlaskForm):
+    name = StringField('Kategoriya nomi', validators=[DataRequired(), Length(min=1, max=100)])
+    description = TextAreaField('Tavsif')
+
 class ProductForm(FlaskForm):
     name = StringField('Mahsulot nomi', validators=[DataRequired(), Length(min=1, max=100)])
-    category = SelectField('Kategoriya', choices=[
-        ('ichimliklar', 'Ichimliklar'),
-        ('gazaklar', 'Gazaklar'),
-        ('ovqatlar', 'Ovqatlar'),
-        ('shirinliklar', 'Shirinliklar'),
-        ('boshqa', 'Boshqa')
-    ], validators=[DataRequired()])
+    category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
     unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')
 

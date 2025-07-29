@@ -41,8 +41,11 @@
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
-                    <button type="button" class="btn btn-info btn-lg" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <button type="button" class="btn btn-info me-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
                         <i class="bi bi-plus-circle"></i> Kategoriya Qo'shish
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#manageCategoriesModal">
+                        <i class="bi bi-gear"></i> Boshqarish
                     </button>
                 </div>
             </div>
@@ -57,7 +60,7 @@
                                     <h5 class="card-title">Ichimliklar</h5>
                                     <p class="card-text text-muted">Salqin ichimliklar, choylar va qahvalar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'ichimliklar')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', 'Ichimliklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +75,7 @@
                                     <h5 class="card-title">Gazaklar</h5>
                                     <p class="card-text text-muted">Chiplar, donuklar va yengil gazaklar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'gazaklar')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', 'Gazaklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -87,7 +90,7 @@
                                     <h5 class="card-title">Ovqatlar</h5>
                                     <p class="card-text text-muted">Tez tayyorlanuvchi ovqatlar va fast food</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'ovqatlar')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', 'Ovqatlar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -102,7 +105,7 @@
                                     <h5 class="card-title">Shirinliklar</h5>
                                     <p class="card-text text-muted">Shokoladlar, konfetlar va desertlar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'shirinliklar')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', 'Shirinliklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -117,7 +120,7 @@
                                     <h5 class="card-title">Boshqa</h5>
                                     <p class="card-text text-muted">Qo'shimcha mahsulotlar va aksessuarlar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'boshqa')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', 'Boshqa')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -139,11 +142,9 @@
                 <div class="col-md-4">
                     <select class="form-select" id="productCategoryFilter">
                         <option value="">Barcha kategoriyalar</option>
-                        <option value="ichimliklar">Ichimliklar</option>
-                        <option value="gazaklar">Gazaklar</option>
-                        <option value="ovqatlar">Ovqatlar</option>
-                        <option value="shirinliklar">Shirinliklar</option>
-                        <option value="boshqa">Boshqa</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}">{{ category.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-4 text-end">
@@ -163,17 +164,7 @@
                                     <div>
                                         <h5 class="card-title">{{ product.name }}</h5>
                                         <span class="badge bg-info mb-2">
-                                            {% if product.category == 'ichimliklar' %}Ichimliklar
-                                            {% elif product.category == 'gazaklar' %}Gazaklar
-                                            {% elif product.category == 'ovqatlar' %}Ovqatlar
-                                            {% elif product.category == 'shirinliklar' %}Shirinliklar
-                                            {% elif product.category == 'boshqa' %}Boshqa
-                                            {% elif product.category == 'drinks' %}Ichimliklar
-                                            {% elif product.category == 'snacks' %}Gazaklar
-                                            {% elif product.category == 'food' %}Ovqatlar
-                                            {% elif product.category == 'desserts' %}Shirinliklar
-                                            {% elif product.category == 'other' %}Boshqa
-                                            {% else %}{{ product.category.title() }}{% endif %}
+                                            {{ product.product_category.name }}
                                         </span>
                                         <div class="text-muted">
                                             <small><i class="bi bi-currency-dollar"></i> {{ "{:,.0f}".format(product.price) }} som/{{ product.unit }}</small><br>
@@ -239,11 +230,11 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.category.label(class="form-label") }}
-                        {{ form.category(class="form-select") }}
-                        {% if form.category.errors %}
+                        {{ form.category_id.label(class="form-label") }}
+                        {{ form.category_id(class="form-select") }}
+                        {% if form.category_id.errors %}
                             <div class="text-danger small">
-                                {% for error in form.category.errors %}
+                                {% for error in form.category_id.errors %}
                                     <div>{{ error }}</div>
                                 {% endfor %}
                             </div>
@@ -295,23 +286,29 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('add_product_category') }}">
+                {{ category_form.hidden_tag() }}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Kategoriya nomi</label>
-                        <input type="text" class="form-control" name="category_name" required 
-                               placeholder="Masalan: Shirinliklar, Salqin ichimliklar">
+                        {{ category_form.name.label(class="form-label") }}
+                        {{ category_form.name(class="form-control", placeholder="Masalan: Shirinliklar, Salqin ichimliklar") }}
+                        {% if category_form.name.errors %}
+                            <div class="text-danger small">
+                                {% for error in category_form.name.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Inglizcha nomi (sistema uchun)</label>
-                        <select class="form-select" name="category_key" required>
-                            <option value="">Tanlang...</option>
-                            <option value="drinks">Ichimliklar uchun</option>
-                            <option value="snacks">Gazaklar uchun</option>
-                            <option value="food">Ovqatlar uchun</option>
-                            <option value="desserts">Shirinliklar uchun</option>
-                            <option value="other">Boshqa kategoriya uchun</option>
-                        </select>
-                        <small class="text-muted">Yoki mavjud kategoriyani yangilash uchun tanlang</small>
+                        {{ category_form.description.label(class="form-label") }}
+                        {{ category_form.description(class="form-control", placeholder="Kategoriya haqida qo'shimcha ma'lumot") }}
+                        {% if category_form.description.errors %}
+                            <div class="text-danger small">
+                                {% for error in category_form.description.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -319,6 +316,54 @@
                     <button type="submit" class="btn btn-info">Kategoriya Qo'shish</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Categories Modal -->
+<div class="modal fade" id="manageCategoriesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-collection"></i> Kategoriyalarni Boshqarish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Kategoriya nomi</th>
+                                <th>Tavsif</th>
+                                <th>Mahsulotlar soni</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                            <tr>
+                                <td><strong>{{ category.name }}</strong></td>
+                                <td class="text-muted">{{ category.description or 'Tavsif yo\'q' }}</td>
+                                <td><span class="badge bg-primary">{{ category.products|selectattr('is_active', 'equalto', true)|list|length }}</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1" 
+                                            onclick="editCategory({{ category.id }}, '{{ category.name }}', '{{ category.description or '' }}')">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    {% if category.products|selectattr('is_active', 'equalto', true)|list|length == 0 %}
+                                    <a href="{{ url_for('delete_product_category', category_id=category.id) }}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Kategoriyani o\'chirishni tasdiqlaysizmi?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -46,11 +46,22 @@ class Room(db.Model):
             category = RoomCategory.query.get(self.category_id)
             return category.price_per_30min if category else 15000
 
+class ProductCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with products
+    products = db.relationship('Product', backref='product_category', lazy=True)
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # drinks, snacks, etc.
+    category_id = db.Column(db.Integer, db.ForeignKey('product_category.id'), nullable=False)
     price = db.Column(db.Float, nullable=False)
     unit = db.Column(db.String(20), default='dona')  # Unit of measurement (pieces, liters, etc.)
     is_active = db.Column(db.Boolean, default=True)

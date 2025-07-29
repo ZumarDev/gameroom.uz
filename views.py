@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 import math
 from app import app, db
-from models import AdminUser, Room, RoomCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
+from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
 from werkzeug.security import generate_password_hash
 
 @app.route('/')
@@ -227,26 +227,42 @@ def delete_room(room_id):
 @app.route('/products')
 @login_required
 def products():
-    # Multi-tenant: Only show products for current user's gaming center
+    # Multi-tenant: Only show products and categories for current user's gaming center
     products_list = Product.query.filter_by(
         admin_user_id=current_user.id,
         is_active=True
     ).all()
+    categories_list = ProductCategory.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
+    
+    # Setup forms
     form = ProductForm()
+    form.category_id.choices = [(c.id, c.name) for c in categories_list]
+    category_form = ProductCategoryForm()
     
     return render_template('products.html', 
                          products=products_list, 
-                         form=form)
+                         categories=categories_list,
+                         form=form,
+                         category_form=category_form)
 
 @app.route('/products/add', methods=['POST'])
 @login_required
 def add_product():
+    categories_list = ProductCategory.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
     form = ProductForm()
+    form.category_id.choices = [(c.id, c.name) for c in categories_list]
+    
     if form.validate_on_submit():
         product = Product()
         product.admin_user_id = current_user.id  # Multi-tenant
         product.name = form.name.data
-        product.category = form.category.data
+        product.category_id = form.category_id.data
         product.price = form.price.data
         product.unit = form.unit.data
         db.session.add(product)
@@ -269,7 +285,47 @@ def delete_product(product_id):
 @app.route('/products/add-category', methods=['POST'])
 @login_required
 def add_product_category():
-    flash('Kategoriyalar oldindan belgilangan va o\'zgartirilmaydi. Mavjud kategoriyalardan birini tanlang.', 'info')
+    form = ProductCategoryForm()
+    if form.validate_on_submit():
+        category = ProductCategory()
+        category.admin_user_id = current_user.id  # Multi-tenant
+        category.name = form.name.data
+        category.description = form.description.data
+        db.session.add(category)
+        db.session.commit()
+        
+        flash(f'Kategoriya "{category.name}" muvaffaqiyatli qo\'shildi!', 'success')
+    else:
+        flash('Kategoriya qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+    return redirect(url_for('products'))
+
+@app.route('/products/edit-category/<int:category_id>', methods=['POST'])
+@login_required
+def edit_product_category(category_id):
+    category = ProductCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
+    form = ProductCategoryForm()
+    if form.validate_on_submit():
+        category.name = form.name.data
+        category.description = form.description.data
+        db.session.commit()
+        flash(f'Kategoriya "{category.name}" yangilandi!', 'success')
+    else:
+        flash('Kategoriya yangilashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+    return redirect(url_for('products'))
+
+@app.route('/products/delete-category/<int:category_id>')
+@login_required
+def delete_product_category(category_id):
+    category = ProductCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
+    
+    # Check if category has active products
+    active_products = Product.query.filter_by(category_id=category_id, is_active=True).count()
+    if active_products > 0:
+        flash(f'Kategoriya o\'chirilmadi: "{category.name}" kategoriyasida {active_products} ta faol mahsulot bor!', 'danger')
+    else:
+        category.is_active = False
+        db.session.commit()
+        flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
     return redirect(url_for('products'))
 
 @app.route('/sessions')
