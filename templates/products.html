@@ -63,7 +63,13 @@
                                         <strong>{{ product.name }}</strong>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">{{ product.category.title() }}</span>
+                                        <span class="badge bg-secondary">
+                                            {% if product.category == 'drinks' %}Ichimliklar
+                                            {% elif product.category == 'snacks' %}Gazaklar
+                                            {% elif product.category == 'food' %}Ovqatlar
+                                            {% elif product.category == 'other' %}Boshqa
+                                            {% else %}{{ product.category.title() }}{% endif %}
+                                        </span>
                                     </td>
                                     <td>
                                         <strong>{{ "{:,.0f}".format(product.price) }} som</strong>

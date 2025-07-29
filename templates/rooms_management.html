@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Xonalar va Kategoriyalar - {{ current_user.gaming_center_name if current_user.is_authenticated else "O'yin Markazi" }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <div class="page-header">
+                <i class="bi bi-house-door display-4 text-success mb-3"></i>
+                <h1 class="display-5 fw-bold text-success">Xonalar va Kategoriyalar Boshqaruvi</h1>
+                <p class="lead text-muted">O'yin xonalari va ularning kategoriyalarini birgalikda boshqarish</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" id="managementTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">
+                <i class="bi bi-collection"></i> Kategoriyalar
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button" role="tab">
+                <i class="bi bi-house"></i> Xonalar
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="managementTabContent">
+        <!-- Categories Tab -->
+        <div class="tab-pane fade show active" id="categories" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="categorySearch" placeholder="Kategoriya qidirish...">
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="bi bi-plus-circle"></i> Kategoriya Qo'shish
+                    </button>
+                </div>
+            </div>
+
+            {% if categories %}
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title">{{ category.name }}</h5>
+                                        {% if category.description %}
+                                            <p class="card-text text-muted">{{ category.description }}</p>
+                                        {% endif %}
+                                        <div class="text-muted">
+                                            <small><i class="bi bi-currency-dollar"></i> {{ "{:,.0f}".format(category.price_per_30min) }} som/30daq</small><br>
+                                            <small><i class="bi bi-house"></i> {{ category.rooms|length }} ta xona</small><br>
+                                            <small>Yaratilgan: {{ category.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="{{ url_for('delete_room_category', category_id=category.id) }}"
+                                                   onclick="return confirm('{{ category.name }} kategoriyasini o\\'chirishga rozimisiz?')">
+                                                    <i class="bi bi-trash"></i> O'chirish
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-collection fs-1 text-muted"></i>
+                    <h3 class="text-muted">Hali kategoriyalar yo'q</h3>
+                    <p class="text-muted">Xonalarni guruhlash uchun kategoriyalar yarating</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="bi bi-plus"></i> Birinchi Kategoriyani Yaratish
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Rooms Tab -->
+        <div class="tab-pane fade" id="rooms" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="roomSearch" placeholder="Xona qidirish...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">Barcha kategoriyalar</option>
+                        {% for category in categories %}
+                            <option value="{{ category.name }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                        <i class="bi bi-plus-circle"></i> Xona Qo'shish
+                    </button>
+                </div>
+            </div>
+
+            {% if rooms %}
+                <div class="row">
+                    {% for room in rooms %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title">{{ room.name }}</h5>
+                                        <span class="badge bg-info mb-2">{{ room.category.name if room.category else 'Kategoriyasiz' }}</span>
+                                        {% if room.description %}
+                                            <p class="card-text text-muted">{{ room.description }}</p>
+                                        {% endif %}
+                                        <div class="text-muted">
+                                            <small><i class="bi bi-currency-dollar"></i> 
+                                                {% if room.custom_price_per_30min %}
+                                                    {{ "{:,.0f}".format(room.custom_price_per_30min) }} som/30daq (maxsus)
+                                                {% else %}
+                                                    {{ "{:,.0f}".format(room.category.price_per_30min if room.category else 15000) }} som/30daq
+                                                {% endif %}
+                                            </small><br>
+                                            <small>Yaratilgan: {{ room.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="{{ url_for('delete_room', room_id=room.id) }}"
+                                                   onclick="return confirm('{{ room.name }} xonasini o\\'chirishga rozimisiz?')">
+                                                    <i class="bi bi-trash"></i> O'chirish
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-house fs-1 text-muted"></i>
+                    <h3 class="text-muted">Hali xonalar yo'q</h3>
+                    <p class="text-muted">Mijozlar o'ynashi uchun xonalar yarating</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                        <i class="bi bi-plus"></i> Birinchi Xonani Yaratish
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-collection"></i> Yangi Kategoriya Qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_room_category') }}">
+                <div class="modal-body">
+                    {{ category_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ category_form.name.label(class="form-label") }}
+                        {{ category_form.name(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ category_form.description.label(class="form-label") }}
+                        {{ category_form.description(class="form-control", rows="3") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ category_form.price_per_30min.label(class="form-label") }}
+                        {{ category_form.price_per_30min(class="form-control") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-success">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-house"></i> Yangi Xona Qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_room') }}">
+                <div class="modal-body">
+                    {{ room_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ room_form.name.label(class="form-label") }}
+                        {{ room_form.name(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ room_form.description.label(class="form-label") }}
+                        {{ room_form.description(class="form-control", rows="3") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ room_form.category_id.label(class="form-label") }}
+                        {{ room_form.category_id(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ room_form.custom_price_per_30min.label(class="form-label") }}
+                        {{ room_form.custom_price_per_30min(class="form-control") }}
+                        <small class="text-muted">Bo'sh qoldiring kategoriya narxini ishlatish uchun</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-success">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/filters.js') }}"></script>
+{% endblock %}

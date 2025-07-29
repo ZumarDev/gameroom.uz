@@ -102,12 +102,24 @@ def dashboard():
                          total_products=total_products,
                          session_count=len(today_sessions))
 
+@app.route('/rooms-management')
+@login_required
+def rooms_management():
+    categories = RoomCategory.query.filter_by(is_active=True).all()
+    rooms = Room.query.filter_by(is_active=True).all()
+    category_form = RoomCategoryForm()
+    room_form = RoomForm()
+    room_form.category_id.choices = [(c.id, c.name) for c in categories]
+    return render_template('rooms_management.html', 
+                         categories=categories, 
+                         rooms=rooms,
+                         category_form=category_form,
+                         room_form=room_form)
+
 @app.route('/room-categories')
 @login_required
 def room_categories():
-    categories = RoomCategory.query.filter_by(is_active=True).all()
-    form = RoomCategoryForm()
-    return render_template('room_categories.html', categories=categories, form=form)
+    return redirect(url_for('rooms_management'))
 
 @app.route('/room-categories/add', methods=['POST'])
 @login_required
@@ -121,7 +133,7 @@ def add_room_category():
         db.session.add(category)
         db.session.commit()
         flash(f'Kategoriya "{category.name}" muvaffaqiyatli yaratildi!', 'success')
-    return redirect(url_for('room_categories'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/room-categories/<int:category_id>/edit', methods=['POST'])
 @login_required
@@ -134,7 +146,7 @@ def edit_room_category(category_id):
         category.price_per_30min = form.price_per_30min.data
         db.session.commit()
         flash(f'Kategoriya "{category.name}" yangilandi!', 'success')
-    return redirect(url_for('room_categories'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/room-categories/<int:category_id>/delete')
 @login_required
@@ -143,7 +155,7 @@ def delete_room_category(category_id):
     category.is_active = False
     db.session.commit()
     flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
-    return redirect(url_for('room_categories'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/rooms')
 @login_required
@@ -151,7 +163,7 @@ def rooms():
     rooms_list = Room.query.filter_by(is_active=True).all()
     form = RoomForm()
     form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
-    return render_template('rooms.html', rooms=rooms_list, form=form)
+    return redirect(url_for('rooms_management'))
 
 @app.route('/rooms/add', methods=['POST'])
 @login_required
@@ -169,7 +181,7 @@ def add_room():
         flash(f'Xona "{room.name}" muvaffaqiyatli yaratildi!', 'success')
     else:
         flash('Xona qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
-    return redirect(url_for('rooms'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/rooms/<int:room_id>/edit', methods=['POST'])
 @login_required
@@ -184,7 +196,7 @@ def edit_room(room_id):
         room.custom_price_per_30min = form.custom_price_per_30min.data
         db.session.commit()
         flash(f'Xona "{room.name}" yangilandi!', 'success')
-    return redirect(url_for('rooms'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/rooms/delete/<int:room_id>')
 @login_required
@@ -193,7 +205,7 @@ def delete_room(room_id):
     room.is_active = False
     db.session.commit()
     flash(f'Xona "{room.name}" o\'chirildi!', 'success')
-    return redirect(url_for('rooms'))
+    return redirect(url_for('rooms_management'))
 
 @app.route('/products')
 @login_required
