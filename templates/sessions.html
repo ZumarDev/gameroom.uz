@@ -188,7 +188,19 @@
                         {% endif %}
                     </div>
                     
-                    <div class="mb-3" id="durationField">
+                    <div class="mb-3">
+                        {{ form.input_type.label(class="form-label") }}
+                        {{ form.input_type(class="form-select", onchange="toggleInputType()") }}
+                        {% if form.input_type.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.input_type.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3" id="timeInputField">
                         <label class="form-label">Vaqt davomiyligi</label>
                         <div class="row">
                             <div class="col-6">
@@ -214,11 +226,12 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <div class="form-text">Xona narxiga qarab summa avtomatik hisoblanadi</div>
                     </div>
                     
-                    <div class="mb-3">
+                    <div class="mb-3" id="amountInputField" style="display: none;">
                         {{ form.amount_input.label(class="form-label") }}
-                        {{ form.amount_input(class="form-control", placeholder="Masalan: 15000 - avtomatik vaqt hisoblanadi") }}
+                        {{ form.amount_input(class="form-control", placeholder="Masalan: 15000") }}
                         {% if form.amount_input.errors %}
                             <div class="text-danger small">
                                 {% for error in form.amount_input.errors %}
@@ -226,7 +239,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Agar summa kiritilsa, xona narxiga qarab vaqt avtomatik hisoblanadi</div>
+                        <div class="form-text">Xona narxiga qarab vaqt avtomatik hisoblanadi</div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -241,12 +254,32 @@
 <script>
 function toggleDurationField() {
     const sessionType = document.getElementById('session_type').value;
-    const durationField = document.getElementById('durationField');
+    const timeInputField = document.getElementById('timeInputField');
+    const amountInputField = document.getElementById('amountInputField');
     
     if (sessionType === 'fixed') {
-        durationField.style.display = 'block';
+        timeInputField.style.display = 'block';
+        amountInputField.style.display = 'block';
+        document.getElementById('input_type').closest('.mb-3').style.display = 'block';
+        toggleInputType();
     } else {
-        durationField.style.display = 'none';
+        timeInputField.style.display = 'none';
+        amountInputField.style.display = 'none';
+        document.getElementById('input_type').closest('.mb-3').style.display = 'none';
+    }
+}
+
+function toggleInputType() {
+    const inputType = document.getElementById('input_type').value;
+    const timeInputField = document.getElementById('timeInputField');
+    const amountInputField = document.getElementById('amountInputField');
+    
+    if (inputType === 'time') {
+        timeInputField.style.display = 'block';
+        amountInputField.style.display = 'none';
+    } else {
+        timeInputField.style.display = 'none';
+        amountInputField.style.display = 'block';
     }
 }
 

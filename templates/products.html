@@ -5,7 +5,7 @@
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <h1><i class="bi bi-box"></i> Mahsulotlar Boshqaruvi</h1>
+        <h1><i class="bi bi-cup-straw"></i> Mahsulotlar Boshqaruvi</h1>
     </div>
     <div class="col-md-4 text-end">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
@@ -26,8 +26,7 @@
                                     <th>Nomi</th>
                                     <th>Kategoriya</th>
                                     <th>Narx</th>
-                                    <th>Zaxira</th>
-                                    <th>Holat</th>
+                                    <th>O'lchov birligi</th>
                                     <th>Amallar</th>
                                 </tr>
                             </thead>
@@ -44,16 +43,7 @@
                                         <strong>{{ "{:,.0f}".format(product.price) }} som</strong>
                                     </td>
                                     <td>
-                                        <strong>{{ product.stock_quantity }}</strong> {{ product.unit }}
-                                    </td>
-                                    <td>
-                                        {% if product.is_out_of_stock() %}
-                                        <span class="badge bg-danger">Tugagan</span>
-                                        {% elif product.is_low_stock() %}
-                                        <span class="badge bg-warning text-dark">Kam</span>
-                                        {% else %}
-                                        <span class="badge bg-success">Yetarli</span>
-                                        {% endif %}
+                                        {{ product.unit }}
                                     </td>
                                     <td>
                                         <a href="{{ url_for('delete_product', product_id=product.id) }}" 
@@ -73,7 +63,7 @@
     {% else %}
         <div class="col-12">
             <div class="text-center py-5">
-                <i class="bi bi-box fs-1 text-muted"></i>
+                <i class="bi bi-cup-straw fs-1 text-muted"></i>
                 <h3 class="text-muted">Hali mahsulotlar yo'q</h3>
                 <p class="text-muted">Mijozlar o'yin seansida sotib olishi mumkin bo'lgan mahsulotlar qo'shing</p>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
