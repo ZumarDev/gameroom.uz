@@ -23,7 +23,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = AdminUser.query.filter_by(username=form.username.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
+        password_data = form.password.data
+        if user and user.password_hash and password_data and check_password_hash(user.password_hash, password_data):
             login_user(user)
             flash('Logged in successfully!', 'success')
             return redirect(url_for('dashboard'))
@@ -74,11 +75,10 @@ def room_categories():
 def add_room_category():
     form = RoomCategoryForm()
     if form.validate_on_submit():
-        category = RoomCategory(
-            name=form.name.data,
-            description=form.description.data,
-            price_per_30min=form.price_per_30min.data
-        )
+        category = RoomCategory()
+        category.name = form.name.data
+        category.description = form.description.data
+        category.price_per_30min = form.price_per_30min.data
         db.session.add(category)
         db.session.commit()
         flash(f'Kategoriya "{category.name}" muvaffaqiyatli yaratildi!', 'success')
@@ -120,12 +120,11 @@ def add_room():
     form = RoomForm()
     form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
     if form.validate_on_submit():
-        room = Room(
-            name=form.name.data,
-            description=form.description.data,
-            category_id=form.category_id.data,
-            custom_price_per_30min=form.custom_price_per_30min.data
-        )
+        room = Room()
+        room.name = form.name.data
+        room.description = form.description.data
+        room.category_id = form.category_id.data
+        room.custom_price_per_30min = form.custom_price_per_30min.data
         db.session.add(room)
         db.session.commit()
         flash(f'Xona "{room.name}" muvaffaqiyatli yaratildi!', 'success')
@@ -172,12 +171,11 @@ def products():
 def add_product():
     form = ProductForm()
     if form.validate_on_submit():
-        product = Product(
-            name=form.name.data,
-            category=form.category.data,
-            price=form.price.data,
-            unit=form.unit.data
-        )
+        product = Product()
+        product.name = form.name.data
+        product.category = form.category.data
+        product.price = form.price.data
+        product.unit = form.unit.data
         db.session.add(product)
         db.session.commit()
         
@@ -234,7 +232,12 @@ def start_session():
                     return redirect(url_for('sessions'))
                     
                 target_amount = form.amount_input.data
-                price_per_30min = room.custom_price_per_30min or room.category.price_per_30min
+                if room and room.custom_price_per_30min:
+                    price_per_30min = room.custom_price_per_30min
+                elif room and room.category:
+                    price_per_30min = room.category.price_per_30min
+                else:
+                    price_per_30min = 15000  # Default fallback
                 
                 # Calculate minutes based on exact amount entered
                 # For example: if room costs 20000 per 30min and user enters 1000, 
@@ -242,11 +245,10 @@ def start_session():
                 calculated_minutes = (target_amount / price_per_30min) * 30
                 total_minutes = max(int(calculated_minutes), 1)  # Minimum 1 minute
                 
-                session = Session(
-                    room_id=form.room_id.data,
-                    session_type=form.session_type.data,
-                    duration_minutes=total_minutes
-                )
+                session = Session()
+                session.room_id = form.room_id.data
+                session.session_type = form.session_type.data
+                session.duration_minutes = total_minutes
                 
                 # User pays exactly what they entered
                 session.session_price = target_amount
@@ -259,21 +261,19 @@ def start_session():
                 if total_minutes == 0:
                     total_minutes = 30  # Default to 30 minutes if no time specified
                     
-                session = Session(
-                    room_id=form.room_id.data,
-                    session_type=form.session_type.data,
-                    duration_minutes=total_minutes
-                )
+                session = Session()
+                session.room_id = form.room_id.data
+                session.session_type = form.session_type.data
+                session.duration_minutes = total_minutes
                 
                 # Calculate based on room/category pricing and duration
                 session.update_total_price()
         else:
             # VIP session - price will be calculated when stopped
-            session = Session(
-                room_id=form.room_id.data,
-                session_type=form.session_type.data,
-                duration_minutes=None
-            )
+            session = Session()
+            session.room_id = form.room_id.data
+            session.session_type = form.session_type.data
+            session.duration_minutes = None
             session.session_price = 0
             session.total_price = 0
         
@@ -337,16 +337,18 @@ def add_product_to_session(session_id):
         if existing_item:
             existing_item.quantity += form.quantity.data
         else:
-            cart_item = CartItem(
-                session_id=session_id,
-                product_id=form.product_id.data,
-                quantity=form.quantity.data
-            )
+            cart_item = CartItem()
+            cart_item.session_id = session_id
+            cart_item.product_id = form.product_id.data
+            cart_item.quantity = form.quantity.data
             db.session.add(cart_item)
         
         session.update_total_price()
         db.session.commit()
-        flash(f'{quantity} ta {product.name} seansga qo\'shildi!', 'success')
+        if product and product.name:
+            flash(f'{quantity} ta {product.name} seansga qo\'shildi!', 'success')
+        else:
+            flash(f'{quantity} ta mahsulot seansga qo\'shildi!', 'success')
     else:
         flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     
@@ -467,12 +469,13 @@ def register():
             return render_template('register.html', form=form)
         
         # Create new user
-        user = AdminUser(
-            username=form.username.data,
-            email=form.email.data,
-            password_hash=generate_password_hash(form.password.data)
-        )
-        db.session.add(user)
+        password_data = form.password.data
+        if password_data:
+            user = AdminUser()
+            user.username = form.username.data
+            user.email = form.email.data
+            user.password_hash = generate_password_hash(password_data)
+            db.session.add(user)
         db.session.commit()
         
         flash('Ro\'yxatdan o\'tish muvaffaqiyatli tugallandi! Endi tizimga kirishingiz mumkin.', 'success')

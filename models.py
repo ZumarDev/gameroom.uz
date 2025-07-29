@@ -124,7 +124,11 @@ class Session(db.Model):
             self.session_price = price_blocks * price_per_30min
         
         # Calculate products total
-        products_total = sum(item.product.price * item.quantity for item in self.cart_items if item.product)
+        from sqlalchemy.orm import Session as DBSession
+        with DBSession() as session:
+            cart_items = session.query(CartItem).filter_by(session_id=self.id).all()
+        
+        products_total = sum(item.product.price * item.quantity for item in cart_items if item.product)
         self.products_total = products_total
         
         # Update total
