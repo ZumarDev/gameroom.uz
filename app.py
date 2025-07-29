@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+from dotenv import load_dotenv
+load_dotenv() 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
