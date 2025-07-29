@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gaming Center{% endblock %}</title>
+    <title>{% block title %}O'yin Markazi{% endblock %}</title>
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
         <div class="container-fluid">
             <a class="navbar-brand gaming-brand" href="{{ url_for('dashboard') }}">
                 <i class="bi bi-controller gaming-logo"></i> 
-                <span class="brand-text">Gaming Center</span>
+                <span class="brand-text">O'yin Markazi</span>
             </a>
             
             {% if current_user.is_authenticated %}
@@ -25,27 +25,27 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
+                            <i class="bi bi-speedometer2"></i> Boshqaruv Paneli
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('sessions') }}">
-                            <i class="bi bi-play-circle"></i> Sessions
+                            <i class="bi bi-play-circle"></i> Seanslar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('rooms') }}">
-                            <i class="bi bi-house"></i> Rooms
+                            <i class="bi bi-house"></i> Xonalar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('products') }}">
-                            <i class="bi bi-box"></i> Products
+                            <i class="bi bi-box"></i> Mahsulotlar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('analytics') }}">
-                            <i class="bi bi-graph-up"></i> Analytics
+                            <i class="bi bi-graph-up"></i> Hisobotlar
                         </a>
                     </li>
                 </ul>
@@ -56,7 +56,7 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Logout
+                                <i class="bi bi-box-arrow-right"></i> Chiqish
                             </a></li>
                         </ul>
                     </li>

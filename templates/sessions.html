@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Sessions - Gaming Center{% endblock %}
+{% block title %}Seanslar - O'yin Markazi{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <h1><i class="bi bi-play-circle"></i> Sessions Management</h1>
+        <h1><i class="bi bi-play-circle"></i> Seanslar Boshqaruvi</h1>
     </div>
     <div class="col-md-4 text-end">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#startSessionModal">
-            <i class="bi bi-plus"></i> Start New Session
+            <i class="bi bi-plus"></i> Yangi Seans Boshlash
         </button>
     </div>
 </div>
@@ -19,7 +19,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-activity"></i> Active Sessions ({{ active_sessions|length }})</h5>
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Faol Seanslar ({{ active_sessions|length }})</h5>
             </div>
             <div class="card-body">
                 {% if active_sessions %}
@@ -27,14 +27,14 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Room</th>
-                                    <th>Type</th>
-                                    <th>Started</th>
-                                    <th>Timer</th>
-                                    <th>Session Price</th>
-                                    <th>Products</th>
-                                    <th>Total</th>
-                                    <th>Actions</th>
+                                    <th>Xona</th>
+                                    <th>Turi</th>
+                                    <th>Boshlangan</th>
+                                    <th>Vaqt</th>
+                                    <th>Seans Narxi</th>
+                                    <th>Mahsulotlar</th>
+                                    <th>Jami</th>
+                                    <th>Amallar</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -45,9 +45,9 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                            {{ session.session_type.title() }}
+                                            {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
                                             {% if session.session_type == 'fixed' %}
-                                                <br><small>{{ session.duration_minutes }}min</small>
+                                                <br><small>{{ session.duration_minutes }}daq</small>
                                             {% endif %}
                                         </span>
                                     </td>
@@ -55,7 +55,7 @@
                                     <td>
                                         <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}" 
                                              {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>
-                                            <span class="time-display">Loading...</span>
+                                            <span class="time-display">Yuklanmoqda...</span>
                                         </div>
                                     </td>
                                     <td>{{ "{:,.0f}".format(session.session_price) }} som</td>
@@ -74,7 +74,7 @@
                                             </a>
                                             <a href="{{ url_for('stop_session', session_id=session.id) }}" 
                                                class="btn btn-outline-danger" title="Stop Session"
-                                               onclick="return confirm('Stop this session?')">
+                                               onclick="return confirm('Bu seansni to\\'xtatishga rozimisiz?')">
                                                 <i class="bi bi-stop-circle"></i>
                                             </a>
                                         </div>
@@ -87,9 +87,9 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-play-circle fs-1 text-muted"></i>
-                        <p class="text-muted">No active sessions</p>
+                        <p class="text-muted">Faol seanslar mavjud emas</p>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#startSessionModal">
-                            Start First Session
+                            Birinchi Seansni Boshlash
                         </button>
                     </div>
                 {% endif %}
@@ -103,7 +103,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Recent Completed Sessions</h5>
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Oxirgi Tugallangan Seanslar</h5>
             </div>
             <div class="card-body">
                 {% if completed_sessions %}
@@ -111,12 +111,12 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>Room</th>
-                                    <th>Type</th>
-                                    <th>Started</th>
-                                    <th>Ended</th>
-                                    <th>Duration</th>
-                                    <th>Total</th>
+                                    <th>Xona</th>
+                                    <th>Turi</th>
+                                    <th>Boshlangan</th>
+                                    <th>Tugagan</th>
+                                    <th>Davomiyligi</th>
+                                    <th>Jami</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -125,16 +125,16 @@
                                     <td>{{ session.room.name }}</td>
                                     <td>
                                         <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                            {{ session.session_type.title() }}
+                                            {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
                                         </span>
                                     </td>
                                     <td>{{ session.start_time.strftime('%m/%d %H:%M') }}</td>
                                     <td>{{ session.end_time.strftime('%H:%M') if session.end_time else 'N/A' }}</td>
                                     <td>
                                         {% if session.session_type == 'fixed' %}
-                                            {{ session.duration_minutes }}min
+                                            {{ session.duration_minutes }}daq
                                         {% else %}
-                                            {{ session.calculate_duration_minutes() }}min
+                                            {{ session.calculate_duration_minutes() }}daq
                                         {% endif %}
                                     </td>
                                     <td><strong>{{ "{:,.0f}".format(session.total_price) }} som</strong></td>
@@ -145,7 +145,7 @@
                     </div>
                 {% else %}
                     <div class="text-center py-3">
-                        <p class="text-muted">No completed sessions yet</p>
+                        <p class="text-muted">Hali tugallangan seanslar yo'q</p>
                     </div>
                 {% endif %}
             </div>
@@ -160,7 +160,7 @@
             <form method="POST" action="{{ url_for('start_session') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Start New Session</h5>
+                    <h5 class="modal-title">Yangi Seans Boshlash</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -201,8 +201,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Start Session</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Seans Boshlash</button>
                 </div>
             </form>
         </div>

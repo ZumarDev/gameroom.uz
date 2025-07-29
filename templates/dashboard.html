@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Gaming Center{% endblock %}
+{% block title %}Boshqaruv Paneli - O'yin Markazi{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Boshqaruv Paneli</h1>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
         <div class="dashboard-card">
             <i class="bi bi-play-circle fs-1"></i>
             <h3>{{ active_sessions|length }}</h3>
-            <p class="mb-0 text-muted">Active Sessions</p>
+            <p class="mb-0 text-muted">Faol Seanslar</p>
             <div class="card-pulse"></div>
         </div>
     </div>
@@ -23,7 +23,7 @@
         <div class="dashboard-card">
             <i class="bi bi-currency-dollar fs-1"></i>
             <h3>{{ "{:,.0f}".format(today_revenue) }}</h3>
-            <p class="mb-0 text-muted">Today's Revenue</p>
+            <p class="mb-0 text-muted">Bugungi Daromad</p>
             <small class="text-success">som</small>
         </div>
     </div>
@@ -31,14 +31,14 @@
         <div class="dashboard-card">
             <i class="bi bi-house fs-1"></i>
             <h3>{{ total_rooms }}</h3>
-            <p class="mb-0 text-muted">Total Rooms</p>
+            <p class="mb-0 text-muted">Jami Xonalar</p>
         </div>
     </div>
     <div class="col-md-3 mb-4">
         <div class="dashboard-card">
             <i class="bi bi-box fs-1"></i>
             <h3>{{ total_products }}</h3>
-            <p class="mb-0 text-muted">Products</p>
+            <p class="mb-0 text-muted">Mahsulotlar</p>
         </div>
     </div>
 </div>
@@ -48,9 +48,9 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-activity"></i> Active Sessions</h5>
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Faol Seanslar</h5>
                 <a href="{{ url_for('sessions') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus"></i> Start New Session
+                    <i class="bi bi-plus"></i> Yangi Seans Boshlash
                 </a>
             </div>
             <div class="card-body">
@@ -59,12 +59,12 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Room</th>
-                                    <th>Type</th>
-                                    <th>Started</th>
-                                    <th>Timer</th>
-                                    <th>Current Total</th>
-                                    <th>Actions</th>
+                                    <th>Xona</th>
+                                    <th>Turi</th>
+                                    <th>Boshlangan</th>
+                                    <th>Vaqt</th>
+                                    <th>Jami Summa</th>
+                                    <th>Amallar</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -75,14 +75,14 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                            {{ session.session_type.title() }}
+                                            {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
                                         </span>
                                     </td>
                                     <td>{{ session.start_time.strftime('%H:%M') }}</td>
                                     <td>
                                         <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}" 
                                              {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>
-                                            <span class="time-display">Loading...</span>
+                                            <span class="time-display">Yuklanmoqda...</span>
                                         </div>
                                     </td>
                                     <td>
@@ -96,7 +96,7 @@
                                             </a>
                                             <a href="{{ url_for('stop_session', session_id=session.id) }}" 
                                                class="btn btn-outline-danger"
-                                               onclick="return confirm('Stop this session?')">
+                                               onclick="return confirm('Bu seansni to\\'xtatishga rozimisiz?')">
                                                 <i class="bi bi-stop-circle"></i>
                                             </a>
                                         </div>
@@ -109,8 +109,8 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-play-circle fs-1 text-muted"></i>
-                        <p class="text-muted">No active sessions</p>
-                        <a href="{{ url_for('sessions') }}" class="btn btn-primary">Start First Session</a>
+                        <p class="text-muted">Faol seanslar mavjud emas</p>
+                        <a href="{{ url_for('sessions') }}" class="btn btn-primary">Birinchi Seansni Boshlash</a>
                     </div>
                 {% endif %}
             </div>

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Products - Gaming Center{% endblock %}
+{% block title %}Mahsulotlar - O'yin Markazi{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <h1><i class="bi bi-box"></i> Products Management</h1>
+        <h1><i class="bi bi-box"></i> Mahsulotlar Boshqaruvi</h1>
     </div>
     <div class="col-md-4 text-end">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-            <i class="bi bi-plus"></i> Add Product
+            <i class="bi bi-plus"></i> Mahsulot Qo'shish
         </button>
     </div>
 </div>
@@ -23,11 +23,11 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Added</th>
-                                    <th>Actions</th>
+                                    <th>Nomi</th>
+                                    <th>Kategoriya</th>
+                                    <th>Narx</th>
+                                    <th>Qo'shilgan</th>
+                                    <th>Amallar</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -48,8 +48,8 @@
                                     <td>
                                         <a href="{{ url_for('delete_product', product_id=product.id) }}" 
                                            class="btn btn-outline-danger btn-sm"
-                                           onclick="return confirm('Delete product {{ product.name }}?')">
-                                            <i class="bi bi-trash"></i> Delete
+                                           onclick="return confirm('{{ product.name }} mahsulotini o\\'chirishga rozimisiz?')">
+                                            <i class="bi bi-trash"></i> O'chirish
                                         </a>
                                     </td>
                                 </tr>
@@ -64,10 +64,10 @@
         <div class="col-12">
             <div class="text-center py-5">
                 <i class="bi bi-box fs-1 text-muted"></i>
-                <h3 class="text-muted">No products yet</h3>
-                <p class="text-muted">Add products that customers can purchase during gaming sessions</p>
+                <h3 class="text-muted">Hali mahsulotlar yo'q</h3>
+                <p class="text-muted">Mijozlar o'yin seansida sotib olishi mumkin bo'lgan mahsulotlar qo'shing</p>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                    <i class="bi bi-plus"></i> Add First Product
+                    <i class="bi bi-plus"></i> Birinchi Mahsulotni Qo'shish
                 </button>
             </div>
         </div>
@@ -81,7 +81,7 @@
             <form method="POST" action="{{ url_for('add_product') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Product</h5>
+                    <h5 class="modal-title">Yangi Mahsulot Qo'shish</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -125,8 +125,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Product</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Mahsulot Qo'shish</button>
                 </div>
             </form>
         </div>

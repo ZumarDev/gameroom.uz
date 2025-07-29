@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Session Details - Gaming Center{% endblock %}
+{% block title %}Seans Tafsilotlari - O'yin Markazi{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <h1><i class="bi bi-info-circle"></i> Session Details</h1>
+        <h1><i class="bi bi-info-circle"></i> Seans Tafsilotlari</h1>
     </div>
     <div class="col-md-4 text-end">
         {% if session.is_active %}
             <a href="{{ url_for('stop_session', session_id=session.id) }}" 
                class="btn btn-danger"
-               onclick="return confirm('Stop this session?')">
-                <i class="bi bi-stop-circle"></i> Stop Session
+               onclick="return confirm('Bu seansni to\\'xtatishga rozimisiz?')">
+                <i class="bi bi-stop-circle"></i> Seansni To'xtatish
             </a>
         {% endif %}
         <a href="{{ url_for('sessions') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Sessions
+            <i class="bi bi-arrow-left"></i> Seanslarga Qaytish
         </a>
     </div>
 </div>
@@ -26,61 +26,61 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-play-circle"></i> Session Information</h5>
+                <h5 class="mb-0"><i class="bi bi-play-circle"></i> Seans Ma'lumotlari</h5>
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong>Room:</strong></td>
+                        <td><strong>Xona:</strong></td>
                         <td><span class="badge bg-secondary">{{ session.room.name }}</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Type:</strong></td>
+                        <td><strong>Turi:</strong></td>
                         <td>
                             <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                {{ session.session_type.title() }}
+                                {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
                             </span>
                         </td>
                     </tr>
                     <tr>
-                        <td><strong>Started:</strong></td>
+                        <td><strong>Boshlangan:</strong></td>
                         <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
                     </tr>
                     {% if session.end_time %}
                     <tr>
-                        <td><strong>Ended:</strong></td>
+                        <td><strong>Tugagan:</strong></td>
                         <td>{{ session.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
                     </tr>
                     {% endif %}
                     <tr>
-                        <td><strong>Duration:</strong></td>
+                        <td><strong>Davomiyligi:</strong></td>
                         <td>
                             {% if session.session_type == 'fixed' %}
-                                {{ session.duration_minutes }} minutes (planned)
+                                {{ session.duration_minutes }} daqiqa (belgilangan)
                             {% else %}
                                 {% if session.is_active %}
                                     <div class="timer" data-session-id="{{ session.id }}" data-session-type="vip">
-                                        <span class="time-display">Loading...</span>
+                                        <span class="time-display">Yuklanmoqda...</span>
                                     </div>
                                 {% else %}
-                                    {{ session.calculate_duration_minutes() }} minutes
+                                    {{ session.calculate_duration_minutes() }} daqiqa
                                 {% endif %}
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td><strong>Status:</strong></td>
+                        <td><strong>Holati:</strong></td>
                         <td>
                             {% if session.is_active %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success">Faol</span>
                                 {% if session.session_type == 'fixed' %}
                                     <div class="timer mt-2" data-session-id="{{ session.id }}" data-session-type="fixed" data-duration="{{ session.duration_minutes }}">
-                                        <small class="text-muted">Time remaining: </small>
-                                        <span class="time-display">Loading...</span>
+                                        <small class="text-muted">Qolgan vaqt: </small>
+                                        <span class="time-display">Yuklanmoqda...</span>
                                     </div>
                                 {% endif %}
                             {% else %}
-                                <span class="badge bg-secondary">Completed</span>
+                                <span class="badge bg-secondary">Tugallangan</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -92,20 +92,20 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Pricing Summary</h5>
+                <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Narx Xulosasi</h5>
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong>Session Price:</strong></td>
+                        <td><strong>Seans Narxi:</strong></td>
                         <td class="text-end">{{ "{:,.0f}".format(session.session_price) }} som</td>
                     </tr>
                     <tr>
-                        <td><strong>Products Total:</strong></td>
+                        <td><strong>Mahsulotlar Jami:</strong></td>
                         <td class="text-end">{{ "{:,.0f}".format(session.products_total) }} som</td>
                     </tr>
                     <tr class="border-top">
-                        <td><strong>Total Amount:</strong></td>
+                        <td><strong>Umumiy Summa:</strong></td>
                         <td class="text-end"><h4 class="text-success">{{ "{:,.0f}".format(session.total_price) }} som</h4></td>
                     </tr>
                 </table>
@@ -119,10 +119,10 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-cart"></i> Products in Session</h5>
+                <h5 class="mb-0"><i class="bi bi-cart"></i> Seansdagi Mahsulotlar</h5>
                 {% if session.is_active %}
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="bi bi-plus"></i> Add Product
+                        <i class="bi bi-plus"></i> Mahsulot Qo'shish
                     </button>
                 {% endif %}
             </div>
@@ -132,13 +132,13 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Unit Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
+                                    <th>Mahsulot</th>
+                                    <th>Kategoriya</th>
+                                    <th>Birlik Narxi</th>
+                                    <th>Miqdori</th>
+                                    <th>Jami</th>
                                     {% if session.is_active %}
-                                        <th>Actions</th>
+                                        <th>Amallar</th>
                                     {% endif %}
                                 </tr>
                             </thead>
@@ -154,7 +154,7 @@
                                         <td>
                                             <a href="{{ url_for('remove_product_from_session', session_id=session.id, item_id=item.id) }}" 
                                                class="btn btn-outline-danger btn-sm"
-                                               onclick="return confirm('Remove this product from session?')">
+                                               onclick="return confirm('Bu mahsulotni seansdan olib tashlashga rozimisiz?')">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </td>
@@ -167,10 +167,10 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-cart fs-1 text-muted"></i>
-                        <p class="text-muted">No products added to this session</p>
+                        <p class="text-muted">Bu seansga hali mahsulotlar qo'shilmagan</p>
                         {% if session.is_active %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                                Add First Product
+                                Birinchi Mahsulotni Qo'shish
                             </button>
                         {% endif %}
                     </div>
