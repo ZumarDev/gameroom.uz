@@ -23,7 +23,7 @@ class RegisterForm(FlaskForm):
     gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
     password = PasswordField('Parol', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('password', message='Parollar mos emas')])
-    secret_key = StringField('Maxfiy kalit', validators=[DataRequired()])
+    secret_key = PasswordField('Maxfiy kalit', validators=[DataRequired()])
 
 class ProductCategoryForm(FlaskForm):
     name = StringField('Kategoriya nomi', validators=[DataRequired(), Length(min=1, max=100)])
