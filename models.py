@@ -155,7 +155,7 @@ class Session(db.Model):
             self.session_price = price_blocks * price_per_30min
         
         # Calculate products total
-        products_total = sum(item.product.price * item.quantity for item in self.cart_items)
+        products_total = sum(item.product.price * item.quantity for item in self.cart_items if item.product)
         self.products_total = products_total
         
         # Update total
