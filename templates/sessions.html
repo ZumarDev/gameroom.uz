@@ -217,16 +217,16 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.custom_amount.label(class="form-label") }}
-                        {{ form.custom_amount(class="form-control", placeholder="Xona/kategoriya narxidan hisoblash uchun bo'sh qoldiring") }}
-                        {% if form.custom_amount.errors %}
+                        {{ form.amount_input.label(class="form-label") }}
+                        {{ form.amount_input(class="form-control", placeholder="Masalan: 15000 - avtomatik vaqt hisoblanadi") }}
+                        {% if form.amount_input.errors %}
                             <div class="text-danger small">
-                                {% for error in form.custom_amount.errors %}
+                                {% for error in form.amount_input.errors %}
                                     <div>{{ error }}</div>
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Agar maxsus summa kiritilsa, u xona/kategoriya narxidan ustun turadi</div>
+                        <div class="form-text">Agar summa kiritilsa, xona narxiga qarab vaqt avtomatik hisoblanadi</div>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -42,9 +42,10 @@ class SessionForm(FlaskForm):
         ('fixed', 'Belgilangan vaqt'),
         ('vip', 'VIP')
     ], validators=[DataRequired()])
+    # Either specify time and calculate amount, or specify amount and calculate time
     duration_hours = IntegerField('Soat', validators=[NumberRange(min=0, max=24)], default=0)
     duration_minutes = IntegerField('Daqiqa', validators=[NumberRange(min=0, max=59)], default=30)
-    custom_amount = FloatField('Maxsus summa (ixtiyoriy)', validators=[NumberRange(min=0)])
+    amount_input = FloatField('Yoki summa kiriting (avtomatik vaqt hisoblanadi)', validators=[NumberRange(min=0)])
 
 class AddProductToSessionForm(FlaskForm):
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])

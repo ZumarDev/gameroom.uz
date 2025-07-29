@@ -222,21 +222,37 @@ def start_session():
             flash('Bu xona allaqachon ishlatilmoqda!', 'danger')
             return redirect(url_for('sessions'))
         
-        # Calculate duration in minutes from hours and minutes
-        total_minutes = (form.duration_hours.data * 60) + form.duration_minutes.data
+        room = Room.query.get(form.room_id.data)
         
-        session = Session(
-            room_id=form.room_id.data,
-            session_type=form.session_type.data,
-            duration_minutes=total_minutes if form.session_type.data == 'fixed' else None
-        )
-        
-        # Calculate session price
-        if form.custom_amount.data and form.custom_amount.data > 0:
-            # Use custom amount if provided
-            session.session_price = form.custom_amount.data
-            session.total_price = form.custom_amount.data
+        # Determine if user provided amount or time
+        if form.amount_input.data and form.amount_input.data > 0:
+            # User provided amount - calculate time based on room/category pricing
+            target_amount = form.amount_input.data
+            price_per_30min = room.custom_price_per_30min or room.category.price_per_30min
+            
+            # Calculate minutes needed for this amount
+            calculated_minutes = int((target_amount / price_per_30min) * 30)
+            total_minutes = max(calculated_minutes, 30)  # Minimum 30 minutes
+            
+            session = Session(
+                room_id=form.room_id.data,
+                session_type=form.session_type.data,
+                duration_minutes=total_minutes if form.session_type.data == 'fixed' else None
+            )
+            session.session_price = target_amount
+            session.total_price = target_amount
         else:
+            # User provided time - calculate amount based on room/category pricing
+            total_minutes = (form.duration_hours.data * 60) + form.duration_minutes.data
+            if total_minutes == 0:
+                total_minutes = 30  # Default to 30 minutes if no time specified
+                
+            session = Session(
+                room_id=form.room_id.data,
+                session_type=form.session_type.data,
+                duration_minutes=total_minutes if form.session_type.data == 'fixed' else None
+            )
+            
             # Calculate based on room/category pricing and duration
             if form.session_type.data == 'fixed':
                 session.update_total_price()
