@@ -47,8 +47,42 @@ class Product(db.Model):
     name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(50), nullable=False)  # drinks, snacks, etc.
     price = db.Column(db.Float, nullable=False)
+    stock_quantity = db.Column(db.Integer, nullable=False, default=0)
+    min_stock_level = db.Column(db.Integer, nullable=False, default=5)  # Low stock alert threshold
+    unit = db.Column(db.String(20), default='dona')  # Unit of measurement (pieces, liters, etc.)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def is_low_stock(self):
+        """Check if product is below minimum stock level"""
+        return self.stock_quantity <= self.min_stock_level
+    
+    def is_out_of_stock(self):
+        """Check if product is out of stock"""
+        return self.stock_quantity <= 0
+    
+    def reduce_stock(self, quantity):
+        """Reduce stock quantity and return success status"""
+        if self.stock_quantity >= quantity:
+            self.stock_quantity -= quantity
+            return True
+        return False
+
+class StockMovement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    movement_type = db.Column(db.String(20), nullable=False)  # 'purchase', 'sale', 'adjustment', 'loss'
+    quantity = db.Column(db.Integer, nullable=False)
+    reason = db.Column(db.String(200))  # Reason for adjustment, supplier info, etc.
+    notes = db.Column(db.Text)
+    session_id = db.Column(db.Integer, db.ForeignKey('session.id'))  # If movement is from a sale
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)
+    
+    # Relationships
+    product = db.relationship('Product')
+    session = db.relationship('Session')
+    admin = db.relationship('AdminUser')
 
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -82,11 +116,15 @@ class Session(db.Model):
     
     def update_total_price(self):
         """Calculate and update total price based on room pricing and actual duration"""
+        # Load room relationship if not already loaded
+        if not hasattr(self, '_room') or self._room is None:
+            self._room = Room.query.get(self.room_id)
+        
         # Get room pricing - use custom price if set, otherwise category price
-        if self.room.custom_price_per_30min:
-            price_per_30min = self.room.custom_price_per_30min
-        elif self.room.category:
-            price_per_30min = self.room.category.price_per_30min
+        if self._room and self._room.custom_price_per_30min:
+            price_per_30min = self._room.custom_price_per_30min
+        elif self._room and self._room.category:
+            price_per_30min = self._room.category.price_per_30min
         else:
             price_per_30min = 15000  # Default fallback
         

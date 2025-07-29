@@ -26,7 +26,8 @@
                                     <th>Nomi</th>
                                     <th>Kategoriya</th>
                                     <th>Narx</th>
-                                    <th>Qo'shilgan</th>
+                                    <th>Zaxira</th>
+                                    <th>Holat</th>
                                     <th>Amallar</th>
                                 </tr>
                             </thead>
@@ -43,7 +44,16 @@
                                         <strong>{{ "{:,.0f}".format(product.price) }} som</strong>
                                     </td>
                                     <td>
-                                        <small class="text-muted">{{ product.created_at.strftime('%Y-%m-%d') }}</small>
+                                        <strong>{{ product.stock_quantity }}</strong> {{ product.unit }}
+                                    </td>
+                                    <td>
+                                        {% if product.is_out_of_stock() %}
+                                        <span class="badge bg-danger">Tugagan</span>
+                                        {% elif product.is_low_stock() %}
+                                        <span class="badge bg-warning text-dark">Kam</span>
+                                        {% else %}
+                                        <span class="badge bg-success">Yetarli</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <a href="{{ url_for('delete_product', product_id=product.id) }}" 
@@ -118,6 +128,47 @@
                         {% if form.price.errors %}
                             <div class="text-danger small">
                                 {% for error in form.price.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.stock_quantity.label(class="form-label") }}
+                                {{ form.stock_quantity(class="form-control") }}
+                                {% if form.stock_quantity.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.stock_quantity.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.min_stock_level.label(class="form-label") }}
+                                {{ form.min_stock_level(class="form-control") }}
+                                {% if form.min_stock_level.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.min_stock_level.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.unit.label(class="form-label") }}
+                        {{ form.unit(class="form-control", placeholder="Masalan: dona, litr, kg") }}
+                        {% if form.unit.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.unit.errors %}
                                     <div>{{ error }}</div>
                                 {% endfor %}
                             </div>

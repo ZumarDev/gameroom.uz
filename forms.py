@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, IntegerField, FloatField, TextAreaField, HiddenField
+from wtforms import StringField, PasswordField, SelectField, IntegerField, FloatField, TextAreaField, HiddenField, SubmitField
 from wtforms.validators import DataRequired, Email, Length, NumberRange
 
 class LoginForm(FlaskForm):
@@ -32,6 +32,21 @@ class ProductForm(FlaskForm):
         ('other', 'Boshqa')
     ], validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
+    stock_quantity = IntegerField('Zaxira miqdori', validators=[DataRequired(), NumberRange(min=0)], default=0)
+    min_stock_level = IntegerField('Minimal zaxira darajasi', validators=[DataRequired(), NumberRange(min=0)], default=5)
+    unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')
+
+class StockAdjustmentForm(FlaskForm):
+    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    movement_type = SelectField('Harakat turi', choices=[
+        ('purchase', 'Xarid (Qo\'shish)'),
+        ('adjustment', 'Tuzatma'),
+        ('loss', 'Yo\'qotish')
+    ], validators=[DataRequired()])
+    quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
+    reason = StringField('Sabab', validators=[Length(max=200)])
+    notes = TextAreaField('Izohlar')
+    submit = SubmitField('Qo\'llash')
 
 class SessionForm(FlaskForm):
     room_id = SelectField('Xona', coerce=int, validators=[DataRequired()])
