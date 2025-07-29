@@ -15,7 +15,7 @@
         <div class="container-fluid">
             <a class="navbar-brand gaming-brand" href="{{ url_for('dashboard') }}">
                 <i class="bi bi-controller gaming-logo"></i> 
-                <span class="brand-text">O'yin Markazi</span>
+                <span class="brand-text">{% if current_user.is_authenticated %}{{ current_user.gaming_center_name }}{% else %}O'yin Markazi{% endif %}</span>
             </a>
             
             {% if current_user.is_authenticated %}

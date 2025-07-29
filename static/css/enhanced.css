@@ -36,10 +36,11 @@
 }
 
 .card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 2px solid #dee2e6;
+    background: linear-gradient(135deg, var(--gaming-surface) 0%, var(--gaming-surface-light) 100%);
+    border-bottom: 2px solid var(--gaming-border);
     font-weight: 600;
     border-radius: 15px 15px 0 0 !important;
+    color: var(--gaming-text);
 }
 
 /* Enhanced Buttons */
@@ -93,18 +94,20 @@
 
 .input-group-text {
     border-radius: 10px 0 0 10px;
-    border: 2px solid #e9ecef;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid var(--gaming-border);
+    background: linear-gradient(135deg, var(--gaming-surface) 0%, var(--gaming-surface-light) 100%);
     font-weight: 500;
+    color: var(--gaming-text);
 }
 
 /* Search and Filter Bar */
 .search-filter-bar {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--gaming-surface) 0%, var(--gaming-surface-light) 100%);
     padding: 1.5rem;
     border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px var(--gaming-shadow);
     margin-bottom: 2rem;
+    border: 1px solid var(--gaming-border);
 }
 
 /* Enhanced Tables */
@@ -115,13 +118,14 @@
 }
 
 .table th {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 2px solid #dee2e6;
+    background: linear-gradient(135deg, var(--gaming-surface) 0%, var(--gaming-surface-light) 100%);
+    border-bottom: 2px solid var(--gaming-border);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 0.5px;
     padding: 1rem;
+    color: var(--gaming-text);
 }
 
 .table td {

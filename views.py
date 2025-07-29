@@ -32,6 +32,45 @@ def login():
     
     return render_template('login.html', form=form)
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        # Check secret key
+        import os
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
+        if form.secret_key.data != secret_key:
+            flash('Maxfiy kalit noto\'g\'ri!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Check if username already exists
+        existing_user = AdminUser.query.filter_by(username=form.username.data).first()
+        if existing_user:
+            flash('Bu foydalanuvchi nomi band!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Check if email already exists
+        existing_email = AdminUser.query.filter_by(email=form.email.data).first()
+        if existing_email:
+            flash('Bu email allaqachon ro\'yxatdan o\'tgan!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Create new admin user
+        user = AdminUser()
+        user.username = form.username.data
+        user.email = form.email.data
+        user.gaming_center_name = form.gaming_center_name.data
+        if form.password.data:
+            user.password_hash = generate_password_hash(form.password.data)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash(f'{form.gaming_center_name.data} uchun admin akkaunt yaratildi!', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -541,38 +580,3 @@ def get_session_time(session_id):
             'elapsed_seconds': int(elapsed.total_seconds()),
             'current_cost': current_cost
         })
-
-@app.route('/register/Muslim', methods=['GET', 'POST'])
-def register():
-    """Registration route with secret key verification"""
-    form = RegisterForm()
-    if form.validate_on_submit():
-        # Check secret key
-        if form.secret_key.data != 'Muslim':
-            flash('Noto\'g\'ri maxfiy kalit!', 'danger')
-            return render_template('register.html', form=form)
-        
-        # Check if username already exists
-        if AdminUser.query.filter_by(username=form.username.data).first():
-            flash('Bu foydalanuvchi nomi allaqachon mavjud!', 'danger')
-            return render_template('register.html', form=form)
-        
-        # Check if email already exists
-        if AdminUser.query.filter_by(email=form.email.data).first():
-            flash('Bu email allaqachon ro\'yxatga olingan!', 'danger')
-            return render_template('register.html', form=form)
-        
-        # Create new user
-        password_data = form.password.data
-        if password_data:
-            user = AdminUser()
-            user.username = form.username.data
-            user.email = form.email.data
-            user.password_hash = generate_password_hash(password_data)
-            db.session.add(user)
-        db.session.commit()
-        
-        flash('Ro\'yxatdan o\'tish muvaffaqiyatli tugallandi! Endi tizimga kirishingiz mumkin.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('register.html', form=form)
