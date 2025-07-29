@@ -1,0 +1,145 @@
+🎮 O‘YINXONA (GAME ROOM) WEB ILOVA – DJANGO LOYIHA TUSHUNTIRISHI
+
+Bu loyiha **Python Django** frameworkida quriladi va barcha ma'lumotlar **SQLite** bazasida saqlanadi. Ilovada faqat **admin** kirishi mumkin, oddiy foydalanuvchilar yo‘q.
+
+---
+
+### ⚙️ ASOSIY FUNKSIYALAR:
+
+#### 1. 🧑‍💼 Admin Kirish (Login)
+
+* Faqat bitta admin bo‘ladi.
+* Admin foydalanuvchi Django admin panelidan yaratiladi.
+* Foydalanuvchi kirgach, boshqaruv paneliga o‘tadi.
+
+---
+
+#### 2. 🏠 Xonalarni Boshqarish (Room Management)
+
+* Admin istalgancha xona (`Room`) qo‘shishi mumkin: masalan, Room 1, Room 2.
+* Har bir xonada **2 turdagi sessiya** bo‘ladi:
+
+  * **Belgilangan vaqtli sessiya (Fixed)**:
+
+    * Masalan: 30 daqiqa – 15,000 so‘m, 60 daqiqa – 25,000 so‘m.
+    * Admin bu sessiyani tanlaydi, boshlanadi, va vaqt tugagach avtomatik tugaydi.
+  * **VIP sessiya**:
+
+    * Vaqt belgilanmagan, admin "Boshlash" tugmasini bosadi, o‘yinni boshlaydi.
+    * O‘yin tugagach "Tugatish" tugmasi bosiladi. Tizim o‘zi davomiylikni hisoblaydi va narx chiqaradi.
+
+---
+
+#### 3. 🧃 Mahsulotlar Qo‘shish (Product Management)
+
+* Admin mahsulotlar qo‘shadi: nomi, narxi, kategoriyasi (masalan: ichimlik, gazak).
+* O‘yin davomida mijoz mahsulot sotib olsa, sessiyaga mahsulot qo‘shiladi.
+* Bu mahsulotlar umumiy narxga qo‘shiladi.
+
+---
+
+#### 4. ⏱ Real-time Vaqt Ko‘rsatish (JavaScript orqali)
+
+* **Belgilangan sessiya** uchun: qancha vaqt qolganini ko‘rsatadi.
+* **VIP sessiya** uchun: qancha vaqt o‘tganini hisoblaydi.
+* Vaqt tugaganda, sessiya avtomatik tugaydi.
+
+---
+
+#### 5. 📊 Statistikalar va Hisobotlar (Analytics)
+
+* Har kuni, haftalik va oylik daromadlarni ko‘rish mumkin:
+
+  * Sessiyalar orqali tushgan daromad
+  * Mahsulotlardan tushgan daromad
+* Hozirda faol bo‘lgan sessiyalar soni
+* Umumiy foyda va sotilgan mahsulotlar soni
+
+---
+
+#### 6. 📱 Mobil Mos Dizayn (Mobile Responsive)
+
+* Bootstrap yoki oddiy CSS orqali adaptiv dizayn.
+* Admin uchun qulay panel: chap tomonda menyu yoki tepa panel.
+
+---
+
+### 🧱 MA'LUMOTLAR BAZASI TUZILMASI
+
+#### `AdminUser`
+
+* Django `User` modelidan foydalaniladi.
+
+#### `Room`
+
+* `name` – xona nomi
+
+#### `Session`
+
+* `room` – qaysi xonada
+* `session_type` – `fixed` yoki `vip`
+* `start_time`, `end_time`
+* `duration` – fixed bo‘lsa oldindan, vip bo‘lsa hisoblab chiqiladi
+* `price` – fixed sessiyalar uchun oldindan
+* `total_price` – umumiy narx (sessiya + mahsulotlar)
+
+#### `Product`
+
+* `name`
+* `category` – ichimlik, gazak va hokazo
+* `price`
+
+#### `CartItem`
+
+* `session` – qaysi sessiyaga tegishli
+* `product`
+* `quantity`
+
+---
+
+### 📁 FAYLLAR TUZILMASI:
+
+```
+game_room/
+├── game/
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── dashboard.html
+│   │   ├── room_list.html
+│   │   ├── session_create.html
+│   │   ├── product_list.html
+│   │   └── report.html
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   └── js/
+│   │       └── timer.js
+├── db.sqlite3
+├── manage.py
+└── game_room/
+    ├── settings.py
+    ├── urls.py
+    └── wsgi.py
+```
+
+---
+
+### 💡 MISOL
+
+#### ✅ Foydalanuvchi Xonani Tanlaydi:
+
+```
+Room 1 [Fixed - 30min - 15,000 so‘m]
+Room 2 [VIP - Start / Stop]
+```
+
+#### ✅ O‘yin davomida mahsulot tanlanadi:
+
+```
+🥤 Cola - 6,000 so‘m
+🍟 Chips - 8,000 so‘m
+→ Session umumiy narx: 15,000 (o‘yin) + 14,000 (mahsulotlar) = 29,000 so‘m
+```
