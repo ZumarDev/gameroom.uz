@@ -277,9 +277,13 @@ def start_session():
             session.session_price = 0
             session.total_price = 0
         
-        db.session.add(session)
-        db.session.commit()
-        flash('Seans muvaffaqiyatli boshlandi!', 'success')
+        try:
+            db.session.add(session)
+            db.session.commit()
+            flash('Seans muvaffaqiyatli boshlandi!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Seans saqlashda xatolik: {str(e)}', 'danger')
     else:
         # Print form errors for debugging
         for field, errors in form.errors.items():

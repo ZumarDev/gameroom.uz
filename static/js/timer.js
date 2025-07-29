@@ -66,10 +66,9 @@ class SessionTimer {
             }
 
             if (timer.sessionType === 'fixed') {
-                // Show remaining time and real-time cost for fixed sessions
+                // Show only remaining time for fixed sessions
                 const remainingTime = this.formatTime(data.remaining_seconds);
-                const currentCost = data.current_cost ? Math.round(data.current_cost).toLocaleString() : '0';
-                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} qoldi<br><small>${currentCost} som</small></span>`;
+                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} qoldi</span>`;
                 
                 // Update the session price display in real-time for fixed sessions
                 const sessionPriceEl = document.getElementById(`session-price-${sessionId}`);
@@ -83,16 +82,15 @@ class SessionTimer {
                 
                 // Add warning classes when time is running low
                 if (data.remaining_seconds <= 300) { // 5 minutes
-                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} qoldi<br><small>${currentCost} som</small></span>`;
+                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} qoldi</span>`;
                     timeDisplay.parentElement.classList.add('text-danger');
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
                     timeDisplay.parentElement.classList.add('text-warning');
                 }
             } else {
-                // Show elapsed time and real-time cost for VIP sessions
+                // Show only elapsed time for VIP sessions
                 const elapsedTime = this.formatTime(data.elapsed_seconds);
-                const currentCost = data.current_cost ? Math.round(data.current_cost).toLocaleString() : '0';
-                timeDisplay.innerHTML = `<span class="text-info">${elapsedTime} o'tdi<br><small>${currentCost} som</small></span>`;
+                timeDisplay.innerHTML = `<span class="text-info">${elapsedTime} o'tdi</span>`;
                 
                 // Update the session price display in real-time for VIP sessions
                 const sessionPriceEl = document.getElementById(`session-price-${sessionId}`);
