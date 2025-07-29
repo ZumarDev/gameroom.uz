@@ -149,7 +149,7 @@ class Session(db.Model):
         if self.session_type == 'fixed':
             # CRITICAL FIX: If user prepaid (prepaid_amount > 0), use that amount regardless of time
             # This prevents overcharging when users pay fixed amounts like 500 som
-            if self.prepaid_amount > 0:
+            if self.prepaid_amount and self.prepaid_amount > 0:
                 # User prepaid - always use prepaid amount
                 self.session_price = self.prepaid_amount
             else:
