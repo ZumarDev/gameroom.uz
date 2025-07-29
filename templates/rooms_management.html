@@ -150,6 +150,12 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
+                                                <button class="dropdown-item" onclick="editRoom({{ room.id }}, '{{ room.name }}', '{{ room.description or '' }}', {{ room.category_id }}, {{ room.custom_price_per_30min or 'null' }})">
+                                                    <i class="bi bi-pencil"></i> Tahrirlash
+                                                </button>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_room', room_id=room.id) }}"
                                                    onclick="return confirm('{{ room.name }} xonasini o\\'chirishga rozimisiz?')">
                                                     <i class="bi bi-trash"></i> O'chirish
@@ -247,6 +253,66 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Room Modal -->
+<div class="modal fade" id="editRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Xonani Tahrirlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editRoomForm">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label class="form-label">Xona nomi</label>
+                        <input type="text" class="form-control" name="name" id="editRoomName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tavsif</label>
+                        <textarea class="form-control" name="description" id="editRoomDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategoriya</label>
+                        <select class="form-select" name="category_id" id="editRoomCategory" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maxsus narx (30 daqiqa uchun)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="custom_price_per_30min" id="editRoomPrice" min="0" step="1000">
+                            <span class="input-group-text">som</span>
+                        </div>
+                        <div class="form-text">Bo'sh qoldiring agar kategoriya narxini ishlatmoqchi bo'lsangiz</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editRoom(roomId, name, description, categoryId, customPrice) {
+    document.getElementById('editRoomName').value = name;
+    document.getElementById('editRoomDescription').value = description;
+    document.getElementById('editRoomCategory').value = categoryId;
+    document.getElementById('editRoomPrice').value = customPrice || '';
+    
+    const form = document.getElementById('editRoomForm');
+    form.action = '/rooms/edit/' + roomId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editRoomModal'));
+    modal.show();
+}
+</script>
 
 <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
 {% endblock %}

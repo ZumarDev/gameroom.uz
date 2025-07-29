@@ -200,20 +200,7 @@ def add_room():
         flash('Xona qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     return redirect(url_for('rooms_management'))
 
-@app.route('/rooms/<int:room_id>/edit', methods=['POST'])
-@login_required
-def edit_room(room_id):
-    room = Room.query.filter_by(id=room_id, admin_user_id=current_user.id).first_or_404()
-    form = RoomForm()
-    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
-    if form.validate_on_submit():
-        room.name = form.name.data
-        room.description = form.description.data
-        room.category_id = form.category_id.data
-        room.custom_price_per_30min = form.custom_price_per_30min.data
-        db.session.commit()
-        flash(f'Xona "{room.name}" yangilandi!', 'success')
-    return redirect(url_for('rooms_management'))
+
 
 @app.route('/rooms/delete/<int:room_id>')
 @login_required
@@ -222,6 +209,26 @@ def delete_room(room_id):
     room.is_active = False
     db.session.commit()
     flash(f'Xona "{room.name}" o\'chirildi!', 'success')
+    return redirect(url_for('rooms_management'))
+
+@app.route('/rooms/edit/<int:room_id>', methods=['POST'])
+@login_required
+def edit_room(room_id):
+    room = Room.query.filter_by(id=room_id, admin_user_id=current_user.id).first_or_404()
+    
+    room.name = request.form.get('name')
+    room.description = request.form.get('description')
+    room.category_id = request.form.get('category_id')
+    
+    # Handle custom price - empty string should be converted to None
+    custom_price = request.form.get('custom_price_per_30min')
+    if custom_price and custom_price.strip():
+        room.custom_price_per_30min = float(custom_price)
+    else:
+        room.custom_price_per_30min = None
+    
+    db.session.commit()
+    flash(f'Xona "{room.name}" muvaffaqiyatli yangilandi!', 'success')
     return redirect(url_for('rooms_management'))
 
 @app.route('/products')
@@ -383,7 +390,7 @@ def start_session():
                 elif room and room.category:
                     price_per_30min = room.category.price_per_30min
                 else:
-                    price_per_30min = 1000  # Default fallback - updated to reasonable price
+                    price_per_30min = 15000  # Default fallback
                 
                 # Calculate exact time based on amount entered
                 # For example: if room costs 1000 per 30min and user enters 100, 
