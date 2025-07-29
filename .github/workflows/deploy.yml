@@ -1,0 +1,37 @@
+name: Deploy Flask App to Server
+
+on:
+  push:
+    branches:
+      - main  # yoki master, siz ishlatayotgan branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Copy files to server via SSH
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: 22
+        source: "."
+        target: "/www/wwwroot/gameroom.uz"
+
+    - name: Restart Flask app on server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: 22
+        script: |
+          cd /www/wwwroot/gameroom.uz
+          source venv/bin/activate
+          git pull origin main
+          sudo systemctl restart flaskapp
