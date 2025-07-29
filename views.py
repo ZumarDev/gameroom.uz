@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
+import math
 from app import app, db
 from models import AdminUser, Room, RoomCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
 from forms import LoginForm, RoomForm, RoomCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
@@ -235,15 +236,19 @@ def start_session():
                 target_amount = form.amount_input.data
                 price_per_30min = room.custom_price_per_30min or room.category.price_per_30min
                 
-                # Calculate minutes needed for this amount
-                calculated_minutes = int((target_amount / price_per_30min) * 30)
-                total_minutes = max(calculated_minutes, 30)  # Minimum 30 minutes
+                # Calculate minutes based on exact amount entered
+                # For example: if room costs 20000 per 30min and user enters 1000, 
+                # they get (1000/20000)*30 = 1.5 minutes of play time
+                calculated_minutes = (target_amount / price_per_30min) * 30
+                total_minutes = max(int(calculated_minutes), 1)  # Minimum 1 minute
                 
                 session = Session(
                     room_id=form.room_id.data,
                     session_type=form.session_type.data,
                     duration_minutes=total_minutes
                 )
+                
+                # User pays exactly what they entered
                 session.session_price = target_amount
                 session.total_price = target_amount
             else:
