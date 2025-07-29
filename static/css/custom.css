@@ -1,52 +1,162 @@
-/* Custom styles for Gaming Center */
+/* Custom styles for Gaming Center - Modern UI */
 
-/* Timer styling */
+/* CSS Variables for Gaming Theme */
+:root {
+    --gaming-primary: #00ff88;
+    --gaming-secondary: #ff6b35;
+    --gaming-accent: #00d4ff;
+    --gaming-dark: #0a0a0a;
+    --gaming-surface: #1a1a1a;
+    --gaming-surface-light: #2a2a2a;
+    --gaming-border: #333;
+    --gaming-text: #ffffff;
+    --gaming-text-muted: #b3b3b3;
+    --gaming-glow: rgba(0, 255, 136, 0.3);
+    --gaming-shadow: rgba(0, 0, 0, 0.5);
+}
+
+/* Modern Timer styling with glow effects */
 .timer {
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
+    font-family: 'Orbitron', 'Courier New', monospace;
+    font-weight: 700;
+    position: relative;
 }
 
 .timer .time-display {
-    font-size: 1.1em;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    background-color: var(--bs-dark);
+    font-size: 1.2em;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light));
+    border: 2px solid var(--gaming-border);
     display: inline-block;
-    min-width: 80px;
+    min-width: 120px;
     text-align: center;
+    box-shadow: 0 4px 15px var(--gaming-shadow);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Session status indicators */
+.timer .time-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.timer .time-display:hover::before {
+    left: 100%;
+}
+
+/* Modern Session status indicators with glow */
 .session-active {
-    border-left: 4px solid var(--bs-success);
+    border-left: 4px solid var(--gaming-primary);
+    box-shadow: 0 0 10px var(--gaming-glow);
 }
 
 .session-warning {
-    border-left: 4px solid var(--bs-warning);
+    border-left: 4px solid var(--gaming-secondary);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
 .session-danger {
-    border-left: 4px solid var(--bs-danger);
+    border-left: 4px solid #ff4757;
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.3);
 }
 
 .session-completed {
-    border-left: 4px solid var(--bs-secondary);
+    border-left: 4px solid var(--gaming-text-muted);
 }
 
-/* Card hover effects */
+/* Enhanced Card hover effects with modern styling */
 .card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background: var(--gaming-surface);
+    border: 1px solid var(--gaming-border);
+    border-radius: 1rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gaming-primary), var(--gaming-accent));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px var(--gaming-shadow), 0 0 20px var(--gaming-glow);
+    border-color: var(--gaming-primary);
 }
 
-/* Button loading state */
+.card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Modern Button Styles */
+.btn {
+    border-radius: 0.75rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    color: var(--gaming-dark);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+    background: linear-gradient(135deg, #00ff88, #00e6ff);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff4757, #ff3742);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light));
+    color: var(--gaming-text);
+    border: 1px solid var(--gaming-border);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    border-color: var(--gaming-primary);
+    color: var(--gaming-primary);
+}
+
+/* Enhanced Button loading state */
 .btn-loading {
     position: relative;
     pointer-events: none;
+    opacity: 0.8;
 }
 
 .btn-loading::before {
@@ -54,49 +164,105 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 16px;
-    height: 16px;
-    margin: -8px 0 0 -8px;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
     border: 2px solid transparent;
     border-top: 2px solid currentColor;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: gaming-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
+@keyframes gaming-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Dashboard specific styles */
+/* Modern Dashboard Cards */
 .dashboard-card {
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light));
+    border: 1px solid var(--gaming-border);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 20px 40px var(--gaming-shadow), 0 0 30px var(--gaming-glow);
+    border-color: var(--gaming-primary);
 }
 
-/* Session timer alerts */
+.dashboard-card:hover::before {
+    opacity: 0.1;
+}
+
+.dashboard-card .fs-1 {
+    font-size: 3rem !important;
+    margin-bottom: 1rem;
+    color: var(--gaming-primary);
+    text-shadow: 0 0 20px var(--gaming-glow);
+}
+
+.dashboard-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Enhanced Session timer alerts */
 .timer-warning {
-    animation: pulse 2s infinite;
+    animation: gaming-pulse 2s infinite;
 }
 
 .timer-danger {
-    animation: blink 1s infinite;
+    animation: gaming-blink 1s infinite;
 }
 
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.7; }
-    100% { opacity: 1; }
+@keyframes gaming-pulse {
+    0% { 
+        opacity: 1; 
+        box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
+    50% { 
+        opacity: 0.7; 
+        box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
+    }
+    100% { 
+        opacity: 1; 
+        box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+    }
 }
 
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.3; }
+@keyframes gaming-blink {
+    0%, 50% { 
+        opacity: 1; 
+        box-shadow: 0 0 15px rgba(255, 71, 87, 0.5);
+    }
+    51%, 100% { 
+        opacity: 0.3; 
+        box-shadow: 0 0 5px rgba(255, 71, 87, 0.2);
+    }
 }
 
 /* Revenue chart styling */
@@ -183,12 +349,327 @@
     height: 1rem;
 }
 
-/* Gaming center branding */
-.navbar-brand {
-    font-weight: bold;
-    font-size: 1.25rem;
+/* Modern Body and Base Styling */
+.gaming-body {
+    background: linear-gradient(135deg, var(--gaming-dark) 0%, #0f0f0f 50%, var(--gaming-dark) 100%);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    color: var(--gaming-text);
 }
 
-.navbar-brand i {
+/* Modern Navigation Bar */
+.gaming-navbar {
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light)) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid var(--gaming-border);
+    box-shadow: 0 4px 20px var(--gaming-shadow);
+    padding: 1rem 0;
+}
+
+.gaming-brand {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--gaming-text) !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.gaming-brand:hover {
+    color: var(--gaming-primary) !important;
+    text-shadow: 0 0 20px var(--gaming-glow);
+    transform: scale(1.05);
+}
+
+.gaming-logo {
     color: var(--gaming-primary);
+    font-size: 2rem;
+    text-shadow: 0 0 20px var(--gaming-glow);
+    animation: logo-pulse 3s ease-in-out infinite;
+}
+
+@keyframes logo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.brand-text {
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Navigation Links */
+.navbar-nav .nav-link {
+    color: var(--gaming-text-muted) !important;
+    font-weight: 500;
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--gaming-primary) !important;
+    background: rgba(0, 255, 136, 0.1);
+    transform: translateY(-2px);
+}
+
+.navbar-nav .nav-link i {
+    margin-right: 0.5rem;
+}
+
+/* Modern Tables */
+.table {
+    background: var(--gaming-surface);
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--gaming-border);
+}
+
+.table th {
+    background: var(--gaming-surface-light);
+    border-color: var(--gaming-border);
+    color: var(--gaming-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+.table td {
+    border-color: var(--gaming-border);
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+    background: rgba(0, 255, 136, 0.02);
+}
+
+/* Modern Badges */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-secondary {
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light)) !important;
+    border: 1px solid var(--gaming-border);
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--gaming-secondary), #ff8c42) !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, var(--gaming-accent), #42a5f5) !important;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, var(--gaming-primary), #00e676) !important;
+    color: var(--gaming-dark);
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #ff4757, #ff3742) !important;
+}
+
+/* Card Pulse Animation */
+.card-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    opacity: 0;
+    animation: card-pulse-effect 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes card-pulse-effect {
+    0%, 100% { opacity: 0; transform: scale(1); }
+    50% { opacity: 0.05; transform: scale(1.02); }
+}
+
+/* Modern Login Page Styling */
+.login-card {
+    border: none;
+    border-radius: 2rem;
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light));
+    box-shadow: 0 20px 40px var(--gaming-shadow), 0 0 30px var(--gaming-glow);
+    overflow: hidden;
+    position: relative;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gaming-primary), var(--gaming-accent));
+}
+
+.login-header {
+    background: transparent;
+    border: none;
+    padding: 3rem 2rem 2rem;
+}
+
+.login-logo {
+    font-size: 4rem;
+    color: var(--gaming-primary);
+    text-shadow: 0 0 30px var(--gaming-glow);
+    margin-bottom: 1rem;
+    animation: logo-pulse 3s ease-in-out infinite;
+}
+
+.login-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+/* Enhanced Form Controls */
+.form-control,
+.form-select {
+    background: var(--gaming-surface-light);
+    border: 2px solid var(--gaming-border);
+    border-radius: 0.75rem;
+    color: var(--gaming-text);
+    padding: 0.875rem 1.25rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: var(--gaming-surface);
+    border-color: var(--gaming-primary);
+    box-shadow: 0 0 20px var(--gaming-glow);
+    color: var(--gaming-text);
+}
+
+.form-label {
+    color: var(--gaming-text);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Modern Modal Styling */
+.modal-content {
+    background: var(--gaming-surface);
+    border: 1px solid var(--gaming-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 50px var(--gaming-shadow);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light));
+    border-bottom: 2px solid var(--gaming-border);
+    border-radius: 1.5rem 1.5rem 0 0;
+}
+
+.modal-title {
+    color: var(--gaming-primary);
+    font-weight: 700;
+}
+
+/* Enhanced Alerts */
+.alert {
+    border: none;
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 255, 136, 0.05));
+    border-left-color: var(--gaming-primary);
+    color: var(--gaming-primary);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, rgba(255, 71, 87, 0.1), rgba(255, 71, 87, 0.05));
+    border-left-color: #ff4757;
+    color: #ff6b7a;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 107, 53, 0.05));
+    border-left-color: var(--gaming-secondary);
+    color: var(--gaming-secondary);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 212, 255, 0.05));
+    border-left-color: var(--gaming-accent);
+    color: var(--gaming-accent);
+}
+
+/* Page Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--gaming-text);
+    font-weight: 700;
+}
+
+h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Container Improvements */
+.container-fluid {
+    padding: 2rem;
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    .dashboard-card {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-card h3 {
+        font-size: 2rem;
+    }
+    
+    .gaming-brand {
+        font-size: 1.25rem;
+    }
+    
+    .login-card {
+        margin: 1rem;
+        border-radius: 1.5rem;
+    }
+    
+    .login-header {
+        padding: 2rem 1rem 1.5rem;
+    }
+    
+    .login-logo {
+        font-size: 3rem;
+    }
 }

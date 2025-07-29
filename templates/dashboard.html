@@ -9,42 +9,36 @@
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary">
-            <div class="card-body text-center">
-                <i class="bi bi-play-circle fs-1"></i>
-                <h3>{{ active_sessions|length }}</h3>
-                <p class="mb-0">Active Sessions</p>
-            </div>
+<!-- Modern Statistics Cards -->
+<div class="row mb-5">
+    <div class="col-md-3 mb-4">
+        <div class="dashboard-card">
+            <i class="bi bi-play-circle fs-1"></i>
+            <h3>{{ active_sessions|length }}</h3>
+            <p class="mb-0 text-muted">Active Sessions</p>
+            <div class="card-pulse"></div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-success">
-            <div class="card-body text-center">
-                <i class="bi bi-currency-dollar fs-1"></i>
-                <h3>{{ "{:,.0f}".format(today_revenue) }}</h3>
-                <p class="mb-0">Today's Revenue</p>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="dashboard-card">
+            <i class="bi bi-currency-dollar fs-1"></i>
+            <h3>{{ "{:,.0f}".format(today_revenue) }}</h3>
+            <p class="mb-0 text-muted">Today's Revenue</p>
+            <small class="text-success">som</small>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-info">
-            <div class="card-body text-center">
-                <i class="bi bi-house fs-1"></i>
-                <h3>{{ total_rooms }}</h3>
-                <p class="mb-0">Total Rooms</p>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="dashboard-card">
+            <i class="bi bi-house fs-1"></i>
+            <h3>{{ total_rooms }}</h3>
+            <p class="mb-0 text-muted">Total Rooms</p>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-warning">
-            <div class="card-body text-center">
-                <i class="bi bi-box fs-1"></i>
-                <h3>{{ total_products }}</h3>
-                <p class="mb-0">Products</p>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="dashboard-card">
+            <i class="bi bi-box fs-1"></i>
+            <h3>{{ total_products }}</h3>
+            <p class="mb-0 text-muted">Products</p>
         </div>
     </div>
 </div>
