@@ -3,14 +3,41 @@
 {% block title %}Mahsulotlar - O'yin Markazi{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h1><i class="bi bi-cup-straw"></i> Mahsulotlar Boshqaruvi</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <div class="page-header">
+                <i class="bi bi-shop display-4 text-info mb-3"></i>
+                <h1 class="display-5 fw-bold text-info">Mahsulotlar Boshqaruvi</h1>
+                <p class="lead text-muted">Ichimliklar, gazaklar va boshqa mahsulotlarni boshqarish</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-            <i class="bi bi-plus"></i> Mahsulot Qo'shish
-        </button>
+
+    <!-- Search and Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="productSearch" placeholder="Mahsulot qidirish...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="productCategoryFilter">
+                <option value="">Barcha kategoriyalar</option>
+                <option value="ichimliklar">Ichimliklar</option>
+                <option value="gazaklar">Gazaklar</option>
+                <option value="ovqatlar">Ovqatlar</option>
+                <option value="shirinliklar">Shirinliklar</option>
+                <option value="boshqa">Boshqalar</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-end">
+            <button type="button" class="btn btn-info btn-lg" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="bi bi-plus-circle"></i> Mahsulot Qo'shish
+            </button>
+        </div>
     </div>
 </div>
 

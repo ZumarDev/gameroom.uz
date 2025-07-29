@@ -3,14 +3,43 @@
 {% block title %}Xonalar - O'yin Markazi{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h1><i class="bi bi-house"></i> Xonalar Boshqaruvi</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <div class="page-header">
+                <i class="bi bi-house-door display-4 text-success mb-3"></i>
+                <h1 class="display-5 fw-bold text-success">Xonalar Boshqaruvi</h1>
+                <p class="lead text-muted">O'yin xonalarini yaratish va boshqarish</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-            <i class="bi bi-plus"></i> Xona Qo'shish
-        </button>
+
+    <!-- Search and Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="roomSearch" placeholder="Xona qidirish...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="categoryFilter">
+                <option value="">Barcha kategoriyalar</option>
+                {% set categories_set = [] %}
+                {% for room in rooms %}
+                    {% if room.category and room.category.name not in categories_set %}
+                        {% set _ = categories_set.append(room.category.name) %}
+                        <option value="{{ room.category.name }}">{{ room.category.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4 text-end">
+            <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                <i class="bi bi-plus-circle"></i> Xona Qo'shish
+            </button>
+        </div>
     </div>
 </div>
 

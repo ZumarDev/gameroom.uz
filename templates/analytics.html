@@ -3,19 +3,65 @@
 {% block title %}Hisobotlar - O'yin Markazi{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1><i class="bi bi-graph-up"></i> Daromad Hisobotlari</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <div class="page-header">
+                <i class="bi bi-graph-up-arrow display-4 text-warning mb-3"></i>
+                <h1 class="display-5 fw-bold text-warning">Hisobotlar va Statistika</h1>
+                <p class="lead text-muted">Daromad va faoliyat ko'rsatkichlari</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Selection and Report Type -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Hisobot turi:</label>
+            <select class="form-select" id="reportType" onchange="toggleDateInputs()">
+                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Kunlik</option>
+                <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Oylik</option>
+            </select>
+        </div>
+        <div class="col-md-3" id="dailyDateSection" {% if report_type != 'daily' %}style="display: none;"{% endif %}>
+            <label class="form-label fw-bold">Kun tanlang:</label>
+            <input type="date" class="form-control" id="selectedDate" value="{{ current_date }}">
+        </div>
+        <div class="col-md-3" id="monthlyDateSection" {% if report_type == 'daily' %}style="display: none;"{% endif %}>
+            <label class="form-label fw-bold">Oy tanlang:</label>
+            <input type="month" class="form-control" id="selectedMonth" value="{{ current_month }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary d-block" onclick="loadReport()">
+                <i class="bi bi-arrow-clockwise"></i> Hisobotni yangilash
+            </button>
+        </div>
     </div>
 </div>
 
-<!-- Revenue Summary Cards -->
+<!-- Selected Report Summary -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-graph-up display-1 mb-3"></i>
+                <h2 class="display-4 fw-bold">{{ "{:,.0f}".format(main_revenue) }} som</h2>
+                <h4 class="mb-0">{{ main_title }}</h4>
+                <p class="lead">{{ main_sessions }} seans o'tkazildi</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Comparison Cards -->
 <div class="row mt-4">
     <div class="col-md-4">
         <div class="card bg-primary">
             <div class="card-body text-center">
                 <i class="bi bi-calendar-day fs-1"></i>
-                <h3>{{ "{:,.0f}".format(daily_revenue) }} som</h3>
+                <h4>{{ "{:,.0f}".format(daily_revenue) }} som</h4>
                 <p class="mb-0">Bugungi Daromad</p>
                 <small>{{ daily_sessions }} seans</small>
             </div>
@@ -25,7 +71,7 @@
         <div class="card bg-success">
             <div class="card-body text-center">
                 <i class="bi bi-calendar-week fs-1"></i>
-                <h3>{{ "{:,.0f}".format(weekly_revenue) }} som</h3>
+                <h4>{{ "{:,.0f}".format(weekly_revenue) }} som</h4>
                 <p class="mb-0">Bu Hafta</p>
                 <small>{{ weekly_sessions }} seans</small>
             </div>
@@ -34,10 +80,10 @@
     <div class="col-md-4">
         <div class="card bg-info">
             <div class="card-body text-center">
-                <i class="bi bi-calendar-month fs-1"></i>
-                <h3>{{ "{:,.0f}".format(monthly_revenue) }} som</h3>
-                <p class="mb-0">Bu Oy</p>
-                <small>{{ monthly_sessions }} seans</small>
+                <i class="bi bi-calendar-check fs-1"></i>
+                <h4>{{ "{:,.0f}".format(main_revenue) }} som</h4>
+                <p class="mb-0">Tanlangan Davr</p>
+                <small>{{ main_sessions }} seans</small>
             </div>
         </div>
     </div>

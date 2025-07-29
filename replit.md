@@ -7,6 +7,7 @@ A Flask-based web application for managing a gaming center with room-based gamin
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Interface preferences: Uzbek language throughout, centered section headers, enhanced filtering and search capabilities.
 
 ## System Architecture
 
@@ -19,9 +20,10 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **Template Engine**: Jinja2 templates with Bootstrap 5 dark theme
-- **CSS Framework**: Bootstrap 5 with custom CSS for gaming center styling
-- **JavaScript**: Vanilla JS for real-time timers and dashboard functionality
+- **CSS Framework**: Bootstrap 5 with enhanced custom styling (custom.css + enhanced.css)
+- **JavaScript**: Vanilla JS for real-time timers, dashboard functionality, and filtering/search
 - **Icons**: Bootstrap Icons for consistent UI elements
+- **Enhanced Features**: Search and filter functionality, centered page headers, date selection for reports
 
 ### Authentication System
 - Single admin user authentication using Flask-Login
@@ -48,10 +50,10 @@ Preferred communication style: Simple, everyday language.
 ### Views (Flask Routes)
 - Authentication routes (login/logout)
 - Dashboard with statistics and active session overview
-- Room management (CRUD operations)
-- Product management (CRUD operations)
-- Session management (start/stop/monitor)
-- Analytics and revenue reporting
+- Room management (CRUD operations) with category filtering
+- Product management (CRUD operations) with category filtering and search
+- Session management (start/stop/monitor) with accurate duration tracking
+- Analytics and revenue reporting with daily/monthly date selection
 
 ## Data Flow
 
@@ -112,11 +114,36 @@ Preferred communication style: Simple, everyday language.
 
 ### File Structure
 - `app.py`: Main application factory and configuration
-- `models.py`: Database models and relationships
-- `views.py`: Route handlers and business logic
+- `models.py`: Database models and relationships with duration calculation methods
+- `views.py`: Route handlers and business logic with enhanced analytics
 - `forms.py`: Form definitions and validation
-- `templates/`: Jinja2 HTML templates
-- `static/`: CSS, JavaScript, and asset files
+- `templates/`: Jinja2 HTML templates with enhanced UI and centered headers
+- `static/css/`: Custom styling (custom.css, enhanced.css)
+- `static/js/`: JavaScript functionality (timer.js, dashboard.js, filters.js)
 - `create_admin.py`: Initial admin user creation utility
 
-The application follows a traditional Flask MVC pattern with clear separation of concerns, making it maintainable and scalable for a gaming center management system.
+## Recent Changes (January 2025)
+
+### UI/UX Enhancements
+- **Centered Page Headers**: All section headers now display centered with attractive icons and descriptions
+- **Enhanced Styling**: Added enhanced.css with modern gradients, animations, and improved visual appeal
+- **Responsive Design**: Better mobile-friendly layout and button sizing
+
+### Filtering and Search Features
+- **Product Search**: Real-time search by product name with category filtering (ichimliklar, gazaklar, ovqatlar, etc.)
+- **Room Category Search**: Search room categories by name and description
+- **Room Filtering**: Filter rooms by category and search by name/description
+- **Enhanced JavaScript**: Added filters.js for all search and filtering functionality
+
+### Analytics Improvements
+- **Date Selection**: Daily and monthly report selection with specific date/month picking
+- **Dynamic Reports**: Analytics page now supports query parameters for date filtering
+- **Enhanced Display**: Improved analytics layout with main report card and comparison cards
+- **Uzbek Localization**: Month names and interface elements properly localized
+
+### Session Management Fixes
+- **Accurate Duration**: Fixed session duration calculation to show actual time played, not planned time
+- **Error Handling**: Improved null-checking for start_time fields
+- **Real-time Pricing**: Both fixed and VIP sessions now use per-minute accurate pricing calculations
+
+The application follows a traditional Flask MVC pattern with enhanced user experience, making it both maintainable and visually appealing for gaming center management.

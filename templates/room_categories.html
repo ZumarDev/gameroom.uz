@@ -3,14 +3,31 @@
 {% block title %}Xona Kategoriyalari - O'yin Markazi{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <h1><i class="bi bi-collection"></i> Xona Kategoriyalari</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <div class="page-header">
+                <i class="bi bi-collection display-4 text-primary mb-3"></i>
+                <h1 class="display-5 fw-bold text-primary">Xona Kategoriyalari</h1>
+                <p class="lead text-muted">O'yin xonalarini kategoriyalar bo'yicha boshqarish</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="bi bi-plus"></i> Yangi Kategoriya
-        </button>
+
+    <!-- Search and Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="categorySearch" placeholder="Kategoriya qidirish...">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="bi bi-plus-circle"></i> Yangi Kategoriya
+            </button>
+        </div>
     </div>
 </div>
 

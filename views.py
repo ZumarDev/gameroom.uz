@@ -376,13 +376,74 @@ def remove_product_from_session(session_id, item_id):
 @app.route('/analytics')
 @login_required
 def analytics():
-    # Daily analytics
+    # Get report type and date from query parameters
+    report_type = request.args.get('type', 'monthly')
+    selected_date = request.args.get('date')
+    selected_month = request.args.get('month')
+    
     today = datetime.utcnow().date()
-    daily_sessions = Session.query.filter(
+    current_date = today.strftime('%Y-%m-%d')
+    current_month = today.strftime('%Y-%m')
+    
+    if report_type == 'daily':
+        # Daily analytics for specific date
+        if selected_date:
+            try:
+                target_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+            except ValueError:
+                target_date = today
+        else:
+            target_date = today
+            
+        daily_sessions = Session.query.filter(
+            func.date(Session.created_at) == target_date,
+            Session.is_active == False
+        ).all()
+        daily_revenue = sum(session.total_price for session in daily_sessions)
+        
+        # For daily view, show the selected day as "main" data
+        main_revenue = daily_revenue
+        main_sessions = len(daily_sessions)
+        main_title = f"Kunlik Hisobot - {target_date.strftime('%d.%m.%Y')}"
+        
+        # Calculate revenue breakdown for the day
+        session_revenue = sum(session.session_price for session in daily_sessions)
+        products_revenue = sum(session.products_total for session in daily_sessions)
+        
+    else:
+        # Monthly analytics for specific month
+        if selected_month:
+            try:
+                year, month = map(int, selected_month.split('-'))
+            except (ValueError, AttributeError):
+                year, month = today.year, today.month
+        else:
+            year, month = today.year, today.month
+            
+        monthly_sessions = Session.query.filter(
+            extract('month', Session.created_at) == month,
+            extract('year', Session.created_at) == year,
+            Session.is_active == False
+        ).all()
+        monthly_revenue = sum(session.total_price for session in monthly_sessions)
+        
+        # For monthly view, show the selected month as "main" data
+        main_revenue = monthly_revenue
+        main_sessions = len(monthly_sessions)
+        month_names = ['', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+                      'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
+        main_title = f"Oylik Hisobot - {month_names[month]} {year}"
+        
+        # Calculate revenue breakdown for the month
+        session_revenue = sum(session.session_price for session in monthly_sessions)
+        products_revenue = sum(session.products_total for session in monthly_sessions)
+    
+    # Always calculate today's data for comparison
+    today_sessions = Session.query.filter(
         func.date(Session.created_at) == today,
         Session.is_active == False
     ).all()
-    daily_revenue = sum(session.total_price for session in daily_sessions)
+    today_revenue = sum(session.total_price for session in today_sessions)
     
     # Weekly analytics
     week_start = today - timedelta(days=today.weekday())
@@ -392,25 +453,19 @@ def analytics():
     ).all()
     weekly_revenue = sum(session.total_price for session in weekly_sessions)
     
-    # Monthly analytics
-    monthly_sessions = Session.query.filter(
-        extract('month', Session.created_at) == today.month,
-        extract('year', Session.created_at) == today.year,
-        Session.is_active == False
-    ).all()
-    monthly_revenue = sum(session.total_price for session in monthly_sessions)
-    
-    # Revenue breakdown
-    session_revenue = sum(session.session_price for session in monthly_sessions)
-    products_revenue = sum(session.products_total for session in monthly_sessions)
-    
     return render_template('analytics.html',
-                         daily_revenue=daily_revenue,
-                         daily_sessions=len(daily_sessions),
+                         report_type=report_type,
+                         current_date=current_date,
+                         current_month=current_month,
+                         main_revenue=main_revenue,
+                         main_sessions=main_sessions,
+                         main_title=main_title,
+                         daily_revenue=today_revenue,
+                         daily_sessions=len(today_sessions),
                          weekly_revenue=weekly_revenue,
                          weekly_sessions=len(weekly_sessions),
-                         monthly_revenue=monthly_revenue,
-                         monthly_sessions=len(monthly_sessions),
+                         monthly_revenue=main_revenue if report_type == 'monthly' else 0,
+                         monthly_sessions=main_sessions if report_type == 'monthly' else 0,
                          session_revenue=session_revenue,
                          products_revenue=products_revenue)
 
