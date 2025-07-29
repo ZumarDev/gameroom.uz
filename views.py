@@ -301,7 +301,8 @@ def stop_session(session_id):
     session.update_total_price()
     db.session.commit()
     actual_duration = (session.end_time - session.start_time).total_seconds() / 60
-    flash(f'Seans to\'xtatildi. {actual_duration:.1f} daqiqa o\'ynaldi: {session.total_price:,.0f} som', 'success')
+    session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"
+    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans - {actual_duration:.1f} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/<int:session_id>')

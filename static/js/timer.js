@@ -80,8 +80,18 @@ class SessionTimer {
             } else {
                 // Show elapsed time and real-time cost for VIP sessions
                 const elapsedTime = this.formatTime(data.elapsed_seconds);
-                const currentCost = data.current_cost ? data.current_cost.toLocaleString() : '0';
+                const currentCost = data.current_cost ? Math.round(data.current_cost).toLocaleString() : '0';
                 timeDisplay.innerHTML = `<span class="text-info">${elapsedTime} o'tdi<br><small>${currentCost} som</small></span>`;
+                
+                // Update the session price display in real-time for VIP sessions
+                const sessionPriceEl = document.getElementById(`session-price-${sessionId}`);
+                const totalPriceEl = document.getElementById(`total-price-${sessionId}`);
+                if (sessionPriceEl && data.current_cost) {
+                    sessionPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
+                }
+                if (totalPriceEl && data.current_cost) {
+                    totalPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
+                }
             }
             
         } catch (error) {

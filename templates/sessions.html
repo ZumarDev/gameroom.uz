@@ -58,13 +58,15 @@
                                             <span class="time-display">Yuklanmoqda...</span>
                                         </div>
                                     </td>
-                                    <td>{{ "{:,.0f}".format(session.session_price) }} som</td>
+                                    <td>
+                                        <span id="session-price-{{ session.id }}">{{ "{:,.0f}".format(session.session_price) }} som</span>
+                                    </td>
                                     <td>
                                         <span class="badge bg-info">{{ session.cart_items|length }}</span>
                                         {{ "{:,.0f}".format(session.products_total) }} som
                                     </td>
                                     <td>
-                                        <strong>{{ "{:,.0f}".format(session.total_price) }} som</strong>
+                                        <strong id="total-price-{{ session.id }}">{{ "{:,.0f}".format(session.total_price) }} som</strong>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">

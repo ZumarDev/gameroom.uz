@@ -105,11 +105,17 @@ class Session(db.Model):
                 actual_minutes = actual_duration.total_seconds() / 60
             else:
                 # Session ongoing or completed - use planned duration
-                actual_minutes = self.duration_minutes
+                actual_minutes = self.duration_minutes or 0
             
-            # Calculate price based on actual time (round up to nearest 30 min block)
-            price_blocks = math.ceil(actual_minutes / 30)
-            self.session_price = price_blocks * price_per_30min
+            # For fixed sessions: if ended early, calculate per minute; if completed, use planned price
+            if self.end_time and not self.is_active and actual_minutes < (self.duration_minutes or 0):
+                # Early completion - charge per minute
+                price_per_minute = price_per_30min / 30
+                self.session_price = actual_minutes * price_per_minute
+            else:
+                # Normal completion or ongoing - use block pricing
+                price_blocks = math.ceil(actual_minutes / 30)
+                self.session_price = price_blocks * price_per_30min
             
         else:  # VIP session
             # Calculate based on actual duration per minute
