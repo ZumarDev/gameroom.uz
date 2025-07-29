@@ -354,6 +354,9 @@ def start_session():
     form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
     if form.validate_on_submit():
+        # Get user room IDs for multi-tenant check
+        user_room_ids = [room.id for room in user_rooms]
+        
         # Check if room is already in use - Multi-tenant: Only check current user's sessions
         existing_session = Session.query.filter(
             Session.room_id == form.room_id.data,
