@@ -1,6 +1,7 @@
 from app import db
 from flask_login import UserMixin
 from datetime import datetime
+import math
 from sqlalchemy import func
 
 class AdminUser(UserMixin, db.Model):
@@ -80,13 +81,46 @@ class Session(db.Model):
         return self.session_price
     
     def update_total_price(self):
-        """Update total price including products"""
+        """Calculate and update total price based on room pricing and actual duration"""
+        # Get room pricing - use custom price if set, otherwise category price
+        if self.room.custom_price_per_30min:
+            price_per_30min = self.room.custom_price_per_30min
+        elif self.room.category:
+            price_per_30min = self.room.category.price_per_30min
+        else:
+            price_per_30min = 15000  # Default fallback
+        
+        # Calculate session price based on actual time played
+        if self.session_type == 'fixed':
+            if self.end_time and not self.is_active:
+                # Session ended early - calculate actual time played
+                actual_duration = self.end_time - self.start_time
+                actual_minutes = actual_duration.total_seconds() / 60
+            else:
+                # Session ongoing or completed - use planned duration
+                actual_minutes = self.duration_minutes
+            
+            # Calculate price based on actual time (round up to nearest 30 min block)
+            price_blocks = math.ceil(actual_minutes / 30)
+            self.session_price = price_blocks * price_per_30min
+            
+        else:  # VIP session
+            # Calculate based on actual duration
+            if self.end_time:
+                actual_duration = self.end_time - self.start_time
+            else:
+                actual_duration = datetime.utcnow() - self.start_time
+            
+            # Round up to nearest 30 minutes for pricing
+            minutes = actual_duration.total_seconds() / 60
+            price_blocks = math.ceil(minutes / 30)
+            self.session_price = price_blocks * price_per_30min
+        
+        # Calculate products total
         products_total = sum(item.product.price * item.quantity for item in self.cart_items)
         self.products_total = products_total
         
-        if self.session_type == 'vip' and self.end_time:
-            self.session_price = self.calculate_vip_price()
-        
+        # Update total
         self.total_price = self.session_price + self.products_total
 
 class CartItem(db.Model):

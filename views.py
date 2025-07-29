@@ -175,9 +175,9 @@ def add_product():
         )
         db.session.add(product)
         db.session.commit()
-        flash(f'Product "{product.name}" added successfully!', 'success')
+        flash(f'Mahsulot "{product.name}" muvaffaqiyatli qo\'shildi!', 'success')
     else:
-        flash('Error adding product. Please check your input.', 'danger')
+        flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     return redirect(url_for('products'))
 
 @app.route('/products/delete/<int:product_id>')
@@ -186,7 +186,7 @@ def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     product.is_active = False
     db.session.commit()
-    flash(f'Product "{product.name}" deleted successfully!', 'success')
+    flash(f'Mahsulot "{product.name}" o\'chirildi!', 'success')
     return redirect(url_for('products'))
 
 @app.route('/sessions')
@@ -214,7 +214,7 @@ def start_session():
         # Check if room is already in use
         existing_session = Session.query.filter_by(room_id=form.room_id.data, is_active=True).first()
         if existing_session:
-            flash('This room is already in use!', 'danger')
+            flash('Bu xona allaqachon ishlatilmoqda!', 'danger')
             return redirect(url_for('sessions'))
         
         session = Session(
@@ -224,14 +224,17 @@ def start_session():
         
         if form.session_type.data == 'fixed':
             session.duration_minutes = form.duration_minutes.data
-            session.session_price = FIXED_SESSION_PRICES.get(form.duration_minutes.data, 0)
-        
-        session.total_price = session.session_price
+            # Calculate initial price using room/category pricing
+            session.update_total_price()
+        else:
+            # VIP session - price will be calculated when stopped
+            session.session_price = 0
+            session.total_price = 0
         db.session.add(session)
         db.session.commit()
-        flash('Session started successfully!', 'success')
+        flash('Seans muvaffaqiyatli boshlandi!', 'success')
     else:
-        flash('Error starting session. Please check your input.', 'danger')
+        flash('Seans boshlashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     
     return redirect(url_for('sessions'))
 
@@ -241,9 +244,10 @@ def stop_session(session_id):
     session = Session.query.get_or_404(session_id)
     session.end_time = datetime.utcnow()
     session.is_active = False
+    # Recalculate price based on actual time played
     session.update_total_price()
     db.session.commit()
-    flash(f'Session stopped. Total: {session.total_price:,.0f} som', 'success')
+    flash(f'Seans to\'xtatildi. Haqiqiy vaqt bo\'yicha: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/<int:session_id>')
@@ -286,9 +290,9 @@ def add_product_to_session(session_id):
         
         session.update_total_price()
         db.session.commit()
-        flash('Product added to session!', 'success')
+        flash('Mahsulot seansga qo\'shildi!', 'success')
     else:
-        flash('Error adding product. Please check your input.', 'danger')
+        flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     
     return redirect(url_for('session_detail', session_id=session_id))
 
@@ -301,7 +305,7 @@ def remove_product_from_session(session_id, item_id):
     db.session.delete(cart_item)
     session.update_total_price()
     db.session.commit()
-    flash('Product removed from session!', 'success')
+    flash('Mahsulot seansdan olib tashlandi!', 'success')
     
     return redirect(url_for('session_detail', session_id=session_id))
 
@@ -362,6 +366,7 @@ def get_session_time(session_id):
             if session.is_active:
                 session.end_time = end_time
                 session.is_active = False
+                # Recalculate price for the actual time played (full planned duration)
                 session.update_total_price()
                 db.session.commit()
             
