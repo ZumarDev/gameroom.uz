@@ -39,11 +39,10 @@ def create_admin():
             return
 
         # Create the admin user
-        admin = AdminUser(
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password)
-        )
+        admin = AdminUser()
+        admin.username = username
+        admin.email = email
+        admin.password_hash = generate_password_hash(password)
 
         try:
             db.session.add(admin)

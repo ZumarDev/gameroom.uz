@@ -92,8 +92,9 @@ Preferred communication style: Simple, everyday language.
 - Vanilla JavaScript for timer functionality
 
 ### Database
-- SQLite for local development (configurable via DATABASE_URL)
+- PostgreSQL for production deployment on Replit
 - Connection pooling and ping configuration for production readiness
+- Environment variable DATABASE_URL configured automatically
 
 ## Deployment Strategy
 
