@@ -420,6 +420,21 @@ def get_session_time(session_id):
         # Calculate remaining time
         end_time = session.start_time + timedelta(minutes=session.duration_minutes)
         remaining = end_time - now
+        elapsed = now - session.start_time
+        elapsed_minutes = elapsed.total_seconds() / 60
+        
+        # Calculate current cost based on room pricing
+        room = session.room
+        if room and room.custom_price_per_30min:
+            price_per_30min = room.custom_price_per_30min
+        elif room and room.category:
+            price_per_30min = room.category.price_per_30min
+        else:
+            price_per_30min = 15000  # Default fallback
+        
+        # Calculate per-minute cost and current total
+        price_per_minute = price_per_30min / 30
+        current_cost = elapsed_minutes * price_per_minute
         
         if remaining.total_seconds() <= 0:
             # Session should be auto-stopped
@@ -433,13 +448,15 @@ def get_session_time(session_id):
             return jsonify({
                 'expired': True,
                 'remaining_seconds': 0,
-                'elapsed_seconds': session.duration_minutes * 60
+                'elapsed_seconds': session.duration_minutes * 60,
+                'current_cost': current_cost
             })
         
         return jsonify({
             'expired': False,
             'remaining_seconds': int(remaining.total_seconds()),
-            'elapsed_seconds': int((now - session.start_time).total_seconds())
+            'elapsed_seconds': int(elapsed.total_seconds()),
+            'current_cost': current_cost
         })
     
     else:  # VIP session

@@ -66,13 +66,24 @@ class SessionTimer {
             }
 
             if (timer.sessionType === 'fixed') {
-                // Show remaining time for fixed sessions
+                // Show remaining time and real-time cost for fixed sessions
                 const remainingTime = this.formatTime(data.remaining_seconds);
-                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} qoldi</span>`;
+                const currentCost = data.current_cost ? Math.round(data.current_cost).toLocaleString() : '0';
+                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} qoldi<br><small>${currentCost} som</small></span>`;
+                
+                // Update the session price display in real-time for fixed sessions
+                const sessionPriceEl = document.getElementById(`session-price-${sessionId}`);
+                const totalPriceEl = document.getElementById(`total-price-${sessionId}`);
+                if (sessionPriceEl && data.current_cost) {
+                    sessionPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
+                }
+                if (totalPriceEl && data.current_cost) {
+                    totalPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
+                }
                 
                 // Add warning classes when time is running low
                 if (data.remaining_seconds <= 300) { // 5 minutes
-                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} qoldi</span>`;
+                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} qoldi<br><small>${currentCost} som</small></span>`;
                     timeDisplay.parentElement.classList.add('text-danger');
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
                     timeDisplay.parentElement.classList.add('text-warning');
