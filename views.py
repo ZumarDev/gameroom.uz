@@ -274,6 +274,10 @@ def start_session():
         db.session.commit()
         flash('Seans muvaffaqiyatli boshlandi!', 'success')
     else:
+        # Print form errors for debugging
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'danger')
         flash('Seans boshlashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     
     return redirect(url_for('sessions'))
