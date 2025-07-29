@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField, FloatField, TextAreaField, HiddenField, SubmitField
-from wtforms.validators import DataRequired, Email, Length, NumberRange
+from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional
 
 class LoginForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
@@ -46,9 +46,9 @@ class SessionForm(FlaskForm):
         ('time', 'Vaqt davomiyligi'),
         ('amount', 'Summa (avtomatik vaqt hisoblanadi)')
     ], validators=[DataRequired()], default='time')
-    duration_hours = IntegerField('Soat', validators=[NumberRange(min=0, max=24)], default=0)
-    duration_minutes = IntegerField('Daqiqa', validators=[NumberRange(min=0, max=59)], default=30)
-    amount_input = FloatField('Summa', validators=[NumberRange(min=0)])
+    duration_hours = IntegerField('Soat', validators=[Optional(), NumberRange(min=0, max=24)], default=0)
+    duration_minutes = IntegerField('Daqiqa', validators=[Optional(), NumberRange(min=0, max=59)], default=30)
+    amount_input = FloatField('Summa', validators=[Optional(), NumberRange(min=0)])
 
 class AddProductToSessionForm(FlaskForm):
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])

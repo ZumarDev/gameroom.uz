@@ -229,7 +229,7 @@ def start_session():
             if form.input_type.data == 'amount':
                 # User provided amount - calculate time based on room/category pricing
                 if not form.amount_input.data or form.amount_input.data <= 0:
-                    flash('Summa kiritish kerak!', 'danger')
+                    flash('Summa kiritish kerak va 0 dan katta bo\'lishi kerak!', 'danger')
                     return redirect(url_for('sessions'))
                     
                 target_amount = form.amount_input.data
@@ -248,7 +248,9 @@ def start_session():
                 session.total_price = target_amount
             else:
                 # User provided time - calculate amount based on room/category pricing
-                total_minutes = (form.duration_hours.data * 60) + form.duration_minutes.data
+                hours = form.duration_hours.data or 0
+                minutes = form.duration_minutes.data or 0
+                total_minutes = (hours * 60) + minutes
                 if total_minutes == 0:
                     total_minutes = 30  # Default to 30 minutes if no time specified
                     
