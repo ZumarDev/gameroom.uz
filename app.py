@@ -16,8 +16,14 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
-app.config['WTF_CSRF_SECRET_KEY'] = os.environ.get("SESSION_SECRET")
+# Set secret key with fallback
+secret_key = os.environ.get("SESSION_SECRET")
+if not secret_key:
+    import secrets
+    secret_key = secrets.token_hex(32)
+    os.environ["SESSION_SECRET"] = secret_key
+app.secret_key = secret_key
+app.config['WTF_CSRF_SECRET_KEY'] = secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
