@@ -145,6 +145,16 @@ Interface preferences: Uzbek language throughout, centered section headers, enha
 - **Duration Display**: Implemented precise duration display with seconds for completed sessions
 - **Form Consistency**: Updated ProductForm to include desserts category and aligned with filter options
 
+### Critical Bug Fixes and UI Improvements (July 29, 2025 - Evening)
+- **Session Pricing Fix**: Fixed prepaid session bug where 500 som sessions were charged 667 som
+- **Prepaid Amount Protection**: Added prepaid_amount field to preserve exact user payments
+- **Product Display Redesign**: Changed products page from table to card layout matching rooms design
+- **Multi-Tenant Architecture**: Implemented complete gaming center separation
+  - Added admin_user_id to all models (Room, RoomCategory, Product)
+  - Each gaming center operates independently with own data
+  - Dashboard, products, and rooms filtered by current user
+- **Precise Session Timing**: Added duration_seconds field for exact timing calculations
+
 ## Previous Changes (January 2025)
 
 ### UI/UX Enhancements

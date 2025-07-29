@@ -81,19 +81,25 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get active sessions
-    active_sessions = Session.query.filter_by(is_active=True).all()
+    # Multi-tenant: Get active sessions for current user's rooms only
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    active_sessions = Session.query.filter(
+        Session.room_id.in_(user_room_ids),
+        Session.is_active == True
+    ).all()
     
-    # Get today's statistics
+    # Get today's statistics for current user only
     today = datetime.utcnow().date()
     today_sessions = Session.query.filter(
+        Session.room_id.in_(user_room_ids),
         func.date(Session.created_at) == today,
         Session.is_active == False
     ).all()
     
     today_revenue = sum(session.total_price for session in today_sessions)
-    total_rooms = Room.query.filter_by(is_active=True).count()
-    total_products = Product.query.filter_by(is_active=True).count()
+    total_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    total_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
     
     return render_template('dashboard.html',
                          active_sessions=active_sessions,
@@ -105,11 +111,20 @@ def dashboard():
 @app.route('/rooms-management')
 @login_required
 def rooms_management():
-    categories = RoomCategory.query.filter_by(is_active=True).all()
-    rooms = Room.query.filter_by(is_active=True).all()
+    # Multi-tenant: Only show categories and rooms for current user
+    categories = RoomCategory.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
+    rooms = Room.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
+    
     category_form = RoomCategoryForm()
     room_form = RoomForm()
     room_form.category_id.choices = [(c.id, c.name) for c in categories]
+    
     return render_template('rooms_management.html', 
                          categories=categories, 
                          rooms=rooms,
@@ -210,7 +225,11 @@ def delete_room(room_id):
 @app.route('/products')
 @login_required
 def products():
-    products_list = Product.query.filter_by(is_active=True).all()
+    # Multi-tenant: Only show products for current user's gaming center
+    products_list = Product.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
     form = ProductForm()
     
     return render_template('products.html', 
@@ -223,6 +242,7 @@ def add_product():
     form = ProductForm()
     if form.validate_on_submit():
         product = Product()
+        product.admin_user_id = current_user.id  # Multi-tenant
         product.name = form.name.data
         product.category = form.category.data
         product.price = form.price.data
@@ -308,16 +328,18 @@ def start_session():
                 else:
                     price_per_30min = 15000  # Default fallback
                 
-                # Calculate minutes based on exact amount entered
+                # Calculate exact time based on amount entered
                 # For example: if room costs 20000 per 30min and user enters 1000, 
                 # they get (1000/20000)*30 = 1.5 minutes of play time
-                calculated_minutes = (target_amount / price_per_30min) * 30
-                total_minutes = max(int(calculated_minutes), 1)  # Minimum 1 minute
+                calculated_seconds = (target_amount / price_per_30min) * 30 * 60  # Convert to seconds
+                total_seconds = max(int(calculated_seconds), 60)  # Minimum 1 minute (60 seconds)
+                total_minutes = total_seconds / 60  # Keep as float for precise timing
                 
                 session = Session()
                 session.room_id = form.room_id.data
                 session.session_type = form.session_type.data
                 session.duration_minutes = total_minutes
+                session.duration_seconds = total_seconds  # Store exact seconds for precise timing
                 
                 # User pays exactly what they entered - save as prepaid amount
                 session.prepaid_amount = target_amount

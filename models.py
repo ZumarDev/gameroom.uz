@@ -46,6 +46,7 @@ class Room(db.Model):
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(50), nullable=False)  # drinks, snacks, etc.
     price = db.Column(db.Float, nullable=False)
@@ -59,7 +60,8 @@ class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
     session_type = db.Column(db.String(20), nullable=False)  # 'fixed' or 'vip'
-    duration_minutes = db.Column(db.Integer)  # For fixed sessions
+    duration_minutes = db.Column(db.Float)  # For fixed sessions (can be fractional)
+    duration_seconds = db.Column(db.Integer, default=0)  # Exact seconds for precise timing
     start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     end_time = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
