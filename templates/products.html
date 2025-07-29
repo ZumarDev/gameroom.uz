@@ -29,10 +29,14 @@
                 <option value="drinks">Ichimliklar</option>
                 <option value="snacks">Gazaklar</option>
                 <option value="food">Ovqatlar</option>
+                <option value="desserts">Shirinliklar</option>
                 <option value="other">Boshqalar</option>
             </select>
         </div>
         <div class="col-md-4 text-end">
+            <button type="button" class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="bi bi-collection"></i> Kategoriya Qo'shish
+            </button>
             <button type="button" class="btn btn-info btn-lg" data-bs-toggle="modal" data-bs-target="#addProductModal">
                 <i class="bi bi-plus-circle"></i> Mahsulot Qo'shish
             </button>
@@ -176,4 +180,43 @@
         </div>
     </div>
 </div>
+
+<!-- Add Category Modal for Products -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Yangi Kategoriya Qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_product_category') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Kategoriya nomi</label>
+                        <input type="text" class="form-control" name="category_name" required 
+                               placeholder="Masalan: Shirinliklar, Salqin ichimliklar">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Inglizcha nomi (sistema uchun)</label>
+                        <select class="form-select" name="category_key" required>
+                            <option value="">Tanlang...</option>
+                            <option value="drinks">Ichimliklar uchun</option>
+                            <option value="snacks">Gazaklar uchun</option>
+                            <option value="food">Ovqatlar uchun</option>
+                            <option value="desserts">Shirinliklar uchun</option>
+                            <option value="other">Boshqa kategoriya uchun</option>
+                        </select>
+                        <small class="text-muted">Yoki mavjud kategoriyani yangilash uchun tanlang</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-info">Kategoriya Qo'shish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/filters.js') }}"></script>
 {% endblock %}

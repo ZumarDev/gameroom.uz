@@ -31,6 +31,7 @@ class ProductForm(FlaskForm):
         ('drinks', 'Ichimliklar'),
         ('snacks', 'Gazaklar'),
         ('food', 'Ovqatlar'),
+        ('desserts', 'Shirinliklar'),
         ('other', 'Boshqa')
     ], validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])

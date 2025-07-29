@@ -68,19 +68,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
-                const productName = row.cells[0].textContent.toLowerCase();
-                const productCategoryElement = row.cells[1].querySelector('.badge');
-                const productCategory = productCategoryElement ? productCategoryElement.textContent.toLowerCase() : '';
-                
-                const matchesSearch = productName.includes(searchTerm);
-                
-                // Simple category matching
-                const matchesCategory = !selectedCategory || productCategory.includes(selectedCategory);
-                
-                if (matchesSearch && matchesCategory) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+                if (row.cells && row.cells.length >= 2) {
+                    const productName = row.cells[0].textContent.toLowerCase();
+                    const productCategoryElement = row.cells[1].querySelector('.badge');
+                    const productCategory = productCategoryElement ? productCategoryElement.textContent.toLowerCase() : '';
+                    
+                    const matchesSearch = productName.includes(searchTerm);
+                    
+                    // Category mapping for better matching
+                    let matchesCategory = true;
+                    if (selectedCategory) {
+                        const categoryMap = {
+                            'ichimliklar': ['drinks', 'ichimliklar'],
+                            'gazaklar': ['snacks', 'gazaklar'],
+                            'ovqatlar': ['food', 'ovqatlar'],
+                            'shirinliklar': ['desserts', 'shirinliklar'],
+                            'boshqa': ['other', 'boshqa']
+                        };
+                        
+                        const validCategories = categoryMap[selectedCategory] || [selectedCategory];
+                        matchesCategory = validCategories.some(cat => productCategory.includes(cat));
+                    }
+                    
+                    if (matchesSearch && matchesCategory) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
                 }
             });
         }

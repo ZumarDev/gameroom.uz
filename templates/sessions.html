@@ -134,7 +134,7 @@
                                     </td>
                                     <td>{{ session.start_time.strftime('%m/%d %H:%M') }}</td>
                                     <td>{{ session.end_time.strftime('%H:%M') if session.end_time else 'N/A' }}</td>
-                                    <td>{{ session.calculate_duration_minutes() }}daq</td>
+                                    <td>{{ session.get_formatted_duration() }}</td>
                                     <td><strong>{{ "{:,.0f}".format(session.total_price) }} som</strong></td>
                                 </tr>
                                 {% endfor %}

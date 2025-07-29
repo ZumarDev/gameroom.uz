@@ -131,16 +131,19 @@ Interface preferences: Uzbek language throughout, centered section headers, enha
 - **Database Updates**: Added gaming_center_name and is_admin_active fields to AdminUser model
 - **Registration Security**: Secret key protection for new admin account creation
 
-### UI/UX Improvements
-- **Centered Headers**: Dashboard and Sessions pages now have centered, styled headers with icons
+### UI/UX Improvements and Interface Unification (July 29, 2025)
+- **Centered Headers**: Dashboard, Sessions, and Products pages now have centered, styled headers with icons
 - **Dark Theme Consistency**: Fixed white backgrounds in CSS to maintain dark gaming theme
 - **Enhanced Styling**: Improved gradient colors and removed light theme elements
-- **Better Navigation**: Added registration link to login page for new gaming centers
+- **Unified Room Management**: Combined rooms and categories into single interface at /rooms-management
+- **Navigation Simplification**: Replaced dropdown menu with single link for rooms and categories
 
-### Filter System Fixes  
-- **Product Filtering**: Fixed category filtering in products section to work correctly
-- **JavaScript Updates**: Improved filter logic in filters.js for better category matching
-- **Form Consistency**: Aligned product form categories with filter options
+### Filter System and Duration Display Fixes
+- **Product Category Translation**: Fixed category display to show Uzbek translations (drinks->Ichimliklar)
+- **Category Management**: Added ability to add new product categories through modal interface
+- **JavaScript Filter Improvements**: Enhanced category matching with proper null checking and mapping
+- **Duration Display**: Implemented precise duration display with seconds for completed sessions
+- **Form Consistency**: Updated ProductForm to include desserts category and aligned with filter options
 
 ## Previous Changes (January 2025)
 

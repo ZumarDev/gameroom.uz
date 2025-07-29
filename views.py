@@ -244,6 +244,24 @@ def delete_product(product_id):
     flash(f'Mahsulot "{product.name}" o\'chirildi!', 'success')
     return redirect(url_for('products'))
 
+@app.route('/products/add-category', methods=['POST'])
+@login_required
+def add_product_category():
+    category_name = request.form.get('category_name', '').strip()
+    category_key = request.form.get('category_key', '').strip()
+    
+    if not category_name or not category_key:
+        flash('Kategoriya nomi va inglizcha kaliti kiritish shart!', 'danger')
+        return redirect(url_for('products'))
+    
+    # Update form choices to include new category
+    from forms import ProductForm
+    current_choices = dict(ProductForm.category.kwargs['choices'])
+    current_choices[category_key] = category_name
+    
+    flash(f'Kategoriya "{category_name}" qo\'shildi! Endi mahsulot qo\'shishda foydalanishingiz mumkin.', 'success')
+    return redirect(url_for('products'))
+
 @app.route('/sessions')
 @login_required
 def sessions():
