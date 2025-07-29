@@ -122,7 +122,27 @@ Interface preferences: Uzbek language throughout, centered section headers, enha
 - `static/js/`: JavaScript functionality (timer.js, dashboard.js, filters.js)
 - `create_admin.py`: Initial admin user creation utility
 
-## Recent Changes (January 2025)
+## Recent Changes (July 2025)
+
+### Migration and Multi-User System
+- **Replit Migration**: Successfully migrated from Replit Agent to standard Replit environment
+- **Multi-User Support**: Added registration system for multiple gaming centers with unique admin accounts
+- **Gaming Center Names**: Each admin can have their own gaming center name displayed in navbar
+- **Database Updates**: Added gaming_center_name and is_admin_active fields to AdminUser model
+- **Registration Security**: Secret key protection for new admin account creation
+
+### UI/UX Improvements
+- **Centered Headers**: Dashboard and Sessions pages now have centered, styled headers with icons
+- **Dark Theme Consistency**: Fixed white backgrounds in CSS to maintain dark gaming theme
+- **Enhanced Styling**: Improved gradient colors and removed light theme elements
+- **Better Navigation**: Added registration link to login page for new gaming centers
+
+### Filter System Fixes  
+- **Product Filtering**: Fixed category filtering in products section to work correctly
+- **JavaScript Updates**: Improved filter logic in filters.js for better category matching
+- **Form Consistency**: Aligned product form categories with filter options
+
+## Previous Changes (January 2025)
 
 ### UI/UX Enhancements
 - **Centered Page Headers**: All section headers now display centered with attractive icons and descriptions

@@ -64,14 +64,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (productSearch || productCategoryFilter) {
         function filterProducts() {
             const searchTerm = productSearch ? productSearch.value.toLowerCase() : '';
-            const selectedCategory = productCategoryFilter ? productCategoryFilter.value : '';
+            const selectedCategory = productCategoryFilter ? productCategoryFilter.value.toLowerCase() : '';
             const rows = document.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
                 const productName = row.cells[0].textContent.toLowerCase();
-                const productCategory = row.cells[1].textContent.toLowerCase();
+                const productCategoryElement = row.cells[1].querySelector('.badge');
+                const productCategory = productCategoryElement ? productCategoryElement.textContent.toLowerCase() : '';
                 
                 const matchesSearch = productName.includes(searchTerm);
+                
+                // Simple category matching
                 const matchesCategory = !selectedCategory || productCategory.includes(selectedCategory);
                 
                 if (matchesSearch && matchesCategory) {
