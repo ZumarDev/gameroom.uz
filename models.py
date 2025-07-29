@@ -15,6 +15,7 @@ class AdminUser(UserMixin, db.Model):
 
 class RoomCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     price_per_30min = db.Column(db.Float, nullable=False, default=15000)  # Base price for 30 minutes
@@ -26,6 +27,7 @@ class RoomCategory(db.Model):
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     category_id = db.Column(db.Integer, db.ForeignKey('room_category.id'), nullable=False)

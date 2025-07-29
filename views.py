@@ -142,6 +142,7 @@ def add_room_category():
     form = RoomCategoryForm()
     if form.validate_on_submit():
         category = RoomCategory()
+        category.admin_user_id = current_user.id  # Multi-tenant
         category.name = form.name.data
         category.description = form.description.data
         category.price_per_30min = form.price_per_30min.data
@@ -153,7 +154,7 @@ def add_room_category():
 @app.route('/room-categories/<int:category_id>/edit', methods=['POST'])
 @login_required
 def edit_room_category(category_id):
-    category = RoomCategory.query.get_or_404(category_id)
+    category = RoomCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
     form = RoomCategoryForm()
     if form.validate_on_submit():
         category.name = form.name.data
@@ -166,7 +167,7 @@ def edit_room_category(category_id):
 @app.route('/room-categories/<int:category_id>/delete')
 @login_required
 def delete_room_category(category_id):
-    category = RoomCategory.query.get_or_404(category_id)
+    category = RoomCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
     category.is_active = False
     db.session.commit()
     flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
@@ -175,18 +176,19 @@ def delete_room_category(category_id):
 @app.route('/rooms')
 @login_required
 def rooms():
-    rooms_list = Room.query.filter_by(is_active=True).all()
+    rooms_list = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     form = RoomForm()
-    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     return redirect(url_for('rooms_management'))
 
 @app.route('/rooms/add', methods=['POST'])
 @login_required
 def add_room():
     form = RoomForm()
-    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     if form.validate_on_submit():
         room = Room()
+        room.admin_user_id = current_user.id  # Multi-tenant
         room.name = form.name.data
         room.description = form.description.data
         room.category_id = form.category_id.data
@@ -201,9 +203,9 @@ def add_room():
 @app.route('/rooms/<int:room_id>/edit', methods=['POST'])
 @login_required
 def edit_room(room_id):
-    room = Room.query.get_or_404(room_id)
+    room = Room.query.filter_by(id=room_id, admin_user_id=current_user.id).first_or_404()
     form = RoomForm()
-    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     if form.validate_on_submit():
         room.name = form.name.data
         room.description = form.description.data
@@ -216,7 +218,7 @@ def edit_room(room_id):
 @app.route('/rooms/delete/<int:room_id>')
 @login_required
 def delete_room(room_id):
-    room = Room.query.get_or_404(room_id)
+    room = Room.query.filter_by(id=room_id, admin_user_id=current_user.id).first_or_404()
     room.is_active = False
     db.session.commit()
     flash(f'Xona "{room.name}" o\'chirildi!', 'success')
@@ -285,12 +287,15 @@ def add_product_category():
 @app.route('/sessions')
 @login_required
 def sessions():
-    active_sessions = Session.query.filter_by(is_active=True).all()
-    completed_sessions = Session.query.filter_by(is_active=False).order_by(Session.created_at.desc()).limit(20).all()
+    # Multi-tenant: Get sessions for current user's rooms only
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    active_sessions = Session.query.filter(Session.room_id.in_(user_room_ids), Session.is_active == True).all()
+    completed_sessions = Session.query.filter(Session.room_id.in_(user_room_ids), Session.is_active == False).order_by(Session.created_at.desc()).limit(20).all()
     
     # Setup form for new session
     form = SessionForm()
-    form.room_id.choices = [(r.id, r.name) for r in Room.query.filter_by(is_active=True).all()]
+    form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
     return render_template('sessions.html', 
                          active_sessions=active_sessions,
@@ -301,7 +306,8 @@ def sessions():
 @login_required
 def start_session():
     form = SessionForm()
-    form.room_id.choices = [(r.id, r.name) for r in Room.query.filter_by(is_active=True).all()]
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
     if form.validate_on_submit():
         # Check if room is already in use
@@ -310,7 +316,7 @@ def start_session():
             flash('Bu xona allaqachon ishlatilmoqda!', 'danger')
             return redirect(url_for('sessions'))
         
-        room = Room.query.get(form.room_id.data)
+        room = Room.query.filter_by(id=form.room_id.data, admin_user_id=current_user.id).first()
         
         # Check which input type user selected and validate accordingly
         if form.session_type.data == 'fixed':
