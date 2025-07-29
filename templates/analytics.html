@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Gaming Center{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1><i class="bi bi-graph-up"></i> Revenue Analytics</h1>
+    </div>
+</div>
+
+<!-- Revenue Summary Cards -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card bg-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-day fs-1"></i>
+                <h3>{{ "{:,.0f}".format(daily_revenue) }} som</h3>
+                <p class="mb-0">Today's Revenue</p>
+                <small>{{ daily_sessions }} sessions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-week fs-1"></i>
+                <h3>{{ "{:,.0f}".format(weekly_revenue) }} som</h3>
+                <p class="mb-0">This Week</p>
+                <small>{{ weekly_sessions }} sessions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-month fs-1"></i>
+                <h3>{{ "{:,.0f}".format(monthly_revenue) }} som</h3>
+                <p class="mb-0">This Month</p>
+                <small>{{ monthly_sessions }} sessions</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Breakdown -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Monthly Revenue Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ "{:,.0f}".format(session_revenue) }}</h4>
+                            <p class="text-muted">Gaming Sessions</p>
+                            <div class="progress mb-2">
+                                {% if monthly_revenue > 0 %}
+                                    {% set session_percent = (session_revenue / monthly_revenue) * 100 %}
+                                {% else %}
+                                    {% set session_percent = 0 %}
+                                {% endif %}
+                                <div class="progress-bar bg-primary" style="width: {{ session_percent }}%"></div>
+                            </div>
+                            <small>{{ "{:.1f}".format(session_percent) }}% of total</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ "{:,.0f}".format(products_revenue) }}</h4>
+                            <p class="text-muted">Products Sold</p>
+                            <div class="progress mb-2">
+                                {% if monthly_revenue > 0 %}
+                                    {% set products_percent = (products_revenue / monthly_revenue) * 100 %}
+                                {% else %}
+                                    {% set products_percent = 0 %}
+                                {% endif %}
+                                <div class="progress-bar bg-success" style="width: {{ products_percent }}%"></div>
+                            </div>
+                            <small>{{ "{:.1f}".format(products_percent) }}% of total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Average Session Value</span>
+                        <strong>
+                            {% if monthly_sessions > 0 %}
+                                {{ "{:,.0f}".format(monthly_revenue / monthly_sessions) }} som
+                            {% else %}
+                                0 som
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Average Products per Session</span>
+                        <strong>
+                            {% if monthly_sessions > 0 %}
+                                {{ "{:.1f}".format(products_revenue / session_revenue * 100) if session_revenue > 0 else 0 }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Daily Average</span>
+                        <strong>{{ "{:,.0f}".format(monthly_revenue / 30) }} som</strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Sessions per Day (avg)</span>
+                        <strong>{{ "{:.1f}".format(monthly_sessions / 30) }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Quick Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ daily_sessions }}</h4>
+                        <p class="text-muted">Sessions Today</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ weekly_sessions }}</h4>
+                        <p class="text-muted">Sessions This Week</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ monthly_sessions }}</h4>
+                        <p class="text-muted">Sessions This Month</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            {% if daily_sessions > 0 %}
+                                {{ "{:,.0f}".format(daily_revenue / daily_sessions) }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted">Avg Session Value Today</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

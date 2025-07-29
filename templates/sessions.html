@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Sessions - Gaming Center{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1><i class="bi bi-play-circle"></i> Sessions Management</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#startSessionModal">
+            <i class="bi bi-plus"></i> Start New Session
+        </button>
+    </div>
+</div>
+
+<!-- Active Sessions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Active Sessions ({{ active_sessions|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if active_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Type</th>
+                                    <th>Started</th>
+                                    <th>Timer</th>
+                                    <th>Session Price</th>
+                                    <th>Products</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in active_sessions %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ session.room.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
+                                            {{ session.session_type.title() }}
+                                            {% if session.session_type == 'fixed' %}
+                                                <br><small>{{ session.duration_minutes }}min</small>
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ session.start_time.strftime('%H:%M') }}</td>
+                                    <td>
+                                        <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}" 
+                                             {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>
+                                            <span class="time-display">Loading...</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ "{:,.0f}".format(session.session_price) }} som</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ session.cart_items|length }}</span>
+                                        {{ "{:,.0f}".format(session.products_total) }} som
+                                    </td>
+                                    <td>
+                                        <strong>{{ "{:,.0f}".format(session.total_price) }} som</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('session_detail', session_id=session.id) }}" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('stop_session', session_id=session.id) }}" 
+                                               class="btn btn-outline-danger" title="Stop Session"
+                                               onclick="return confirm('Stop this session?')">
+                                                <i class="bi bi-stop-circle"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-play-circle fs-1 text-muted"></i>
+                        <p class="text-muted">No active sessions</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#startSessionModal">
+                            Start First Session
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Completed Sessions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> Recent Completed Sessions</h5>
+            </div>
+            <div class="card-body">
+                {% if completed_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Type</th>
+                                    <th>Started</th>
+                                    <th>Ended</th>
+                                    <th>Duration</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in completed_sessions %}
+                                <tr>
+                                    <td>{{ session.room.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
+                                            {{ session.session_type.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ session.start_time.strftime('%m/%d %H:%M') }}</td>
+                                    <td>{{ session.end_time.strftime('%H:%M') if session.end_time else 'N/A' }}</td>
+                                    <td>
+                                        {% if session.session_type == 'fixed' %}
+                                            {{ session.duration_minutes }}min
+                                        {% else %}
+                                            {{ session.calculate_duration_minutes() }}min
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ "{:,.0f}".format(session.total_price) }} som</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No completed sessions yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Start Session Modal -->
+<div class="modal fade" id="startSessionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('start_session') }}">
+                {{ form.hidden_tag() }}
+                <div class="modal-header">
+                    <h5 class="modal-title">Start New Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ form.room_id.label(class="form-label") }}
+                        {{ form.room_id(class="form-select") }}
+                        {% if form.room_id.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.room_id.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.session_type.label(class="form-label") }}
+                        {{ form.session_type(class="form-select", onchange="toggleDurationField()") }}
+                        {% if form.session_type.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.session_type.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3" id="durationField">
+                        {{ form.duration_minutes.label(class="form-label") }}
+                        {{ form.duration_minutes(class="form-select") }}
+                        {% if form.duration_minutes.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.duration_minutes.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Start Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDurationField() {
+    const sessionType = document.getElementById('session_type').value;
+    const durationField = document.getElementById('durationField');
+    
+    if (sessionType === 'fixed') {
+        durationField.style.display = 'block';
+    } else {
+        durationField.style.display = 'none';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleDurationField();
+});
+</script>
+{% endblock %}

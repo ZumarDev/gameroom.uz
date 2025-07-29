@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Session Details - Gaming Center{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1><i class="bi bi-info-circle"></i> Session Details</h1>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if session.is_active %}
+            <a href="{{ url_for('stop_session', session_id=session.id) }}" 
+               class="btn btn-danger"
+               onclick="return confirm('Stop this session?')">
+                <i class="bi bi-stop-circle"></i> Stop Session
+            </a>
+        {% endif %}
+        <a href="{{ url_for('sessions') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Sessions
+        </a>
+    </div>
+</div>
+
+<!-- Session Info -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-play-circle"></i> Session Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Room:</strong></td>
+                        <td><span class="badge bg-secondary">{{ session.room.name }}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Type:</strong></td>
+                        <td>
+                            <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
+                                {{ session.session_type.title() }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Started:</strong></td>
+                        <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% if session.end_time %}
+                    <tr>
+                        <td><strong>Ended:</strong></td>
+                        <td>{{ session.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>Duration:</strong></td>
+                        <td>
+                            {% if session.session_type == 'fixed' %}
+                                {{ session.duration_minutes }} minutes (planned)
+                            {% else %}
+                                {% if session.is_active %}
+                                    <div class="timer" data-session-id="{{ session.id }}" data-session-type="vip">
+                                        <span class="time-display">Loading...</span>
+                                    </div>
+                                {% else %}
+                                    {{ session.calculate_duration_minutes() }} minutes
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            {% if session.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% if session.session_type == 'fixed' %}
+                                    <div class="timer mt-2" data-session-id="{{ session.id }}" data-session-type="fixed" data-duration="{{ session.duration_minutes }}">
+                                        <small class="text-muted">Time remaining: </small>
+                                        <span class="time-display">Loading...</span>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-currency-dollar"></i> Pricing Summary</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Session Price:</strong></td>
+                        <td class="text-end">{{ "{:,.0f}".format(session.session_price) }} som</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Products Total:</strong></td>
+                        <td class="text-end">{{ "{:,.0f}".format(session.products_total) }} som</td>
+                    </tr>
+                    <tr class="border-top">
+                        <td><strong>Total Amount:</strong></td>
+                        <td class="text-end"><h4 class="text-success">{{ "{:,.0f}".format(session.total_price) }} som</h4></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products in Session -->
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cart"></i> Products in Session</h5>
+                {% if session.is_active %}
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="bi bi-plus"></i> Add Product
+                    </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if session.cart_items %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Unit Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    {% if session.is_active %}
+                                        <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in session.cart_items %}
+                                <tr>
+                                    <td><strong>{{ item.product.name }}</strong></td>
+                                    <td><span class="badge bg-secondary">{{ item.product.category.title() }}</span></td>
+                                    <td>{{ "{:,.0f}".format(item.product.price) }} som</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><strong>{{ "{:,.0f}".format(item.product.price * item.quantity) }} som</strong></td>
+                                    {% if session.is_active %}
+                                        <td>
+                                            <a href="{{ url_for('remove_product_from_session', session_id=session.id, item_id=item.id) }}" 
+                                               class="btn btn-outline-danger btn-sm"
+                                               onclick="return confirm('Remove this product from session?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-cart fs-1 text-muted"></i>
+                        <p class="text-muted">No products added to this session</p>
+                        {% if session.is_active %}
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                                Add First Product
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+{% if session.is_active %}
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('add_product_to_session', session_id=session.id) }}">
+                {{ form.hidden_tag() }}
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Product to Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ form.product_id.label(class="form-label") }}
+                        {{ form.product_id(class="form-select") }}
+                        {% if form.product_id.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.product_id.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.quantity.label(class="form-label") }}
+                        {{ form.quantity(class="form-control") }}
+                        {% if form.quantity.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.quantity.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
