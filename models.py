@@ -10,15 +10,36 @@ class AdminUser(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class RoomCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    price_per_30min = db.Column(db.Float, nullable=False, default=15000)  # Base price for 30 minutes
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with rooms
+    rooms = db.relationship('Room', backref='category', lazy=True)
+
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    category_id = db.Column(db.Integer, db.ForeignKey('room_category.id'), nullable=False)
+    custom_price_per_30min = db.Column(db.Float)  # Optional custom pricing, overrides category default
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with sessions
     sessions = db.relationship('Session', backref='room', lazy=True)
+    
+    def get_price_per_30min(self):
+        """Get the price per 30 minutes for this room"""
+        if self.custom_price_per_30min:
+            return self.custom_price_per_30min
+        else:
+            category = RoomCategory.query.get(self.category_id)
+            return category.price_per_30min if category else 15000
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,7 +97,7 @@ class CartItem(db.Model):
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
-    product = db.relationship('Product', backref='cart_items')
+    product = db.relationship('Product')
 
 # Fixed session pricing configuration
 FIXED_SESSION_PRICES = {

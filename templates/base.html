@@ -33,14 +33,22 @@
                             <i class="bi bi-play-circle"></i> Seanslar
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('rooms') }}">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-house"></i> Xonalar
                         </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('room_categories') }}">
+                                <i class="bi bi-collection"></i> Kategoriyalar
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rooms') }}">
+                                <i class="bi bi-house"></i> Xonalar
+                            </a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('products') }}">
-                            <i class="bi bi-box"></i> Mahsulotlar
+                            <i class="bi bi-shop"></i> Mahsulotlar
                         </a>
                     </li>
                     <li class="nav-item">

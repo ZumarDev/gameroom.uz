@@ -4,8 +4,9 @@ from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 from app import app, db
-from models import AdminUser, Room, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, ProductForm, SessionForm, AddProductToSessionForm
+from models import AdminUser, Room, RoomCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
+from werkzeug.security import generate_password_hash
 
 @app.route('/')
 def index():
@@ -60,24 +61,90 @@ def dashboard():
                          total_products=total_products,
                          session_count=len(today_sessions))
 
+@app.route('/room-categories')
+@login_required
+def room_categories():
+    categories = RoomCategory.query.filter_by(is_active=True).all()
+    form = RoomCategoryForm()
+    return render_template('room_categories.html', categories=categories, form=form)
+
+@app.route('/room-categories/add', methods=['POST'])
+@login_required
+def add_room_category():
+    form = RoomCategoryForm()
+    if form.validate_on_submit():
+        category = RoomCategory(
+            name=form.name.data,
+            description=form.description.data,
+            price_per_30min=form.price_per_30min.data
+        )
+        db.session.add(category)
+        db.session.commit()
+        flash(f'Kategoriya "{category.name}" muvaffaqiyatli yaratildi!', 'success')
+    return redirect(url_for('room_categories'))
+
+@app.route('/room-categories/<int:category_id>/edit', methods=['POST'])
+@login_required
+def edit_room_category(category_id):
+    category = RoomCategory.query.get_or_404(category_id)
+    form = RoomCategoryForm()
+    if form.validate_on_submit():
+        category.name = form.name.data
+        category.description = form.description.data
+        category.price_per_30min = form.price_per_30min.data
+        db.session.commit()
+        flash(f'Kategoriya "{category.name}" yangilandi!', 'success')
+    return redirect(url_for('room_categories'))
+
+@app.route('/room-categories/<int:category_id>/delete')
+@login_required
+def delete_room_category(category_id):
+    category = RoomCategory.query.get_or_404(category_id)
+    category.is_active = False
+    db.session.commit()
+    flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
+    return redirect(url_for('room_categories'))
+
 @app.route('/rooms')
 @login_required
 def rooms():
     rooms_list = Room.query.filter_by(is_active=True).all()
     form = RoomForm()
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
     return render_template('rooms.html', rooms=rooms_list, form=form)
 
 @app.route('/rooms/add', methods=['POST'])
 @login_required
 def add_room():
     form = RoomForm()
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
     if form.validate_on_submit():
-        room = Room(name=form.name.data, description=form.description.data)
+        room = Room(
+            name=form.name.data,
+            description=form.description.data,
+            category_id=form.category_id.data,
+            custom_price_per_30min=form.custom_price_per_30min.data
+        )
         db.session.add(room)
         db.session.commit()
-        flash(f'Room "{room.name}" added successfully!', 'success')
+        flash(f'Xona "{room.name}" muvaffaqiyatli yaratildi!', 'success')
     else:
-        flash('Error adding room. Please check your input.', 'danger')
+        flash('Xona qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+    return redirect(url_for('rooms'))
+
+@app.route('/rooms/<int:room_id>/edit', methods=['POST'])
+@login_required
+def edit_room(room_id):
+    room = Room.query.get_or_404(room_id)
+    form = RoomForm()
+    form.category_id.choices = [(c.id, c.name) for c in RoomCategory.query.filter_by(is_active=True).all()]
+    if form.validate_on_submit():
+        room.name = form.name.data
+        room.description = form.description.data
+        room.category_id = form.category_id.data
+        room.custom_price_per_30min = form.custom_price_per_30min.data
+        db.session.commit()
+        flash(f'Xona "{room.name}" yangilandi!', 'success')
     return redirect(url_for('rooms'))
 
 @app.route('/rooms/delete/<int:room_id>')
@@ -86,7 +153,7 @@ def delete_room(room_id):
     room = Room.query.get_or_404(room_id)
     room.is_active = False
     db.session.commit()
-    flash(f'Room "{room.name}" deleted successfully!', 'success')
+    flash(f'Xona "{room.name}" o\'chirildi!', 'success')
     return redirect(url_for('rooms'))
 
 @app.route('/products')
@@ -317,3 +384,37 @@ def get_session_time(session_id):
             'remaining_seconds': 0,
             'elapsed_seconds': int(elapsed.total_seconds())
         })
+
+@app.route('/register/Muslim', methods=['GET', 'POST'])
+def register():
+    """Registration route with secret key verification"""
+    form = RegisterForm()
+    if form.validate_on_submit():
+        # Check secret key
+        if form.secret_key.data != 'Muslim':
+            flash('Noto\'g\'ri maxfiy kalit!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Check if username already exists
+        if AdminUser.query.filter_by(username=form.username.data).first():
+            flash('Bu foydalanuvchi nomi allaqachon mavjud!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Check if email already exists
+        if AdminUser.query.filter_by(email=form.email.data).first():
+            flash('Bu email allaqachon ro\'yxatga olingan!', 'danger')
+            return render_template('register.html', form=form)
+        
+        # Create new user
+        user = AdminUser(
+            username=form.username.data,
+            email=form.email.data,
+            password_hash=generate_password_hash(form.password.data)
+        )
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Ro\'yxatdan o\'tish muvaffaqiyatli tugallandi! Endi tizimga kirishingiz mumkin.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)

@@ -6,9 +6,22 @@ class LoginForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
     password = PasswordField('Parol', validators=[DataRequired()])
 
+class RoomCategoryForm(FlaskForm):
+    name = StringField('Kategoriya nomi', validators=[DataRequired(), Length(min=1, max=100)])
+    description = TextAreaField('Tavsif')
+    price_per_30min = FloatField('30 daqiqa uchun narx (som)', validators=[DataRequired(), NumberRange(min=0)], default=15000)
+
 class RoomForm(FlaskForm):
     name = StringField('Xona nomi', validators=[DataRequired(), Length(min=1, max=100)])
     description = TextAreaField('Tavsif')
+    category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
+    custom_price_per_30min = FloatField('Maxsus narx (30 daqiqa)', validators=[NumberRange(min=0)])
+
+class RegisterForm(FlaskForm):
+    username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Parol', validators=[DataRequired(), Length(min=6)])
+    secret_key = StringField('Maxfiy kalit', validators=[DataRequired()])
 
 class ProductForm(FlaskForm):
     name = StringField('Mahsulot nomi', validators=[DataRequired(), Length(min=1, max=100)])

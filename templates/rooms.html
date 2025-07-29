@@ -23,10 +23,20 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="card-title">{{ room.name }}</h5>
+                            <span class="badge bg-info mb-2">{{ room.category.name if room.category else 'Kategoriyasiz' }}</span>
                             {% if room.description %}
                                 <p class="card-text text-muted">{{ room.description }}</p>
                             {% endif %}
-                            <small class="text-muted">Yaratilgan: {{ room.created_at.strftime('%Y-%m-%d') }}</small>
+                            <div class="text-muted">
+                                <small><i class="bi bi-currency-dollar"></i> 
+                                    {% if room.custom_price_per_30min %}
+                                        {{ "{:,.0f}".format(room.custom_price_per_30min) }} som/30daq (maxsus)
+                                    {% else %}
+                                        {{ "{:,.0f}".format(room.category.price_per_30min if room.category else 15000) }} som/30daq
+                                    {% endif %}
+                                </small><br>
+                                <small>Yaratilgan: {{ room.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
                         </div>
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
@@ -34,9 +44,17 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li>
+                                    <button type="button" class="dropdown-item" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editRoomModal{{ room.id }}">
+                                        <i class="bi bi-pencil"></i> Tahrirlash
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <a class="dropdown-item text-danger" 
                                        href="{{ url_for('delete_room', room_id=room.id) }}"
-                                       onclick="return confirm('{{ room.name }} xonasini o\\'chirishga rozimisiz?')">
+                                       onclick="return confirm('{{ room.name }} xonasini o\'chirishga rozimisiz?')">
                                         <i class="bi bi-trash"></i> O'chirish
                                     </a>
                                 </li>
@@ -100,6 +118,18 @@
                     </div>
                     
                     <div class="mb-3">
+                        {{ form.category_id.label(class="form-label") }}
+                        {{ form.category_id(class="form-select") }}
+                        {% if form.category_id.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.category_id.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
                         {{ form.description(class="form-control", rows="3") }}
                         {% if form.description.errors %}
@@ -110,6 +140,19 @@
                             </div>
                         {% endif %}
                     </div>
+                    
+                    <div class="mb-3">
+                        {{ form.custom_price_per_30min.label(class="form-label") }}
+                        {{ form.custom_price_per_30min(class="form-control") }}
+                        {% if form.custom_price_per_30min.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.custom_price_per_30min.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Bo'sh qoldiring kategoriya narxini ishlatish uchun</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
@@ -119,4 +162,50 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Room Modals -->
+{% for room in rooms %}
+<div class="modal fade" id="editRoomModal{{ room.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('edit_room', room_id=room.id) }}">
+                {{ form.hidden_tag() }}
+                <div class="modal-header">
+                    <h5 class="modal-title">Xonani Tahrirlash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Xona nomi</label>
+                        <input type="text" name="name" class="form-control" value="{{ room.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategoriya</label>
+                        <select name="category_id" class="form-select" required>
+                            {% for choice in form.category_id.choices %}
+                                <option value="{{ choice[0] }}" {% if choice[0] == room.category_id %}selected{% endif %}>
+                                    {{ choice[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tavsif</label>
+                        <textarea name="description" class="form-control" rows="3">{{ room.description or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maxsus narx (30 daqiqa)</label>
+                        <input type="number" name="custom_price_per_30min" class="form-control" value="{{ room.custom_price_per_30min or '' }}">
+                        <div class="form-text">Bo'sh qoldiring kategoriya narxini ishlatish uchun</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
