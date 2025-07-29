@@ -383,14 +383,28 @@ def start_session():
                 elif room and room.category:
                     price_per_30min = room.category.price_per_30min
                 else:
-                    price_per_30min = 15000  # Default fallback
+                    price_per_30min = 1000  # Default fallback - updated to reasonable price
                 
                 # Calculate exact time based on amount entered
-                # For example: if room costs 20000 per 30min and user enters 1000, 
-                # they get (1000/20000)*30 = 1.5 minutes of play time
+                # For example: if room costs 1000 per 30min and user enters 100, 
+                # they get (100/1000)*30 = 3 minutes of play time
                 calculated_seconds = (target_amount / price_per_30min) * 30 * 60  # Convert to seconds
                 total_seconds = max(int(calculated_seconds), 60)  # Minimum 1 minute (60 seconds)
                 total_minutes = total_seconds / 60  # Keep as float for precise timing
+                
+                # Show user how much time they got for their money
+                hours = int(total_minutes // 60)
+                minutes = int(total_minutes % 60)
+                seconds = int((total_minutes % 1) * 60)
+                
+                if hours > 0:
+                    time_display = f"{hours} soat {minutes} daqiqa"
+                elif minutes > 0:
+                    time_display = f"{minutes} daqiqa {seconds} soniya" if seconds > 0 else f"{minutes} daqiqa"
+                else:
+                    time_display = f"{seconds} soniya"
+                    
+                flash(f'💰 {target_amount:,.0f} som uchun {time_display} vaqt berildi!', 'info')
                 
                 session = Session()
                 session.room_id = form.room_id.data
