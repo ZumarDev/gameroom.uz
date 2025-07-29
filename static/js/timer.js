@@ -53,7 +53,7 @@ class SessionTimer {
             const timeDisplay = timer.element.querySelector('.time-display');
             
             if (data.expired) {
-                timeDisplay.innerHTML = '<span class="text-danger">EXPIRED</span>';
+                timeDisplay.innerHTML = '<span class="text-danger">VAQT TUGADI</span>';
                 timeDisplay.parentElement.classList.add('text-danger');
                 this.stopTimer(sessionId);
                 
@@ -68,19 +68,20 @@ class SessionTimer {
             if (timer.sessionType === 'fixed') {
                 // Show remaining time for fixed sessions
                 const remainingTime = this.formatTime(data.remaining_seconds);
-                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} left</span>`;
+                timeDisplay.innerHTML = `<span class="text-warning">${remainingTime} qoldi</span>`;
                 
                 // Add warning classes when time is running low
                 if (data.remaining_seconds <= 300) { // 5 minutes
-                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} left</span>`;
+                    timeDisplay.innerHTML = `<span class="text-danger">${remainingTime} qoldi</span>`;
                     timeDisplay.parentElement.classList.add('text-danger');
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
                     timeDisplay.parentElement.classList.add('text-warning');
                 }
             } else {
-                // Show elapsed time for VIP sessions
+                // Show elapsed time and real-time cost for VIP sessions
                 const elapsedTime = this.formatTime(data.elapsed_seconds);
-                timeDisplay.innerHTML = `<span class="text-info">${elapsedTime} elapsed</span>`;
+                const currentCost = data.current_cost ? data.current_cost.toLocaleString() : '0';
+                timeDisplay.innerHTML = `<span class="text-info">${elapsedTime} o'tdi<br><small>${currentCost} som</small></span>`;
             }
             
         } catch (error) {

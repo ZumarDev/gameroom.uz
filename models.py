@@ -112,16 +112,16 @@ class Session(db.Model):
             self.session_price = price_blocks * price_per_30min
             
         else:  # VIP session
-            # Calculate based on actual duration
+            # Calculate based on actual duration per minute
             if self.end_time:
                 actual_duration = self.end_time - self.start_time
             else:
                 actual_duration = datetime.utcnow() - self.start_time
             
-            # Round up to nearest 30 minutes for pricing
+            # Calculate price per minute for more accurate billing
             minutes = actual_duration.total_seconds() / 60
-            price_blocks = math.ceil(minutes / 30)
-            self.session_price = price_blocks * price_per_30min
+            price_per_minute = price_per_30min / 30
+            self.session_price = minutes * price_per_minute
         
         # Calculate products total
         cart_items = CartItem.query.filter_by(session_id=self.id).all()

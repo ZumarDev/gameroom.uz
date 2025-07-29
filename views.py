@@ -300,7 +300,8 @@ def stop_session(session_id):
     # Recalculate price based on actual time played
     session.update_total_price()
     db.session.commit()
-    flash(f'Seans to\'xtatildi. Haqiqiy vaqt bo\'yicha: {session.total_price:,.0f} som', 'success')
+    actual_duration = (session.end_time - session.start_time).total_seconds() / 60
+    flash(f'Seans to\'xtatildi. {actual_duration:.1f} daqiqa o\'ynaldi: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/<int:session_id>')
@@ -442,10 +443,26 @@ def get_session_time(session_id):
     
     else:  # VIP session
         elapsed = now - session.start_time
+        elapsed_minutes = elapsed.total_seconds() / 60
+        
+        # Calculate current cost based on room pricing
+        room = session.room
+        if room and room.custom_price_per_30min:
+            price_per_30min = room.custom_price_per_30min
+        elif room and room.category:
+            price_per_30min = room.category.price_per_30min
+        else:
+            price_per_30min = 15000  # Default fallback
+        
+        # Calculate per-minute cost and current total
+        price_per_minute = price_per_30min / 30
+        current_cost = elapsed_minutes * price_per_minute
+        
         return jsonify({
             'expired': False,
             'remaining_seconds': 0,
-            'elapsed_seconds': int(elapsed.total_seconds())
+            'elapsed_seconds': int(elapsed.total_seconds()),
+            'current_cost': current_cost
         })
 
 @app.route('/register/Muslim', methods=['GET', 'POST'])
