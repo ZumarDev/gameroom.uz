@@ -260,7 +260,7 @@ def add_product():
 @app.route('/products/delete/<int:product_id>')
 @login_required
 def delete_product(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.filter_by(id=product_id, admin_user_id=current_user.id).first_or_404()
     product.is_active = False
     db.session.commit()
     flash(f'Mahsulot "{product.name}" o\'chirildi!', 'success')
@@ -269,19 +269,7 @@ def delete_product(product_id):
 @app.route('/products/add-category', methods=['POST'])
 @login_required
 def add_product_category():
-    category_name = request.form.get('category_name', '').strip()
-    category_key = request.form.get('category_key', '').strip()
-    
-    if not category_name or not category_key:
-        flash('Kategoriya nomi va inglizcha kaliti kiritish shart!', 'danger')
-        return redirect(url_for('products'))
-    
-    # Update form choices to include new category
-    from forms import ProductForm
-    current_choices = dict(ProductForm.category.kwargs['choices'])
-    current_choices[category_key] = category_name
-    
-    flash(f'Kategoriya "{category_name}" qo\'shildi! Endi mahsulot qo\'shishda foydalanishingiz mumkin.', 'success')
+    flash('Kategoriyalar oldindan belgilangan va o\'zgartirilmaydi. Mavjud kategoriyalardan birini tanlang.', 'info')
     return redirect(url_for('products'))
 
 @app.route('/sessions')
@@ -310,8 +298,12 @@ def start_session():
     form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
     if form.validate_on_submit():
-        # Check if room is already in use
-        existing_session = Session.query.filter_by(room_id=form.room_id.data, is_active=True).first()
+        # Check if room is already in use - Multi-tenant: Only check current user's sessions
+        existing_session = Session.query.filter(
+            Session.room_id == form.room_id.data,
+            Session.room_id.in_(user_room_ids),
+            Session.is_active == True
+        ).first()
         if existing_session:
             flash('Bu xona allaqachon ishlatilmoqda!', 'danger')
             return redirect(url_for('sessions'))
@@ -396,7 +388,10 @@ def start_session():
 @app.route('/sessions/stop/<int:session_id>')
 @login_required
 def stop_session(session_id):
-    session = Session.query.get_or_404(session_id)
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     session.end_time = datetime.utcnow()
     session.is_active = False
     
@@ -412,12 +407,15 @@ def stop_session(session_id):
 @app.route('/sessions/<int:session_id>')
 @login_required
 def session_detail(session_id):
-    session = Session.query.get_or_404(session_id)
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     
-    # Form for adding products
+    # Form for adding products - Multi-tenant: Only show current user's products
     form = AddProductToSessionForm()
     form.product_id.choices = [(p.id, f"{p.name} - {p.price:,.0f} som") 
-                              for p in Product.query.filter_by(is_active=True).all()]
+                              for p in Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     form.session_id.data = session_id
     
     return render_template('session_detail.html', session=session, form=form)
@@ -425,13 +423,16 @@ def session_detail(session_id):
 @app.route('/sessions/<int:session_id>/add_product', methods=['POST'])
 @login_required
 def add_product_to_session(session_id):
-    session = Session.query.get_or_404(session_id)
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     form = AddProductToSessionForm()
     form.product_id.choices = [(p.id, f"{p.name} - {p.price:,.0f} som") 
-                              for p in Product.query.filter_by(is_active=True).all()]
+                              for p in Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     
     if form.validate_on_submit():
-        product = Product.query.get(form.product_id.data)
+        product = Product.query.filter_by(id=form.product_id.data, admin_user_id=current_user.id).first()
         quantity = form.quantity.data
         
         # Check if product already in cart
@@ -463,7 +464,10 @@ def add_product_to_session(session_id):
 @app.route('/sessions/<int:session_id>/remove_product/<int:item_id>')
 @login_required
 def remove_product_from_session(session_id, item_id):
-    session = Session.query.get_or_404(session_id)
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     cart_item = CartItem.query.get_or_404(item_id)
     
     db.session.delete(cart_item)
@@ -495,7 +499,11 @@ def analytics():
         else:
             target_date = today
             
+        # Multi-tenant: Get sessions for current user's rooms only
+        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+        user_room_ids = [room.id for room in user_rooms]
         daily_sessions = Session.query.filter(
+            Session.room_id.in_(user_room_ids),
             func.date(Session.created_at) == target_date,
             Session.is_active == False
         ).all()
@@ -520,7 +528,11 @@ def analytics():
         else:
             year, month = today.year, today.month
             
+        # Multi-tenant: Get sessions for current user's rooms only
+        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+        user_room_ids = [room.id for room in user_rooms]
         monthly_sessions = Session.query.filter(
+            Session.room_id.in_(user_room_ids),
             extract('month', Session.created_at) == month,
             extract('year', Session.created_at) == year,
             Session.is_active == False
@@ -538,16 +550,20 @@ def analytics():
         session_revenue = sum(session.session_price for session in monthly_sessions)
         products_revenue = sum(session.products_total for session in monthly_sessions)
     
-    # Always calculate today's data for comparison
+    # Always calculate today's data for comparison - Multi-tenant
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
     today_sessions = Session.query.filter(
+        Session.room_id.in_(user_room_ids),
         func.date(Session.created_at) == today,
         Session.is_active == False
     ).all()
     today_revenue = sum(session.total_price for session in today_sessions)
     
-    # Weekly analytics
+    # Weekly analytics - Multi-tenant
     week_start = today - timedelta(days=today.weekday())
     weekly_sessions = Session.query.filter(
+        Session.room_id.in_(user_room_ids),
         Session.created_at >= week_start,
         Session.is_active == False
     ).all()
@@ -572,7 +588,10 @@ def analytics():
 @app.route('/api/session_time/<int:session_id>')
 @login_required
 def get_session_time(session_id):
-    session = Session.query.get_or_404(session_id)
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     now = datetime.utcnow()
     
     if session.session_type == 'fixed':

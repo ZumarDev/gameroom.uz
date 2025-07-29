@@ -28,11 +28,11 @@ class RegisterForm(FlaskForm):
 class ProductForm(FlaskForm):
     name = StringField('Mahsulot nomi', validators=[DataRequired(), Length(min=1, max=100)])
     category = SelectField('Kategoriya', choices=[
-        ('drinks', 'Ichimliklar'),
-        ('snacks', 'Gazaklar'),
-        ('food', 'Ovqatlar'),
-        ('desserts', 'Shirinliklar'),
-        ('other', 'Boshqa')
+        ('ichimliklar', 'Ichimliklar'),
+        ('gazaklar', 'Gazaklar'),
+        ('ovqatlar', 'Ovqatlar'),
+        ('shirinliklar', 'Shirinliklar'),
+        ('boshqa', 'Boshqa')
     ], validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
     unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')

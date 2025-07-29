@@ -57,7 +57,7 @@
                                     <h5 class="card-title">Ichimliklar</h5>
                                     <p class="card-text text-muted">Salqin ichimliklar, choylar va qahvalar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'drinks')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'ichimliklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +72,7 @@
                                     <h5 class="card-title">Gazaklar</h5>
                                     <p class="card-text text-muted">Chiplar, donuklar va yengil gazaklar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'snacks')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'gazaklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -87,7 +87,7 @@
                                     <h5 class="card-title">Ovqatlar</h5>
                                     <p class="card-text text-muted">Tez tayyorlanuvchi ovqatlar va fast food</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'food')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'ovqatlar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -102,7 +102,7 @@
                                     <h5 class="card-title">Shirinliklar</h5>
                                     <p class="card-text text-muted">Shokoladlar, konfetlar va desertlar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'desserts')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'shirinliklar')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -117,7 +117,7 @@
                                     <h5 class="card-title">Boshqa</h5>
                                     <p class="card-text text-muted">Qo'shimcha mahsulotlar va aksessuarlar</p>
                                     <div class="text-muted">
-                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'other')|list|length }} ta mahsulot</small>
+                                        <small><i class="bi bi-box"></i> {{ products|selectattr('category', 'equalto', 'boshqa')|list|length }} ta mahsulot</small>
                                     </div>
                                 </div>
                             </div>
@@ -139,11 +139,11 @@
                 <div class="col-md-4">
                     <select class="form-select" id="productCategoryFilter">
                         <option value="">Barcha kategoriyalar</option>
-                        <option value="drinks">Ichimliklar</option>
-                        <option value="snacks">Gazaklar</option>
-                        <option value="food">Ovqatlar</option>
-                        <option value="desserts">Shirinliklar</option>
-                        <option value="other">Boshqalar</option>
+                        <option value="ichimliklar">Ichimliklar</option>
+                        <option value="gazaklar">Gazaklar</option>
+                        <option value="ovqatlar">Ovqatlar</option>
+                        <option value="shirinliklar">Shirinliklar</option>
+                        <option value="boshqa">Boshqa</option>
                     </select>
                 </div>
                 <div class="col-md-4 text-end">
@@ -163,7 +163,12 @@
                                     <div>
                                         <h5 class="card-title">{{ product.name }}</h5>
                                         <span class="badge bg-info mb-2">
-                                            {% if product.category == 'drinks' %}Ichimliklar
+                                            {% if product.category == 'ichimliklar' %}Ichimliklar
+                                            {% elif product.category == 'gazaklar' %}Gazaklar
+                                            {% elif product.category == 'ovqatlar' %}Ovqatlar
+                                            {% elif product.category == 'shirinliklar' %}Shirinliklar
+                                            {% elif product.category == 'boshqa' %}Boshqa
+                                            {% elif product.category == 'drinks' %}Ichimliklar
                                             {% elif product.category == 'snacks' %}Gazaklar
                                             {% elif product.category == 'food' %}Ovqatlar
                                             {% elif product.category == 'desserts' %}Shirinliklar
