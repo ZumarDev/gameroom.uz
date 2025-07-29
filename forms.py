@@ -32,21 +32,9 @@ class ProductForm(FlaskForm):
         ('other', 'Boshqa')
     ], validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
-    stock_quantity = IntegerField('Zaxira miqdori', validators=[DataRequired(), NumberRange(min=0)], default=0)
-    min_stock_level = IntegerField('Minimal zaxira darajasi', validators=[DataRequired(), NumberRange(min=0)], default=5)
     unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')
 
-class StockAdjustmentForm(FlaskForm):
-    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
-    movement_type = SelectField('Harakat turi', choices=[
-        ('purchase', 'Xarid (Qo\'shish)'),
-        ('adjustment', 'Tuzatma'),
-        ('loss', 'Yo\'qotish')
-    ], validators=[DataRequired()])
-    quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
-    reason = StringField('Sabab', validators=[Length(max=200)])
-    notes = TextAreaField('Izohlar')
-    submit = SubmitField('Qo\'llash')
+# Stock management removed per user request
 
 class SessionForm(FlaskForm):
     room_id = SelectField('Xona', coerce=int, validators=[DataRequired()])
@@ -54,12 +42,9 @@ class SessionForm(FlaskForm):
         ('fixed', 'Belgilangan vaqt'),
         ('vip', 'VIP')
     ], validators=[DataRequired()])
-    duration_minutes = SelectField('Davomiyligi', choices=[
-        (30, '30 daqiqa - 15,000 som'),
-        (60, '60 daqiqa - 25,000 som'),
-        (90, '90 daqiqa - 35,000 som'),
-        (120, '120 daqiqa - 45,000 som')
-    ], coerce=int)
+    duration_hours = IntegerField('Soat', validators=[NumberRange(min=0, max=24)], default=0)
+    duration_minutes = IntegerField('Daqiqa', validators=[NumberRange(min=0, max=59)], default=30)
+    custom_amount = FloatField('Maxsus summa (ixtiyoriy)', validators=[NumberRange(min=0)])
 
 class AddProductToSessionForm(FlaskForm):
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])

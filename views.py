@@ -4,8 +4,8 @@ from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 from app import app, db
-from models import AdminUser, Room, RoomCategory, Product, Session, CartItem, StockMovement, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockAdjustmentForm
+from models import AdminUser, Room, RoomCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
 from werkzeug.security import generate_password_hash
 
 @app.route('/')
@@ -162,15 +162,9 @@ def products():
     products_list = Product.query.filter_by(is_active=True).all()
     form = ProductForm()
     
-    # Get low stock alerts
-    low_stock_products = [p for p in products_list if p.is_low_stock()]
-    out_of_stock_products = [p for p in products_list if p.is_out_of_stock()]
-    
     return render_template('products.html', 
                          products=products_list, 
-                         form=form,
-                         low_stock_products=low_stock_products,
-                         out_of_stock_products=out_of_stock_products)
+                         form=form)
 
 @app.route('/products/add', methods=['POST'])
 @login_required
@@ -181,24 +175,10 @@ def add_product():
             name=form.name.data,
             category=form.category.data,
             price=form.price.data,
-            stock_quantity=form.stock_quantity.data,
-            min_stock_level=form.min_stock_level.data,
             unit=form.unit.data
         )
         db.session.add(product)
         db.session.commit()
-        
-        # Record initial stock movement if quantity > 0
-        if form.stock_quantity.data > 0:
-            stock_movement = StockMovement(
-                product_id=product.id,
-                movement_type='purchase',
-                quantity=form.stock_quantity.data,
-                reason='Dastlabki zaxira',
-                created_by=current_user.id
-            )
-            db.session.add(stock_movement)
-            db.session.commit()
         
         flash(f'Mahsulot "{product.name}" muvaffaqiyatli qo\'shildi!', 'success')
     else:
@@ -242,19 +222,29 @@ def start_session():
             flash('Bu xona allaqachon ishlatilmoqda!', 'danger')
             return redirect(url_for('sessions'))
         
+        # Calculate duration in minutes from hours and minutes
+        total_minutes = (form.duration_hours.data * 60) + form.duration_minutes.data
+        
         session = Session(
             room_id=form.room_id.data,
-            session_type=form.session_type.data
+            session_type=form.session_type.data,
+            duration_minutes=total_minutes if form.session_type.data == 'fixed' else None
         )
         
-        if form.session_type.data == 'fixed':
-            session.duration_minutes = form.duration_minutes.data
-            # Calculate initial price using room/category pricing
-            session.update_total_price()
+        # Calculate session price
+        if form.custom_amount.data and form.custom_amount.data > 0:
+            # Use custom amount if provided
+            session.session_price = form.custom_amount.data
+            session.total_price = form.custom_amount.data
         else:
-            # VIP session - price will be calculated when stopped
-            session.session_price = 0
-            session.total_price = 0
+            # Calculate based on room/category pricing and duration
+            if form.session_type.data == 'fixed':
+                session.update_total_price()
+            else:
+                # VIP session - price will be calculated when stopped
+                session.session_price = 0
+                session.total_price = 0
+        
         db.session.add(session)
         db.session.commit()
         flash('Seans muvaffaqiyatli boshlandi!', 'success')
@@ -263,69 +253,7 @@ def start_session():
     
     return redirect(url_for('sessions'))
 
-@app.route('/inventory')
-@login_required
-def inventory():
-    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
-    
-    # Stock adjustment form
-    form = StockAdjustmentForm()
-    form.product_id.choices = [(p.id, f'{p.name} - {p.stock_quantity} {p.unit}') for p in products]
-    
-    # Get stock movements (recent 50)
-    movements = StockMovement.query.order_by(StockMovement.created_at.desc()).limit(50).all()
-    
-    # Get low stock alerts
-    low_stock_products = [p for p in products if p.is_low_stock()]
-    out_of_stock_products = [p for p in products if p.is_out_of_stock()]
-    
-    return render_template('inventory.html',
-                         products=products,
-                         form=form,
-                         movements=movements,
-                         low_stock_products=low_stock_products,
-                         out_of_stock_products=out_of_stock_products)
-
-@app.route('/inventory/adjust', methods=['POST'])
-@login_required
-def adjust_stock():
-    form = StockAdjustmentForm()
-    products = Product.query.filter_by(is_active=True).all()
-    form.product_id.choices = [(p.id, f'{p.name} - {p.stock_quantity} {p.unit}') for p in products]
-    
-    if form.validate_on_submit():
-        product = Product.query.get_or_404(form.product_id.data)
-        movement_type = form.movement_type.data
-        quantity = form.quantity.data
-        
-        # Update stock based on movement type
-        if movement_type in ['purchase', 'adjustment']:
-            product.stock_quantity += quantity
-        elif movement_type == 'loss':
-            if product.stock_quantity >= quantity:
-                product.stock_quantity -= quantity
-            else:
-                flash(f'Yetarli zaxira yo\'q! Mavjud: {product.stock_quantity} {product.unit}', 'danger')
-                return redirect(url_for('inventory'))
-        
-        # Record stock movement
-        stock_movement = StockMovement(
-            product_id=product.id,
-            movement_type=movement_type,
-            quantity=quantity,
-            reason=form.reason.data,
-            notes=form.notes.data,
-            created_by=current_user.id
-        )
-        
-        db.session.add(stock_movement)
-        db.session.commit()
-        
-        flash(f'Zaxira muvaffaqiyatli yangilandi: {product.name}', 'success')
-    else:
-        flash('Zaxira yangilashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
-    
-    return redirect(url_for('inventory'))
+# Inventory management removed per user request
 
 @app.route('/sessions/stop/<int:session_id>')
 @login_required
@@ -364,11 +292,6 @@ def add_product_to_session(session_id):
         product = Product.query.get(form.product_id.data)
         quantity = form.quantity.data
         
-        # Check stock availability
-        if product.stock_quantity < quantity:
-            flash(f'Yetarli zaxira yo\'q! Mavjud: {product.stock_quantity} {product.unit}', 'danger')
-            return redirect(url_for('session_detail', session_id=session_id))
-        
         # Check if product already in cart
         existing_item = CartItem.query.filter_by(
             session_id=session_id,
@@ -384,20 +307,6 @@ def add_product_to_session(session_id):
                 quantity=form.quantity.data
             )
             db.session.add(cart_item)
-        
-        # Reduce stock
-        product.stock_quantity -= quantity
-        
-        # Record stock movement
-        stock_movement = StockMovement(
-            product_id=product.id,
-            movement_type='sale',
-            quantity=quantity,
-            reason='Seans davomida sotildi',
-            session_id=session_id,
-            created_by=current_user.id
-        )
-        db.session.add(stock_movement)
         
         session.update_total_price()
         db.session.commit()

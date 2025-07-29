@@ -189,15 +189,44 @@
                     </div>
                     
                     <div class="mb-3" id="durationField">
-                        {{ form.duration_minutes.label(class="form-label") }}
-                        {{ form.duration_minutes(class="form-select") }}
-                        {% if form.duration_minutes.errors %}
+                        <label class="form-label">Vaqt davomiyligi</label>
+                        <div class="row">
+                            <div class="col-6">
+                                {{ form.duration_hours.label(class="form-label") }}
+                                {{ form.duration_hours(class="form-control") }}
+                                {% if form.duration_hours.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.duration_hours.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-6">
+                                {{ form.duration_minutes.label(class="form-label") }}
+                                {{ form.duration_minutes(class="form-control") }}
+                                {% if form.duration_minutes.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.duration_minutes.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.custom_amount.label(class="form-label") }}
+                        {{ form.custom_amount(class="form-control", placeholder="Xona/kategoriya narxidan hisoblash uchun bo'sh qoldiring") }}
+                        {% if form.custom_amount.errors %}
                             <div class="text-danger small">
-                                {% for error in form.duration_minutes.errors %}
+                                {% for error in form.custom_amount.errors %}
                                     <div>{{ error }}</div>
                                 {% endfor %}
                             </div>
                         {% endif %}
+                        <div class="form-text">Agar maxsus summa kiritilsa, u xona/kategoriya narxidan ustun turadi</div>
                     </div>
                 </div>
                 <div class="modal-footer">
