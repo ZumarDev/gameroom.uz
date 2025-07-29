@@ -319,7 +319,8 @@ def start_session():
                 session.session_type = form.session_type.data
                 session.duration_minutes = total_minutes
                 
-                # User pays exactly what they entered
+                # User pays exactly what they entered - save as prepaid amount
+                session.prepaid_amount = target_amount
                 session.session_price = target_amount
                 session.total_price = target_amount
             else:
@@ -370,8 +371,10 @@ def stop_session(session_id):
     session = Session.query.get_or_404(session_id)
     session.end_time = datetime.utcnow()
     session.is_active = False
-    # Recalculate price based on actual time played
+    
+    # Update pricing (prepaid amounts will be preserved automatically in the model)
     session.update_total_price()
+    
     db.session.commit()
     actual_duration = (session.end_time - session.start_time).total_seconds() / 60
     session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"

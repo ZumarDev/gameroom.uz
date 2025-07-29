@@ -64,6 +64,7 @@ class Session(db.Model):
     end_time = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
     session_price = db.Column(db.Float, default=0.0)  # Base session price
+    prepaid_amount = db.Column(db.Float, default=0.0)  # Amount user actually paid (for prepaid sessions)
     products_total = db.Column(db.Float, default=0.0)  # Total from products
     total_price = db.Column(db.Float, default=0.0)  # session_price + products_total
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -131,24 +132,31 @@ class Session(db.Model):
         
         # Calculate session price based on actual time played
         if self.session_type == 'fixed':
-            if self.end_time and not self.is_active:
-                # Session completed - calculate actual time played
-                if self.start_time:
-                    actual_duration = self.end_time - self.start_time
-                    actual_minutes = actual_duration.total_seconds() / 60
-                else:
-                    actual_minutes = self.duration_minutes or 0
+            # CRITICAL FIX: If user prepaid (prepaid_amount > 0), use that amount regardless of time
+            # This prevents overcharging when users pay fixed amounts like 500 som
+            if self.prepaid_amount > 0:
+                # User prepaid - always use prepaid amount
+                self.session_price = self.prepaid_amount
             else:
-                # Session ongoing - calculate current duration for real-time pricing
-                if self.start_time:
-                    actual_duration = datetime.utcnow() - self.start_time
-                    actual_minutes = actual_duration.total_seconds() / 60
+                # Calculate based on time (for time-based pricing)
+                if self.end_time and not self.is_active:
+                    # Session completed - calculate actual time played
+                    if self.start_time:
+                        actual_duration = self.end_time - self.start_time
+                        actual_minutes = actual_duration.total_seconds() / 60
+                    else:
+                        actual_minutes = self.duration_minutes or 0
                 else:
-                    actual_minutes = self.duration_minutes or 0
-            
-            # Always calculate per minute for accurate pricing
-            price_per_minute = price_per_30min / 30
-            self.session_price = actual_minutes * price_per_minute
+                    # Session ongoing - calculate current duration for real-time pricing
+                    if self.start_time:
+                        actual_duration = datetime.utcnow() - self.start_time
+                        actual_minutes = actual_duration.total_seconds() / 60
+                    else:
+                        actual_minutes = self.duration_minutes or 0
+                
+                # Calculate per minute for accurate pricing
+                price_per_minute = price_per_30min / 30
+                self.session_price = actual_minutes * price_per_minute
             
         else:  # VIP session
             # Calculate based on actual duration per minute
