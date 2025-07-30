@@ -5,8 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
-from dotenv import load_dotenv
-load_dotenv() 
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -38,7 +37,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # type: ignore
+login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
 @login_manager.user_loader
@@ -48,10 +47,8 @@ def load_user(user_id):
 
 with app.app_context():
     # Import models to ensure tables are created
-    import models
+    import models  # noqa: F401
     db.create_all()
 
 # Import and register views
-from views import *
-
-# This is not needed for gunicorn deployment
+from views import *  # noqa: F401, F403
