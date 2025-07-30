@@ -5,9 +5,9 @@
     <!-- Header Section -->
     <div class="text-center mb-5">
         <h1 class="display-4 text-white mb-3">
-            <i class="bi bi-boxes"></i> Zaxira Boshqaruvi
+            <i class="bi bi-boxes"></i> {{ t('inventory_management') }}
         </h1>
-        <p class="lead text-light">Mahsulotlar zaxirasini kuzatish va boshqarish</p>
+        <p class="lead text-light">{{ t('track_manage_inventory') }}</p>
     </div>
 
     <!-- Stock Overview Cards -->
@@ -21,7 +21,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Jami Mahsulotlar</h5>
+                            <h5 class="card-title">{{ t('total_products') }}</h5>
                             <h2 class="mb-0">{{ total_products }}</h2>
                         </div>
                         <i class="bi bi-box-seam fs-1"></i>
@@ -35,7 +35,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Mavjud</h5>
+                            <h5 class="card-title">{{ t('available') }}</h5>
                             <h2 class="mb-0">{{ total_products - low_stock_products - out_of_stock_products }}</h2>
                         </div>
                         <i class="bi bi-check-circle fs-1"></i>
@@ -49,7 +49,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Kam Qolgan</h5>
+                            <h5 class="card-title">{{ t('low_stock') }}</h5>
                             <h2 class="mb-0">{{ low_stock_products }}</h2>
                         </div>
                         <i class="bi bi-exclamation-triangle fs-1"></i>
@@ -63,7 +63,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Tugagan</h5>
+                            <h5 class="card-title">{{ t('out_of_stock') }}</h5>
                             <h2 class="mb-0">{{ out_of_stock_products }}</h2>
                         </div>
                         <i class="bi bi-x-circle fs-1"></i>
@@ -78,7 +78,7 @@
         <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Zaxira Yangilash</h5>
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> {{ t('inventory_update') }}</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('update_inventory') }}">
@@ -105,7 +105,7 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-save"></i> Yangilash
+                            <i class="bi bi-save"></i> {{ t('update') }}
                         </button>
                     </form>
                 </div>
@@ -116,7 +116,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Zaxira Ro'yxati</h5>
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> {{ t('inventory_list') }}</h5>
                 </div>
                 <div class="card-body">
                     {% if products %}
@@ -124,12 +124,12 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Mahsulot nomi</th>
-                                        <th>Kategoriya</th>
-                                        <th>Narx</th>
-                                        <th>Zaxira</th>
-                                        <th>Holat</th>
-                                        <th>Min. Limit</th>
+                                        <th>{{ t('product_name') }}</th>
+                                        <th>{{ t('category') }}</th>
+                                        <th>{{ t('price') }}</th>
+                                        <th>{{ t('current_stock') }}</th>
+                                        <th>{{ t('stock_status') }}</th>
+                                        <th>{{ t('min_limit') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -68,6 +68,15 @@ TRANSLATIONS = {
         'management': 'Management',
         'no_categories': 'No Categories',
         'create_first_category': 'Create your first category',
+        'track_manage_inventory': 'Track and manage product inventory',
+        'current_stock': 'Current Stock',
+        'update_stock': 'Update Stock',
+        'inventory_update': 'Inventory Update',
+        'set_stock': 'Set Stock',
+        'add_stock': 'Add Stock',
+        'remove_stock': 'Remove Stock',
+        'inventory_list': 'Inventory List',
+        'min_limit': 'Min. Limit',
     },
     
     'ru': {
@@ -137,6 +146,15 @@ TRANSLATIONS = {
         'management': 'Управление',
         'no_categories': 'Нет категорий',
         'create_first_category': 'Создайте первую категорию',
+        'track_manage_inventory': 'Отслеживание и управление запасами продуктов',
+        'current_stock': 'Текущий запас',
+        'update_stock': 'Обновить запас',
+        'inventory_update': 'Обновление склада',
+        'set_stock': 'Установить запас',
+        'add_stock': 'Добавить запас',
+        'remove_stock': 'Убрать запас',
+        'inventory_list': 'Список склада',
+        'min_limit': 'Мин. лимит',
     },
     
     'uz': {
@@ -206,6 +224,15 @@ TRANSLATIONS = {
         'management': 'Boshqaruvi',
         'no_categories': 'Kategoriyalar yo\'q',
         'create_first_category': 'Birinchi kategoriyani yarating',
+        'track_manage_inventory': 'Mahsulotlar zaxirasini kuzatish va boshqarish',
+        'current_stock': 'Joriy zaxira',
+        'update_stock': 'Zaxirani yangilash',
+        'inventory_update': 'Zaxira yangilanishi',
+        'set_stock': 'Zaxirani belgilash',
+        'add_stock': 'Zaxira qo\'shish',
+        'remove_stock': 'Zaxirani kamaytirish',
+        'inventory_list': 'Zaxira ro\'yxati',
+        'min_limit': 'Min. chegara',
     }
 }
 
