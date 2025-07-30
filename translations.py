@@ -5,7 +5,7 @@ TRANSLATIONS = {
         # Navigation
         'dashboard': 'Dashboard',
         'sessions': 'Sessions',
-        'rooms_categories': 'Rooms & Categories',
+        'rooms_categories': 'Playrooms',
         'products': 'Products',
         'inventory': 'Inventory',
         'reports': 'Reports',
@@ -63,13 +63,18 @@ TRANSLATIONS = {
         'error': 'Error',
         'warning': 'Warning',
         'info': 'Information',
+        
+        # Additional
+        'management': 'Management',
+        'no_categories': 'No Categories',
+        'create_first_category': 'Create your first category',
     },
     
     'ru': {
         # Navigation
         'dashboard': 'Панель управления',
         'sessions': 'Сеансы',
-        'rooms_categories': 'Комнаты и Категории',
+        'rooms_categories': 'Игровые залы',
         'products': 'Продукты',
         'inventory': 'Склад',
         'reports': 'Отчеты',
@@ -127,13 +132,18 @@ TRANSLATIONS = {
         'error': 'Ошибка',
         'warning': 'Предупреждение',
         'info': 'Информация',
+        
+        # Additional
+        'management': 'Управление',
+        'no_categories': 'Нет категорий',
+        'create_first_category': 'Создайте первую категорию',
     },
     
     'uz': {
         # Navigation
         'dashboard': 'Boshqaruv Paneli',
         'sessions': 'Seanslar',
-        'rooms_categories': 'Xonalar va Kategoriyalar',
+        'rooms_categories': 'O\'yinxonalar',
         'products': 'Mahsulotlar',
         'inventory': 'Zaxira',
         'reports': 'Hisobotlar',
@@ -191,6 +201,11 @@ TRANSLATIONS = {
         'error': 'Xatolik',
         'warning': 'Ogohlantirish',
         'info': 'Ma\'lumot',
+        
+        # Additional
+        'management': 'Boshqaruvi',
+        'no_categories': 'Kategoriyalar yo\'q',
+        'create_first_category': 'Birinchi kategoriyani yarating',
     }
 }
 
