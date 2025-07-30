@@ -11,6 +11,7 @@ class AdminUser(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     gaming_center_name = db.Column(db.String(100), nullable=False, default="Gameroom")
     is_admin_active = db.Column(db.Boolean, default=True)
+    preferred_language = db.Column(db.String(5), default='uz')  # Language preference
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class RoomCategory(db.Model):

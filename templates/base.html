@@ -26,43 +26,62 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Boshqaruv Paneli
+                            <i class="bi bi-speedometer2"></i> {{ t('dashboard') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('sessions') }}">
-                            <i class="bi bi-play-circle"></i> Seanslar
+                            <i class="bi bi-play-circle"></i> {{ t('sessions') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('rooms_management') }}">
-                            <i class="bi bi-house"></i> Xonalar va Kategoriyalar
+                            <i class="bi bi-house"></i> {{ t('rooms_categories') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('products') }}">
-                            <i class="bi bi-shop"></i> Mahsulotlar
+                            <i class="bi bi-shop"></i> {{ t('products') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('inventory') }}">
-                            <i class="bi bi-boxes"></i> Zaxira
+                            <i class="bi bi-boxes"></i> {{ t('inventory') }}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('analytics') }}">
-                            <i class="bi bi-graph-up"></i> Hisobotlar
+                            <i class="bi bi-graph-up"></i> {{ t('reports') }}
                         </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-globe"></i> 
+                            {% if current_user.preferred_language == 'en' %}EN
+                            {% elif current_user.preferred_language == 'ru' %}RU
+                            {% else %}UZ{% endif %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='uz') }}">
+                                <i class="bi bi-flag"></i> O'zbek
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='ru') }}">
+                                <i class="bi bi-flag"></i> Русский
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='en') }}">
+                                <i class="bi bi-flag"></i> English
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Chiqish
+                                <i class="bi bi-box-arrow-right"></i> {{ t('logout') }}
                             </a></li>
                         </ul>
                     </li>

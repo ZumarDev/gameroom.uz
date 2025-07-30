@@ -50,5 +50,26 @@ with app.app_context():
     import models  # noqa: F401
     db.create_all()
 
+# Import translation helper
+from translations import get_translation, get_current_language
+
+@app.template_filter('translate')
+def translate_filter(key, lang=None):
+    """Template filter for translations"""
+    from flask_login import current_user
+    if not lang:
+        lang = get_current_language(current_user if hasattr(current_user, 'preferred_language') else None)
+    return get_translation(key, lang)
+
+@app.context_processor
+def inject_translation_context():
+    """Inject translation context into all templates"""
+    from flask_login import current_user
+    current_lang = get_current_language(current_user if hasattr(current_user, 'preferred_language') else None)
+    return {
+        'current_lang': current_lang,
+        't': lambda key: get_translation(key, current_lang)
+    }
+
 # Import and register views
 from views import *  # noqa: F401, F403

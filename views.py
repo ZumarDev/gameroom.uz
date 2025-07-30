@@ -8,6 +8,7 @@ from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
 from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm
 from werkzeug.security import generate_password_hash
+from translations import get_translation, get_current_language
 
 @app.route('/')
 def index():
@@ -77,6 +78,16 @@ def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
+
+@app.route('/set-language/<language>')
+@login_required
+def set_language(language):
+    """Set user language preference"""
+    if language in ['en', 'ru', 'uz']:
+        current_user.preferred_language = language
+        db.session.commit()
+        flash(f'Language changed to {language.upper()}', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
 
 @app.route('/dashboard')
 @login_required
