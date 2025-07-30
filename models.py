@@ -20,6 +20,7 @@ class RoomCategory(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     price_per_30min = db.Column(db.Float, nullable=False, default=15000)  # Base price for 30 minutes
+    vip_price_per_minute = db.Column(db.Float, default=500)  # VIP price per minute
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

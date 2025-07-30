@@ -654,16 +654,29 @@ def api_session_time(session_id):
             'current_cost': session.session_price or 0
         })
     else:
-        # VIP session - show elapsed time and current pricing
-        session.update_total_price()  # Update pricing based on current time
+        # VIP session - calculate real-time pricing based on elapsed time
+        elapsed_minutes = elapsed_seconds / 60.0
+        
+        # Get VIP pricing from room category
+        room = session.room
+        room_category = room.category if room else None
+        vip_price_per_minute = getattr(room_category, 'vip_price_per_minute', 500) if room_category else 500  # Default 500 som/minute
+        
+        # Calculate current session price based on elapsed time
+        current_session_price = elapsed_minutes * vip_price_per_minute
+        
+        # Update session price in database for consistency
+        session.session_price = current_session_price
+        session.update_total_price()  # This will also include product costs
+        db.session.commit()
         
         return jsonify({
             'elapsed_seconds': elapsed_seconds,
             'remaining_seconds': None,
             'expired': False,
-            'session_price': session.session_price or 0,
-            'total_price': session.total_price or 0,
-            'current_cost': session.session_price or 0
+            'session_price': current_session_price,
+            'total_price': session.total_price or current_session_price,
+            'current_cost': current_session_price
         })
 
 @app.route('/sessions/<int:session_id>/remove_product/<int:item_id>')
