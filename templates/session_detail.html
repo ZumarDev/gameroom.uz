@@ -146,7 +146,7 @@
                                 {% for item in session.cart_items %}
                                 <tr>
                                     <td><strong>{{ item.product.name }}</strong></td>
-                                    <td><span class="badge bg-secondary">{{ item.product.category.title() }}</span></td>
+                                    <td><span class="badge bg-secondary">{{ item.product.product_category.name if item.product.product_category else 'N/A' }}</span></td>
                                     <td>{{ "{:,.0f}".format(item.product.price) }} som</td>
                                     <td>{{ item.quantity }}</td>
                                     <td><strong>{{ "{:,.0f}".format(item.product.price * item.quantity) }} som</strong></td>

@@ -624,6 +624,48 @@ def add_product_to_session(session_id):
     
     return redirect(url_for('session_detail', session_id=session_id))
 
+@app.route('/api/session_time/<int:session_id>')
+@login_required
+def api_session_time(session_id):
+    """API endpoint for real-time session timing data"""
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
+    
+    if not session.is_active:
+        return jsonify({'error': 'Session not active'}), 400
+    
+    now = datetime.utcnow()
+    elapsed_seconds = int((now - session.start_time).total_seconds())
+    
+    if session.session_type == 'fixed':
+        # Fixed session - calculate remaining time
+        total_seconds = session.duration_minutes * 60 if session.duration_minutes else 1800  # Default 30 min
+        remaining_seconds = max(0, total_seconds - elapsed_seconds)
+        expired = remaining_seconds <= 0
+        
+        return jsonify({
+            'elapsed_seconds': elapsed_seconds,
+            'remaining_seconds': remaining_seconds,
+            'expired': expired,
+            'session_price': session.session_price or 0,
+            'total_price': session.total_price or 0,
+            'current_cost': session.session_price or 0
+        })
+    else:
+        # VIP session - show elapsed time and current pricing
+        session.update_total_price()  # Update pricing based on current time
+        
+        return jsonify({
+            'elapsed_seconds': elapsed_seconds,
+            'remaining_seconds': None,
+            'expired': False,
+            'session_price': session.session_price or 0,
+            'total_price': session.total_price or 0,
+            'current_cost': session.session_price or 0
+        })
+
 @app.route('/sessions/<int:session_id>/remove_product/<int:item_id>')
 @login_required
 def remove_product_from_session(session_id, item_id):
