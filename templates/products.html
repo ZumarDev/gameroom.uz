@@ -168,7 +168,10 @@
                                         </span>
                                         <div class="text-muted">
                                             <small><i class="bi bi-currency-dollar"></i> {{ "{:,.0f}".format(product.price) }} som/{{ product.unit }}</small><br>
-                                            <small>Yaratilgan: {{ product.created_at.strftime('%Y-%m-%d') if product.created_at else 'N/A' }}</small>
+                                            <small><i class="bi bi-boxes"></i> Zaxira: {{ product.stock_quantity }} {{ product.unit }}</small><br>
+                                            <span class="badge bg-{{ product.get_stock_color() }} badge-sm">
+                                                {{ product.get_stock_status_text() }}
+                                            </span>
                                         </div>
                                     </div>
                                     <div class="dropdown">
@@ -178,7 +181,7 @@
                                         <ul class="dropdown-menu">
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_product', product_id=product.id) }}"
-                                                   onclick="return confirm('{{ product.name }} mahsulotini o\\'chirishga rozimisiz?')">
+                                                   onclick="return confirm('{{ product.name }} mahsulotini o\'chirishga rozimisiz?')">
                                                     <i class="bi bi-trash"></i> O'chirish
                                                 </a>
                                             </li>
@@ -266,6 +269,35 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.stock_quantity.label(class="form-label") }}
+                                {{ form.stock_quantity(class="form-control") }}
+                                {% if form.stock_quantity.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.stock_quantity.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.min_stock_alert.label(class="form-label") }}
+                                {{ form.min_stock_alert(class="form-control") }}
+                                {% if form.min_stock_alert.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.min_stock_alert.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

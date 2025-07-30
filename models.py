@@ -64,10 +64,39 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('product_category.id'), nullable=False)
     price = db.Column(db.Float, nullable=False)
     unit = db.Column(db.String(20), default='dona')  # Unit of measurement (pieces, liters, etc.)
+    stock_quantity = db.Column(db.Integer, default=0)  # Current stock amount
+    min_stock_alert = db.Column(db.Integer, default=5)  # Minimum stock alert level
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-# Stock management removed per user request
+    
+    def get_stock_status(self):
+        """Get stock status: 'in_stock', 'low_stock', 'out_of_stock'"""
+        if self.stock_quantity <= 0:
+            return 'out_of_stock'
+        elif self.stock_quantity <= self.min_stock_alert:
+            return 'low_stock'
+        else:
+            return 'in_stock'
+    
+    def get_stock_status_text(self):
+        """Get stock status in Uzbek"""
+        status = self.get_stock_status()
+        if status == 'out_of_stock':
+            return 'Tugagan'
+        elif status == 'low_stock':
+            return 'Kam qolgan'
+        else:
+            return 'Mavjud'
+    
+    def get_stock_color(self):
+        """Get bootstrap color class for stock status"""
+        status = self.get_stock_status()
+        if status == 'out_of_stock':
+            return 'danger'
+        elif status == 'low_stock':
+            return 'warning'
+        else:
+            return 'success'
 
 class Session(db.Model):
     id = db.Column(db.Integer, primary_key=True)

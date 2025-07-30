@@ -1,186 +1,170 @@
 {% extends "base.html" %}
-{% block title %}Zaxira boshqaruvi{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="text-white mb-4">
-                <i class="bi bi-box-seam text-info me-2"></i>Zaxira boshqaruvi
-            </h2>
-        </div>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-white mb-3">
+            <i class="bi bi-boxes"></i> Zaxira Boshqaruvi
+        </h1>
+        <p class="lead text-light">Mahsulotlar zaxirasini kuzatish va boshqarish</p>
     </div>
 
-    <!-- Stock Alerts -->
-    {% if out_of_stock_products or low_stock_products %}
+    <!-- Stock Overview Cards -->
     <div class="row mb-4">
-        <div class="col-12">
-            {% if out_of_stock_products %}
-            <div class="alert alert-danger">
-                <h5><i class="bi bi-exclamation-triangle me-2"></i>Zaxira tugagan mahsulotlar:</h5>
-                <ul class="mb-0">
-                    {% for product in out_of_stock_products %}
-                    <li>{{ product.name }} ({{ product.category }})</li>
-                    {% endfor %}
-                </ul>
+        {% set total_products = products|length %}
+        {% set low_stock_products = products|selectattr('get_stock_status', 'equalto', 'low_stock')|list|length %}
+        {% set out_of_stock_products = products|selectattr('get_stock_status', 'equalto', 'out_of_stock')|list|length %}
+        
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Jami Mahsulotlar</h5>
+                            <h2 class="mb-0">{{ total_products }}</h2>
+                        </div>
+                        <i class="bi bi-box-seam fs-1"></i>
+                    </div>
+                </div>
             </div>
-            {% endif %}
-            
-            {% if low_stock_products %}
-            <div class="alert alert-warning">
-                <h5><i class="bi bi-exclamation-circle me-2"></i>Kam qolgan mahsulotlar:</h5>
-                <ul class="mb-0">
-                    {% for product in low_stock_products %}
-                    <li>{{ product.name }} - {{ product.stock_quantity }} {{ product.unit }} qoldi (minimal: {{ product.min_stock_level }})</li>
-                    {% endfor %}
-                </ul>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Mavjud</h5>
+                            <h2 class="mb-0">{{ total_products - low_stock_products - out_of_stock_products }}</h2>
+                        </div>
+                        <i class="bi bi-check-circle fs-1"></i>
+                    </div>
+                </div>
             </div>
-            {% endif %}
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Kam Qolgan</h5>
+                            <h2 class="mb-0">{{ low_stock_products }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Tugagan</h5>
+                            <h2 class="mb-0">{{ out_of_stock_products }}</h2>
+                        </div>
+                        <i class="bi bi-x-circle fs-1"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    {% endif %}
 
     <div class="row">
-        <!-- Stock Adjustment Form -->
-        <div class="col-md-4">
-            <div class="card bg-dark border-info">
-                <div class="card-header bg-info text-dark">
-                    <h5 class="mb-0"><i class="bi bi-arrow-up-down me-2"></i>Zaxira o'zgartirish</h5>
+        <!-- Stock Update Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Zaxira Yangilash</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('adjust_stock') }}">
+                    <form method="POST" action="{{ url_for('update_inventory') }}">
                         {{ form.hidden_tag() }}
                         
                         <div class="mb-3">
-                            {{ form.product_id.label(class="form-label text-white") }}
-                            {{ form.product_id(class="form-select bg-dark text-white border-secondary") }}
+                            {{ form.product_id.label(class="form-label") }}
+                            {{ form.product_id(class="form-select") }}
                         </div>
                         
                         <div class="mb-3">
-                            {{ form.movement_type.label(class="form-label text-white") }}
-                            {{ form.movement_type(class="form-select bg-dark text-white border-secondary") }}
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control") }}
                         </div>
                         
                         <div class="mb-3">
-                            {{ form.quantity.label(class="form-label text-white") }}
-                            {{ form.quantity(class="form-control bg-dark text-white border-secondary") }}
+                            {{ form.action.label(class="form-label") }}
+                            {{ form.action(class="form-select") }}
                         </div>
                         
                         <div class="mb-3">
-                            {{ form.reason.label(class="form-label text-white") }}
-                            {{ form.reason(class="form-control bg-dark text-white border-secondary", placeholder="Masalan: Yangi etkazib berish") }}
+                            {{ form.note.label(class="form-label") }}
+                            {{ form.note(class="form-control", placeholder="Izoh (ixtiyoriy)") }}
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form.notes.label(class="form-label text-white") }}
-                            {{ form.notes(class="form-control bg-dark text-white border-secondary", rows="3") }}
-                        </div>
-                        
-                        {{ form.submit(class="btn btn-info text-dark fw-bold w-100") }}
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-save"></i> Yangilash
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Current Stock Table -->
+        <!-- Stock List -->
         <div class="col-md-8">
-            <div class="card bg-dark border-secondary">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Joriy zaxira holati</h5>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Zaxira Ro'yxati</h5>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-dark table-hover mb-0">
-                            <thead class="table-info">
-                                <tr>
-                                    <th>Mahsulot</th>
-                                    <th>Kategoriya</th>
-                                    <th>Zaxira</th>
-                                    <th>Min. daraja</th>
-                                    <th>Narx</th>
-                                    <th>Holat</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for product in products %}
-                                <tr>
-                                    <td class="fw-bold">{{ product.name }}</td>
-                                    <td>
-                                        <span class="badge bg-secondary">
-                                            {% if product.category == 'drinks' %}Ichimliklar
-                                            {% elif product.category == 'snacks' %}Gazaklar
-                                            {% elif product.category == 'food' %}Ovqatlar
-                                            {% else %}Boshqa{% endif %}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <strong>{{ product.stock_quantity }}</strong> {{ product.unit }}
-                                    </td>
-                                    <td>{{ product.min_stock_level }} {{ product.unit }}</td>
-                                    <td>{{ "{:,.0f}".format(product.price) }} som</td>
-                                    <td>
-                                        {% if product.is_out_of_stock() %}
-                                        <span class="badge bg-danger">Tugagan</span>
-                                        {% elif product.is_low_stock() %}
-                                        <span class="badge bg-warning text-dark">Kam</span>
-                                        {% else %}
-                                        <span class="badge bg-success">Yetarli</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stock Movement History -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-dark border-secondary">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Zaxira harakatlari tarixi</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-dark table-striped mb-0">
-                            <thead class="table-info">
-                                <tr>
-                                    <th>Sana</th>
-                                    <th>Mahsulot</th>
-                                    <th>Harakat</th>
-                                    <th>Miqdor</th>
-                                    <th>Sabab</th>
-                                    <th>Admin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for movement in movements %}
-                                <tr>
-                                    <td>{{ movement.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                                    <td>{{ movement.product.name }}</td>
-                                    <td>
-                                        {% if movement.movement_type == 'purchase' %}
-                                        <span class="badge bg-success">Xarid</span>
-                                        {% elif movement.movement_type == 'sale' %}
-                                        <span class="badge bg-primary">Sotuv</span>
-                                        {% elif movement.movement_type == 'adjustment' %}
-                                        <span class="badge bg-warning text-dark">Tuzatma</span>
-                                        {% elif movement.movement_type == 'loss' %}
-                                        <span class="badge bg-danger">Yo'qotish</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ movement.quantity }} {{ movement.product.unit }}</td>
-                                    <td>{{ movement.reason or '-' }}</td>
-                                    <td>{{ movement.admin.username }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-body">
+                    {% if products %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mahsulot nomi</th>
+                                        <th>Kategoriya</th>
+                                        <th>Narx</th>
+                                        <th>Zaxira</th>
+                                        <th>Holat</th>
+                                        <th>Min. Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ product.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ product.product_category.name }}</span>
+                                        </td>
+                                        <td>{{ "{:,.0f}".format(product.price) }} som</td>
+                                        <td>
+                                            <span class="fw-bold">{{ product.stock_quantity }} {{ product.unit }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ product.get_stock_color() }}">
+                                                {{ product.get_stock_status_text() }}
+                                            </span>
+                                        </td>
+                                        <td>{{ product.min_stock_alert }} {{ product.unit }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Hech qanday mahsulot topilmadi</p>
+                            <a href="{{ url_for('products') }}" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> Mahsulot qo'shish
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

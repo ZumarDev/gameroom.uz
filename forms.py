@@ -34,8 +34,25 @@ class ProductForm(FlaskForm):
     category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
     unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')
+    stock_quantity = IntegerField('Zaxira miqdori', validators=[DataRequired(), NumberRange(min=0)], default=0)
+    min_stock_alert = IntegerField('Minimal zaxira ogohlantiruvi', validators=[DataRequired(), NumberRange(min=0)], default=5)
 
-# Stock management removed per user request
+class StockUpdateForm(FlaskForm):
+    quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
+    action = SelectField('Amal', choices=[
+        ('add', 'Qo\'shish'),
+        ('remove', 'Chiqarish')
+    ], validators=[DataRequired()])
+    note = TextAreaField('Izoh')
+
+class InventoryForm(FlaskForm):
+    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
+    action = SelectField('Amal', choices=[
+        ('add', 'Qo\'shish'),
+        ('set', 'Belgilash')
+    ], validators=[DataRequired()])
+    note = TextAreaField('Izoh')
 
 class SessionForm(FlaskForm):
     room_id = SelectField('Xona', coerce=int, validators=[DataRequired()])

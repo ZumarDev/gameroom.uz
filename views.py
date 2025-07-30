@@ -6,7 +6,7 @@ from sqlalchemy import func, extract
 import math
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm
 from werkzeug.security import generate_password_hash
 
 @app.route('/')
@@ -272,6 +272,8 @@ def add_product():
         product.category_id = form.category_id.data
         product.price = form.price.data
         product.unit = form.unit.data
+        product.stock_quantity = form.stock_quantity.data
+        product.min_stock_alert = form.min_stock_alert.data
         db.session.add(product)
         db.session.commit()
         
@@ -334,6 +336,60 @@ def delete_product_category(category_id):
         db.session.commit()
         flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
     return redirect(url_for('products'))
+
+# Inventory management routes
+@app.route('/inventory')
+@login_required
+def inventory():
+    """Display inventory management page with stock levels"""
+    products_list = Product.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
+    
+    # Create inventory form
+    inventory_form = InventoryForm()
+    inventory_form.product_id.choices = [(p.id, f"{p.name} ({p.stock_quantity} {p.unit})") 
+                                       for p in products_list]
+    
+    return render_template('inventory.html', 
+                         products=products_list, 
+                         form=inventory_form)
+
+@app.route('/inventory/update', methods=['POST'])
+@login_required
+def update_inventory():
+    """Update product stock levels"""
+    form = InventoryForm()
+    products_list = Product.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).all()
+    form.product_id.choices = [(p.id, f"{p.name} ({p.stock_quantity} {p.unit})") 
+                             for p in products_list]
+    
+    if form.validate_on_submit():
+        product = Product.query.filter_by(
+            id=form.product_id.data, 
+            admin_user_id=current_user.id
+        ).first_or_404()
+        
+        old_quantity = product.stock_quantity
+        quantity = form.quantity.data
+        action = form.action.data
+        
+        if action == 'add':
+            product.stock_quantity += quantity
+            flash(f'{product.name} mahsulotiga {quantity} {product.unit} qo\'shildi. Yangi zaxira: {product.stock_quantity}', 'success')
+        elif action == 'set':
+            product.stock_quantity = quantity
+            flash(f'{product.name} mahsuloti zaxirasi {quantity} {product.unit} ga o\'rnatildi.', 'success')
+        
+        db.session.commit()
+    else:
+        flash('Zaxira yangilashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+    
+    return redirect(url_for('inventory'))
 
 @app.route('/sessions')
 @login_required
@@ -515,6 +571,15 @@ def add_product_to_session(session_id):
         product = Product.query.filter_by(id=form.product_id.data, admin_user_id=current_user.id).first()
         quantity = form.quantity.data
         
+        # Check stock availability
+        if not product:
+            flash('Mahsulot topilmadi!', 'danger')
+            return redirect(url_for('session_detail', session_id=session_id))
+        
+        if product.stock_quantity < quantity:
+            flash(f'{product.name} mahsulotidan yetarlicha zaxira yo\'q! Mavjud: {product.stock_quantity} {product.unit}', 'danger')
+            return redirect(url_for('session_detail', session_id=session_id))
+        
         # Check if product already in cart
         existing_item = CartItem.query.filter_by(
             session_id=session_id,
@@ -522,20 +587,27 @@ def add_product_to_session(session_id):
         ).first()
         
         if existing_item:
-            existing_item.quantity += form.quantity.data
+            existing_item.quantity += quantity
         else:
             cart_item = CartItem()
             cart_item.session_id = session_id
             cart_item.product_id = form.product_id.data
-            cart_item.quantity = form.quantity.data
+            cart_item.quantity = quantity
             db.session.add(cart_item)
+        
+        # Deduct stock
+        product.stock_quantity -= quantity
         
         session.update_total_price()
         db.session.commit()
-        if product and product.name:
-            flash(f'{quantity} ta {product.name} seansga qo\'shildi!', 'success')
-        else:
-            flash(f'{quantity} ta mahsulot seansga qo\'shildi!', 'success')
+        
+        stock_status = ""
+        if product.stock_quantity <= 0:
+            stock_status = " (zaxira tugadi)"
+        elif product.stock_quantity <= product.min_stock_alert:
+            stock_status = f" (kam qoldi: {product.stock_quantity})"
+        
+        flash(f'{quantity} ta {product.name} seansga qo\'shildi!{stock_status}', 'success')
     else:
         flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     
