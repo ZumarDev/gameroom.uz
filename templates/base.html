@@ -12,7 +12,7 @@
 </head>
 <body class="gaming-body">
     <nav class="navbar navbar-expand-lg gaming-navbar">
-        <div class="container-fluid">
+        <div class="container">
             <a class="navbar-brand gaming-brand" href="{{ url_for('dashboard') }}">
                 <i class="bi bi-controller gaming-logo"></i> 
                 <span class="brand-text">{% if current_user.is_authenticated %}{{ current_user.gaming_center_name }}{% else %}O'yinxona{% endif %}</span>

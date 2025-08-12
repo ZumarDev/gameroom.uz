@@ -104,6 +104,80 @@
     transform: scaleX(1);
 }
 
+/* Gaming Navbar Styles */
+.gaming-navbar {
+    background: linear-gradient(135deg, var(--gaming-dark), var(--gaming-surface));
+    border-bottom: 2px solid var(--gaming-border);
+    padding: 0.5rem 0; /* Reduced padding */
+    box-shadow: 0 2px 10px var(--gaming-shadow);
+}
+
+.gaming-brand {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    color: var(--gaming-primary) !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Reduced gap */
+}
+
+.gaming-logo {
+    font-size: 1.5rem; /* Reduced size */
+    animation: pulse 2s infinite;
+}
+
+.brand-text {
+    font-size: 1.1rem; /* Reduced size */
+    text-shadow: 0 0 10px var(--gaming-glow);
+}
+
+.navbar-nav .nav-link {
+    color: var(--gaming-text) !important;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem !important; /* Reduced padding */
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    font-size: 0.9rem; /* Reduced font size */
+}
+
+.navbar-nav .nav-link:hover {
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    color: var(--gaming-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--gaming-glow);
+}
+
+.dropdown-menu {
+    background: var(--gaming-surface);
+    border: 1px solid var(--gaming-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 25px var(--gaming-shadow);
+}
+
+.dropdown-item {
+    color: var(--gaming-text);
+    padding: 0.5rem 1rem; /* Reduced padding */
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
+    color: var(--gaming-dark);
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
 /* Modern Button Styles */
 .btn {
     border-radius: 0.75rem;
@@ -357,72 +431,7 @@
     color: var(--gaming-text);
 }
 
-/* Modern Navigation Bar */
-.gaming-navbar {
-    background: linear-gradient(135deg, var(--gaming-surface), var(--gaming-surface-light)) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 2px solid var(--gaming-border);
-    box-shadow: 0 4px 20px var(--gaming-shadow);
-    padding: 1rem 0;
-}
-
-.gaming-brand {
-    font-family: 'Orbitron', monospace;
-    font-weight: 900;
-    font-size: 1.5rem;
-    color: var(--gaming-text) !important;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.gaming-brand:hover {
-    color: var(--gaming-primary) !important;
-    text-shadow: 0 0 20px var(--gaming-glow);
-    transform: scale(1.05);
-}
-
-.gaming-logo {
-    color: var(--gaming-primary);
-    font-size: 2rem;
-    text-shadow: 0 0 20px var(--gaming-glow);
-    animation: logo-pulse 3s ease-in-out infinite;
-}
-
-@keyframes logo-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.brand-text {
-    background: linear-gradient(135deg, var(--gaming-primary), var(--gaming-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* Navigation Links */
-.navbar-nav .nav-link {
-    color: var(--gaming-text-muted) !important;
-    font-weight: 500;
-    font-size: 1.1rem;
-    padding: 0.75rem 1rem !important;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.navbar-nav .nav-link:hover {
-    color: var(--gaming-primary) !important;
-    background: rgba(0, 255, 136, 0.1);
-    transform: translateY(-2px);
-}
-
-.navbar-nav .nav-link i {
-    margin-right: 0.5rem;
-}
+/* Compact navbar styling complete above */
 
 /* Modern Tables */
 .table {
