@@ -6,7 +6,7 @@ from sqlalchemy import func, extract
 import math
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm
 from werkzeug.security import generate_password_hash
 from translations import get_translation, get_current_language
 
@@ -27,9 +27,12 @@ def login():
         password_data = form.password.data
         if user and user.password_hash and password_data and check_password_hash(user.password_hash, password_data):
             login_user(user)
-            flash('Logged in successfully!', 'success')
+            if hasattr(user, 'is_temp_password') and user.is_temp_password:
+                flash('Vaqtinchalik parol bilan kirdingiz. Iltimos, parolni o\'zgartiring!', 'warning')
+                return redirect(url_for('change_password'))
+            flash('Muvaffaqiyatli kirildi!', 'success')
             return redirect(url_for('dashboard'))
-        flash('Invalid username or password', 'danger')
+        flash('Foydalanuvchi nomi yoki parol noto\'g\'ri', 'danger')
     
     return render_template('login.html', form=form)
 
@@ -50,16 +53,9 @@ def register():
             flash('Bu foydalanuvchi nomi band!', 'danger')
             return render_template('register.html', form=form)
         
-        # Check if email already exists
-        existing_email = AdminUser.query.filter_by(email=form.email.data).first()
-        if existing_email:
-            flash('Bu email allaqachon ro\'yxatdan o\'tgan!', 'danger')
-            return render_template('register.html', form=form)
-        
         # Create new admin user
         user = AdminUser()
         user.username = form.username.data
-        user.email = form.email.data
         user.gaming_center_name = form.gaming_center_name.data
         if form.password.data:
             user.password_hash = generate_password_hash(form.password.data)
@@ -76,18 +72,87 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
+    flash('Tizimdan chiqdingiz.', 'info')
     return redirect(url_for('login'))
 
-@app.route('/set-language/<language>')
+@app.route('/profile', methods=['GET', 'POST'])
 @login_required
-def set_language(language):
-    """Set user language preference"""
-    if language in ['en', 'ru', 'uz']:
-        current_user.preferred_language = language
+def profile():
+    form = ProfileForm()
+    if form.validate_on_submit():
+        # Check if username is taken by another user
+        existing_user = AdminUser.query.filter(
+            AdminUser.username == form.username.data,
+            AdminUser.id != current_user.id
+        ).first()
+        if existing_user:
+            flash('Bu foydalanuvchi nomi band!', 'danger')
+            return render_template('profile.html', form=form)
+        
+        current_user.username = form.username.data
+        current_user.gaming_center_name = form.gaming_center_name.data
         db.session.commit()
-        flash(f'Language changed to {language.upper()}', 'success')
-    return redirect(request.referrer or url_for('dashboard'))
+        flash('Profil muvaffaqiyatli yangilandi!', 'success')
+        return redirect(url_for('profile'))
+    
+    # Pre-fill form with current data
+    form.username.data = current_user.username
+    form.gaming_center_name.data = current_user.gaming_center_name
+    return render_template('profile.html', form=form)
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        # Check current password if not temp password
+        if not (hasattr(current_user, 'is_temp_password') and current_user.is_temp_password):
+            if not check_password_hash(current_user.password_hash, form.current_password.data):
+                flash('Joriy parol noto\'g\'ri!', 'danger')
+                return render_template('change_password.html', form=form)
+        
+        # Update password
+        current_user.password_hash = generate_password_hash(form.new_password.data)
+        if hasattr(current_user, 'is_temp_password'):
+            current_user.is_temp_password = False
+        db.session.commit()
+        flash('Parol muvaffaqiyatli o\'zgartirildi!', 'success')
+        return redirect(url_for('dashboard'))
+    
+    return render_template('change_password.html', form=form)
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        # Check admin secret key
+        import os
+        import secrets
+        import string
+        
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
+        if form.secret_key.data != secret_key:
+            flash('Admin maxfiy kaliti noto\'g\'ri!', 'danger')
+            return render_template('reset_password.html', form=form)
+        
+        # Find user
+        user = AdminUser.query.filter_by(username=form.username.data).first()
+        if not user:
+            flash('Foydalanuvchi topilmadi!', 'danger')
+            return render_template('reset_password.html', form=form)
+        
+        # Generate temporary password
+        temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+        user.password_hash = generate_password_hash(temp_password)
+        if hasattr(user, 'is_temp_password'):
+            user.is_temp_password = True
+        db.session.commit()
+        
+        flash(f'Vaqtinchalik parol yaratildi: {temp_password}', 'success')
+        flash('Foydalanuvchi kirgach parolni o\'zgartirishi kerak!', 'info')
+        return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', form=form)
 
 @app.route('/dashboard')
 @login_required

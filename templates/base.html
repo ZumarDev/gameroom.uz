@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gameroom{% endblock %}</title>
+    <title>{% block title %}O'yinxona{% endblock %}</title>
     <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
         <div class="container-fluid">
             <a class="navbar-brand gaming-brand" href="{{ url_for('dashboard') }}">
                 <i class="bi bi-controller gaming-logo"></i> 
-                <span class="brand-text">{% if current_user.is_authenticated %}{{ current_user.gaming_center_name }}{% else %}Gameroom{% endif %}</span>
+                <span class="brand-text">{% if current_user.is_authenticated %}{{ current_user.gaming_center_name }}{% else %}O'yinxona{% endif %}</span>
             </a>
             
             {% if current_user.is_authenticated %}
@@ -26,62 +26,47 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> {{ t('dashboard') }}
+                            <i class="bi bi-speedometer2"></i> Boshqaruv paneli
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('sessions') }}">
-                            <i class="bi bi-play-circle"></i> {{ t('sessions') }}
+                            <i class="bi bi-play-circle"></i> Seanslar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('rooms_management') }}">
-                            <i class="bi bi-house"></i> {{ t('rooms_categories') }}
+                            <i class="bi bi-house"></i> Xonalar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('products') }}">
-                            <i class="bi bi-shop"></i> {{ t('products') }}
+                            <i class="bi bi-shop"></i> Mahsulotlar
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('inventory') }}">
-                            <i class="bi bi-boxes"></i> {{ t('inventory') }}
+                            <i class="bi bi-boxes"></i> Zaxira
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('analytics') }}">
-                            <i class="bi bi-graph-up"></i> {{ t('reports') }}
+                            <i class="bi bi-graph-up"></i> Hisobotlar
                         </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-globe"></i> 
-                            {% if current_user.preferred_language == 'en' %}EN
-                            {% elif current_user.preferred_language == 'ru' %}RU
-                            {% else %}UZ{% endif %}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='uz') }}">
-                                <i class="bi bi-flag"></i> O'zbek
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='ru') }}">
-                                <i class="bi bi-flag"></i> Русский
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('set_language', language='en') }}">
-                                <i class="bi bi-flag"></i> English
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
                         </a>
                         <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">
+                                <i class="bi bi-person-gear"></i> Profil
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> {{ t('logout') }}
+                                <i class="bi bi-box-arrow-right"></i> Chiqish
                             </a></li>
                         </ul>
                     </li>

@@ -7,11 +7,11 @@ from sqlalchemy import func
 class AdminUser(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    gaming_center_name = db.Column(db.String(100), nullable=False, default="Gameroom")
+    gaming_center_name = db.Column(db.String(100), nullable=False, default="O'yinxona")
     is_admin_active = db.Column(db.Boolean, default=True)
     preferred_language = db.Column(db.String(5), default='uz')  # Language preference
+    is_temp_password = db.Column(db.Boolean, default=False)  # Temporary password flag
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class RoomCategory(db.Model):

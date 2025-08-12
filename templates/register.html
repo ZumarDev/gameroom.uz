@@ -36,17 +36,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control") }}
-                        {% if form.email.errors %}
-                            <div class="text-danger">
-                                {% for error in form.email.errors %}
-                                    <small>{{ error }}</small><br>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+
 
                     <div class="mb-3">
                         {{ form.gaming_center_name.label(class="form-label") }}

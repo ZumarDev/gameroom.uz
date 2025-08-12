@@ -19,7 +19,6 @@ class RoomForm(FlaskForm):
 
 class RegisterForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
     gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
     password = PasswordField('Parol', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('password', message='Parollar mos emas')])
@@ -72,3 +71,16 @@ class AddProductToSessionForm(FlaskForm):
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
     quantity = IntegerField('Miqdori', validators=[DataRequired(), NumberRange(min=1)], default=1)
     session_id = HiddenField()
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Joriy parol', validators=[DataRequired()])
+    new_password = PasswordField('Yangi parol', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Yangi parolni tasdiqlash', validators=[DataRequired(), EqualTo('new_password', message='Parollar mos emas')])
+
+class ResetPasswordForm(FlaskForm):
+    username = StringField('Foydalanuvchi nomi', validators=[DataRequired()])
+    secret_key = PasswordField('Admin maxfiy kaliti', validators=[DataRequired()])
+
+class ProfileForm(FlaskForm):
+    username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
+    gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
