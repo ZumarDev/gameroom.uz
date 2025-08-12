@@ -72,3 +72,49 @@ class AddProductToSessionForm(FlaskForm):
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
     quantity = IntegerField('Miqdori', validators=[DataRequired(), NumberRange(min=1)], default=1)
     session_id = HiddenField()
+
+class PasswordResetForm(FlaskForm):
+    username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
+    secret_key = PasswordField('Maxfiy kalit', validators=[DataRequired()])
+    new_password = PasswordField('Yangi parol', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('new_password', message='Parollar mos emas')])
+
+class LanguageSwitchForm(FlaskForm):
+    language = SelectField('Til', choices=[
+        ('uz', "O'zbek"),
+        ('ru', 'Русский'),
+        ('en', 'English')
+    ], validators=[DataRequired()])
+
+class ReportForm(FlaskForm):
+    report_type = SelectField('Hisobot turi', choices=[
+        ('daily', 'Kunlik hisobot'),
+        ('weekly', 'Haftalik hisobot'),
+        ('monthly', 'Oylik hisobot')
+    ], validators=[DataRequired()], default='daily')
+    date = StringField('Sana', validators=[DataRequired()])
+
+class PasswordResetForm(FlaskForm):
+    username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
+    secret_key = PasswordField('Maxfiy kalit', validators=[DataRequired()])
+    new_password = PasswordField('Yangi parol', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('new_password', message='Parollar mos emas')])
+
+class LanguageSwitchForm(FlaskForm):
+    language = SelectField('Til', choices=[
+        ('uz', 'O\'zbekcha'),
+        ('ru', 'Русский'),
+        ('en', 'English')
+    ], validators=[DataRequired()])
+
+class ReportForm(FlaskForm):
+    report_type = SelectField('Hisobot turi', choices=[
+        ('daily', 'Kunlik'),
+        ('weekly', 'Haftalik'),
+        ('monthly', 'Oylik')
+    ], validators=[DataRequired()], default='daily')
+    date = StringField('Sana (YYYY-MM-DD)')
+    export_format = SelectField('Eksport formati', choices=[
+        ('pdf', 'PDF'),
+        ('excel', 'Excel')
+    ], validators=[DataRequired()], default='pdf')

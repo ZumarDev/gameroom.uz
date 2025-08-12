@@ -77,6 +77,48 @@ TRANSLATIONS = {
         'remove_stock': 'Remove Stock',
         'inventory_list': 'Inventory List',
         'min_limit': 'Min. Limit',
+        
+        # Sessions
+        'room': 'Room',
+        'session_type': 'Session Type',
+        'duration': 'Duration',
+        'start_time': 'Start Time',
+        'end_time': 'End Time',
+        'total_cost': 'Total Cost',
+        'view_session': 'View Session',
+        'stop_session': 'Stop Session',
+        'add_products': 'Add Products',
+        'session_details': 'Session Details',
+        'fixed_session': 'Fixed Session',
+        'vip_session': 'VIP Session',
+        
+        # Reports
+        'daily_report': 'Daily Report',
+        'weekly_report': 'Weekly Report',
+        'monthly_report': 'Monthly Report',
+        'revenue_analytics': 'Revenue Analytics',
+        'export_pdf': 'Export PDF',
+        'export_excel': 'Export Excel',
+        'room_statistics': 'Room Statistics',
+        'product_sales': 'Product Sales',
+        'total_revenue': 'Total Revenue',
+        'session_revenue': 'Session Revenue',
+        'product_revenue': 'Product Revenue',
+        
+        # Password Reset
+        'password_reset': 'Password Reset',
+        'reset_password': 'Reset Password',
+        'secret_key': 'Secret Key',
+        'new_password': 'New Password',
+        'confirm_password': 'Confirm Password',
+        'enter_secret_key': 'Enter Secret Key',
+        'password_reset_success': 'Password reset successfully',
+        
+        # Language Switcher
+        'language': 'Language',
+        'uzbek': 'English',
+        'russian': 'Russian',
+        'english': 'English',
     },
     
     'ru': {
@@ -155,6 +197,48 @@ TRANSLATIONS = {
         'remove_stock': 'Убрать запас',
         'inventory_list': 'Список склада',
         'min_limit': 'Мин. лимит',
+        
+        # Sessions
+        'room': 'Комната',
+        'session_type': 'Тип сеанса',
+        'duration': 'Продолжительность',
+        'start_time': 'Время начала',
+        'end_time': 'Время окончания',
+        'total_cost': 'Общая стоимость',
+        'view_session': 'Посмотреть сеанс',
+        'stop_session': 'Остановить сеанс',
+        'add_products': 'Добавить продукты',
+        'session_details': 'Детали сеанса',
+        'fixed_session': 'Фиксированный сеанс',
+        'vip_session': 'VIP сеанс',
+        
+        # Reports
+        'daily_report': 'Дневной отчет',
+        'weekly_report': 'Недельный отчет',
+        'monthly_report': 'Месячный отчет',
+        'revenue_analytics': 'Аналитика доходов',
+        'export_pdf': 'Экспорт в PDF',
+        'export_excel': 'Экспорт в Excel',
+        'room_statistics': 'Статистика комнат',
+        'product_sales': 'Продажи продуктов',
+        'total_revenue': 'Общий доход',
+        'session_revenue': 'Доход от сеансов',
+        'product_revenue': 'Доход от продуктов',
+        
+        # Password Reset
+        'password_reset': 'Сброс пароля',
+        'reset_password': 'Сбросить пароль',
+        'secret_key': 'Секретный ключ',
+        'new_password': 'Новый пароль',
+        'confirm_password': 'Подтвердить пароль',
+        'enter_secret_key': 'Введите секретный ключ',
+        'password_reset_success': 'Пароль успешно сброшен',
+        
+        # Language Switcher
+        'language': 'Язык',
+        'uzbek': 'Узбекский',
+        'russian': 'Русский',
+        'english': 'Английский',
     },
     
     'uz': {
@@ -233,6 +317,48 @@ TRANSLATIONS = {
         'remove_stock': 'Zaxirani kamaytirish',
         'inventory_list': 'Zaxira ro\'yxati',
         'min_limit': 'Min. chegara',
+        
+        # Sessions
+        'room': 'Xona',
+        'session_type': 'Seans turi',
+        'duration': 'Davomiyligi',
+        'start_time': 'Boshlanish vaqti',
+        'end_time': 'Tugash vaqti',
+        'total_cost': 'Umumiy narx',
+        'view_session': 'Seansni ko\'rish',
+        'stop_session': 'Seansni to\'xtatish',
+        'add_products': 'Mahsulot qo\'shish',
+        'session_details': 'Seans tafsilotlari',
+        'fixed_session': 'Belgilangan seans',
+        'vip_session': 'VIP seans',
+        
+        # Reports
+        'daily_report': 'Kunlik hisobot',
+        'weekly_report': 'Haftalik hisobot',
+        'monthly_report': 'Oylik hisobot',
+        'revenue_analytics': 'Daromad tahlili',
+        'export_pdf': 'PDF formatda eksport',
+        'export_excel': 'Excel formatda eksport',
+        'room_statistics': 'Xonalar statistikasi',
+        'product_sales': 'Mahsulotlar sotuvi',
+        'total_revenue': 'Umumiy daromad',
+        'session_revenue': 'Seanslardan daromad',
+        'product_revenue': 'Mahsulotlardan daromad',
+        
+        # Password Reset
+        'password_reset': 'Parolni tiklash',
+        'reset_password': 'Parolni tiklash',
+        'secret_key': 'Maxfiy kalit',
+        'new_password': 'Yangi parol',
+        'confirm_password': 'Parolni tasdiqlang',
+        'enter_secret_key': 'Maxfiy kalitni kiriting',
+        'password_reset_success': 'Parol muvaffaqiyatli tiklandi',
+        
+        # Language Switcher
+        'language': 'Til',
+        'uzbek': 'O\'zbekcha',
+        'russian': 'Ruscha',
+        'english': 'Inglizcha',
     }
 }
 

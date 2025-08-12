@@ -28,3 +28,11 @@ flask
 flask-sqlalchemy
 gunicorn
 psycopg2-binary
+openpyxl
+pandas
+reportlab
+xlsxwriter
+openpyxl
+pandas
+reportlab
+xlsxwriter

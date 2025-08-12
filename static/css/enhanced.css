@@ -1,9 +1,12 @@
 /* Enhanced Gaming Center Styles */
 
-/* Page Headers */
+/* Page Headers - Reduced width and improved spacing */
 .page-header {
-    padding: 2rem 0;
+    padding: 1.5rem 0;
     margin-bottom: 2rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .page-header i {

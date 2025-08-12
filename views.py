@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_file, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from datetime import datetime, timedelta
@@ -6,7 +6,7 @@ from sqlalchemy import func, extract
 import math
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, PasswordResetForm, LanguageSwitchForm, ReportForm
 from werkzeug.security import generate_password_hash
 from translations import get_translation, get_current_language
 
@@ -71,6 +71,37 @@ def register():
         return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
+
+@app.route('/password-reset', methods=['GET', 'POST'])
+def password_reset():
+    """Password reset using secret key"""
+    form = PasswordResetForm()
+    if form.validate_on_submit():
+        user = AdminUser.query.filter_by(username=form.username.data).first()
+        if not user:
+            flash('Bunday foydalanuvchi topilmadi!', 'danger')
+            return render_template('password_reset.html', form=form)
+        
+        # Check secret key
+        if not user.reset_secret_key:
+            # If no secret key is set, use the default admin key
+            import os
+            expected_secret = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
+        else:
+            expected_secret = user.reset_secret_key
+        
+        if form.secret_key.data != expected_secret:
+            flash('Maxfiy kalit noto\'g\'ri!', 'danger')
+            return render_template('password_reset.html', form=form)
+        
+        # Update password
+        user.password_hash = generate_password_hash(form.new_password.data)
+        db.session.commit()
+        
+        flash('Parol muvaffaqiyatli yangilandi! Endi login qilishingiz mumkin.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('password_reset.html', form=form)
 
 @app.route('/logout')
 @login_required
@@ -878,3 +909,168 @@ def get_session_time(session_id):
             'elapsed_seconds': int(elapsed.total_seconds()),
             'current_cost': current_cost
         })
+
+# Enhanced Analytics and Export Routes
+@app.route('/analytics/enhanced')
+@login_required
+def enhanced_analytics():
+    """Enhanced analytics with detailed statistics and export options"""
+    from utils import generate_daily_report_data
+    
+    report_form = ReportForm()
+    today = datetime.utcnow().date()
+    
+    # Get report parameters
+    report_type = request.args.get('report_type', 'daily')
+    date_str = request.args.get('date', str(today))
+    
+    try:
+        report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except:
+        report_date = today
+    
+    # Generate comprehensive report data
+    report_data = generate_daily_report_data(report_date, current_user.id)
+    
+    return render_template('enhanced_analytics.html', 
+                         report_data=report_data,
+                         form=report_form,
+                         report_type=report_type,
+                         current_date=report_date)
+
+@app.route('/analytics/export/<format>')
+@login_required  
+def export_analytics(format):
+    """Export analytics in PDF or Excel format"""
+    from utils import generate_daily_report_data, generate_pdf_report, generate_excel_report
+    
+    report_type = request.args.get('report_type', 'daily')
+    date_str = request.args.get('date', str(datetime.utcnow().date()))
+    
+    try:
+        report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except:
+        report_date = datetime.utcnow().date()
+    
+    # Generate report data
+    report_data = generate_daily_report_data(report_date, current_user.id)
+    gaming_center_name = current_user.gaming_center_name or 'Gaming Center'
+    
+    if format == 'pdf':
+        buffer = generate_pdf_report(report_data, report_type, gaming_center_name)
+        return Response(
+            buffer.getvalue(),
+            mimetype='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename={gaming_center_name}_report_{report_date}.pdf'}
+        )
+    
+    elif format == 'excel':
+        buffer = generate_excel_report(report_data, report_type, gaming_center_name)
+        return Response(
+            buffer.getvalue(),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename={gaming_center_name}_report_{report_date}.xlsx'}
+        )
+    
+    flash('Eksport formati noto\'g\'ri!', 'danger')
+    return redirect(url_for('enhanced_analytics'))
+
+@app.route('/products/export')
+@login_required
+def export_products():
+    """Export products list to Excel"""
+    from utils import export_products_to_excel
+    
+    products = Product.query.filter_by(admin_user_id=current_user.id).all()
+    gaming_center_name = current_user.gaming_center_name or 'Gaming Center'
+    
+    buffer = export_products_to_excel(products, gaming_center_name)
+    
+    return Response(
+        buffer.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename={gaming_center_name}_products.xlsx'}
+    )
+
+@app.route('/products/import', methods=['POST'])
+@login_required
+def import_products():
+    """Import products from Excel file"""
+    from utils import import_products_from_excel
+    
+    if 'file' not in request.files:
+        flash('Fayl tanlanmagan!', 'danger')
+        return redirect(url_for('products'))
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('Fayl tanlanmagan!', 'danger')
+        return redirect(url_for('products'))
+    
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        flash('Faqat Excel fayllari qabul qilinadi (.xlsx, .xls)!', 'danger')
+        return redirect(url_for('products'))
+    
+    try:
+        file_content = file.read()
+        success, message = import_products_from_excel(file_content, current_user.id)
+        
+        if success:
+            flash(message, 'success')
+        else:
+            flash(message, 'danger')
+    
+    except Exception as e:
+        flash(f'Faylni import qilishda xatolik: {str(e)}', 'danger')
+    
+    return redirect(url_for('products'))
+
+# Enhanced session management with better UI
+@app.route('/session/<int:session_id>/add-product-ajax', methods=['POST'])
+@login_required  
+def add_product_to_session_ajax(session_id):
+    """Add product to session via AJAX for better UX"""
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
+    
+    product_id = request.form.get('product_id', type=int)
+    quantity = request.form.get('quantity', 1, type=int)
+    
+    if not product_id:
+        return jsonify({'success': False, 'message': 'Mahsulot tanlanmagan!'})
+    
+    # Check product belongs to current user and validate stock
+    product = Product.query.filter_by(id=product_id, admin_user_id=current_user.id).first()
+    if not product:
+        return jsonify({'success': False, 'message': 'Mahsulot topilmadi!'})
+    
+    if product.stock_quantity < quantity:
+        return jsonify({'success': False, 'message': f'Zaxirada yetarli mahsulot yo\'q! Mavjud: {product.stock_quantity}'})
+    
+    # Add to cart
+    cart_item = CartItem(
+        session_id=session_id,
+        product_id=product_id,
+        quantity=quantity
+    )
+    db.session.add(cart_item)
+    
+    # Update stock
+    product.stock_quantity -= quantity
+    
+    # Update session total
+    session.update_total_price()
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True, 
+        'message': f'{product.name} seansga qo\'shildi!',
+        'new_total': session.total_price
+    })
+
+
+
+
