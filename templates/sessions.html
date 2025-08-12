@@ -72,6 +72,12 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addProductModal{{ session.id }}" 
+                                                    title="Add Product">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
                                             <a href="{{ url_for('session_detail', session_id=session.id) }}" 
                                                class="btn btn-outline-primary" title="View Details">
                                                 <i class="bi bi-eye"></i>
@@ -248,6 +254,43 @@
         </div>
     </div>
 </div>
+
+<!-- Add Product Modals for each session -->
+{% for session in active_sessions %}
+<div class="modal fade" id="addProductModal{{ session.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mahsulot Qo'shish - {{ session.room.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_product_to_session', session_id=session.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mahsulot</label>
+                        <select name="product_id" class="form-select" required>
+                            <option value="">Mahsulotni tanlang</option>
+                            {% for product in available_products %}
+                                {% if product.stock_quantity > 0 %}
+                                    <option value="{{ product.id }}">{{ product.name }} - {{ "{:,.0f}".format(product.price) }} som</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Miqdori</label>
+                        <input type="number" name="quantity" class="form-control" min="1" value="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-success">Qo'shish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <script>
 function toggleDurationField() {

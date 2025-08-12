@@ -497,10 +497,14 @@ def sessions():
     form = SessionForm()
     form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
+    # Get available products for adding to sessions
+    available_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
     return render_template('sessions.html', 
                          active_sessions=active_sessions,
                          completed_sessions=completed_sessions,
-                         form=form)
+                         form=form,
+                         available_products=available_products)
 
 @app.route('/sessions/start', methods=['POST'])
 @login_required
@@ -656,35 +660,47 @@ def add_product_to_session(session_id):
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     user_room_ids = [room.id for room in user_rooms]
     session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
-    form = AddProductToSessionForm()
-    form.product_id.choices = [(p.id, f"{p.name} - {p.price:,.0f} som") 
-                              for p in Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     
-    if form.validate_on_submit():
-        product = Product.query.filter_by(id=form.product_id.data, admin_user_id=current_user.id).first()
-        quantity = form.quantity.data
-        
-        # Check stock availability
-        if not product:
-            flash('Mahsulot topilmadi!', 'danger')
-            return redirect(url_for('session_detail', session_id=session_id))
-        
-        if product.stock_quantity < quantity:
-            flash(f'{product.name} mahsulotidan yetarlicha zaxira yo\'q! Mavjud: {product.stock_quantity} {product.unit}', 'danger')
-            return redirect(url_for('session_detail', session_id=session_id))
-        
-        # Check if product already in cart
-        existing_item = CartItem.query.filter_by(
-            session_id=session_id,
-            product_id=form.product_id.data
-        ).first()
-        
+    # Handle both form-based and direct POST requests
+    product_id = request.form.get('product_id')
+    quantity = request.form.get('quantity')
+    
+    # Convert to proper types and validate
+    try:
+        product_id = int(product_id) if product_id else None
+        quantity = int(quantity) if quantity else 1
+    except (ValueError, TypeError):
+        flash('Noto\'g\'ri ma\'lumotlar kiritildi!', 'danger')
+        return redirect(request.referrer or url_for('sessions'))
+    
+    if not product_id or quantity <= 0:
+        flash('Mahsulot va miqdorni to\'g\'ri kiriting!', 'danger')
+        return redirect(request.referrer or url_for('sessions'))
+    
+    # Get product and validate ownership
+    product = Product.query.filter_by(id=product_id, admin_user_id=current_user.id, is_active=True).first()
+    
+    if not product:
+        flash('Mahsulot topilmadi!', 'danger')
+        return redirect(request.referrer or url_for('sessions'))
+    
+    if product.stock_quantity < quantity:
+        flash(f'{product.name} mahsulotidan yetarlicha zaxira yo\'q! Mavjud: {product.stock_quantity} {product.unit}', 'danger')
+        return redirect(request.referrer or url_for('sessions'))
+    
+    # Check if product already in cart
+    existing_item = CartItem.query.filter_by(
+        session_id=session_id,
+        product_id=product_id
+    ).first()
+    
+    try:
         if existing_item:
             existing_item.quantity += quantity
         else:
             cart_item = CartItem()
             cart_item.session_id = session_id
-            cart_item.product_id = form.product_id.data
+            cart_item.product_id = product_id
             cart_item.quantity = quantity
             db.session.add(cart_item)
         
@@ -701,10 +717,13 @@ def add_product_to_session(session_id):
             stock_status = f" (kam qoldi: {product.stock_quantity})"
         
         flash(f'{quantity} ta {product.name} seansga qo\'shildi!{stock_status}', 'success')
-    else:
-        flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Mahsulot qo\'shishda xatolik: {str(e)}', 'danger')
     
-    return redirect(url_for('session_detail', session_id=session_id))
+    # Redirect back to where the user came from (dashboard, sessions, or session detail)
+    return redirect(request.referrer or url_for('sessions'))
 
 @app.route('/api/session_time/<int:session_id>')
 @login_required

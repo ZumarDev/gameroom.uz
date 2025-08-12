@@ -135,16 +135,16 @@
 <!-- New Session Modal -->
 <div class="modal fade" id="newSessionModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title text-light">Yangi Seans Boshlash</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
+        <div class="modal-content">
             <form action="{{ url_for('start_session') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yangi Seans Boshlash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label text-light">Xona</label>
-                        <select name="room_id" class="form-select bg-secondary text-light" required>
+                        <label class="form-label">Xona</label>
+                        <select name="room_id" class="form-select" required>
                             <option value="">Xonani tanlang</option>
                             {% for room in user_rooms %}
                                 <option value="{{ room.id }}">{{ room.name }}</option>
@@ -152,27 +152,42 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-light">Seans turi</label>
-                        <select name="session_type" class="form-select bg-secondary text-light" required>
+                        <label class="form-label">Seans turi</label>
+                        <select name="session_type" class="form-select" required onchange="toggleDashboardDurationField()">
                             <option value="fixed">Belgilangan vaqt</option>
                             <option value="vip">VIP</option>
                         </select>
                     </div>
-                    <div class="mb-3" id="durationFields">
-                        <label class="form-label text-light">Davomiyligi</label>
+                    <div class="mb-3" id="dashboardInputType">
+                        <label class="form-label">Qanday kiritasiz?</label>
+                        <select name="input_type" class="form-select" onchange="toggleDashboardInputType()">
+                            <option value="time">Vaqt davomiyligi</option>
+                            <option value="amount">Summa (avtomatik vaqt hisoblanadi)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="dashboardTimeInputField">
+                        <label class="form-label">Vaqt davomiyligi</label>
                         <div class="row">
                             <div class="col-6">
-                                <input type="number" name="duration_hours" class="form-control bg-secondary text-light" placeholder="Soat" min="0" max="24" value="0">
+                                <label class="form-label">Soat</label>
+                                <input type="number" name="duration_hours" class="form-control" min="0" max="24" value="0">
                             </div>
                             <div class="col-6">
-                                <input type="number" name="duration_minutes" class="form-control bg-secondary text-light" placeholder="Daqiqa" min="0" max="59" value="30">
+                                <label class="form-label">Daqiqa</label>
+                                <input type="number" name="duration_minutes" class="form-control" min="0" max="59" value="30">
                             </div>
                         </div>
+                        <div class="form-text">Xona narxiga qarab summa avtomatik hisoblanadi</div>
+                    </div>
+                    <div class="mb-3" id="dashboardAmountInputField" style="display: none;">
+                        <label class="form-label">Summa</label>
+                        <input type="number" name="amount_input" class="form-control" placeholder="Masalan: 15000" min="0">
+                        <div class="form-text">Xona narxiga qarab vaqt avtomatik hisoblanadi</div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Seansni Boshlash</button>
+                    <button type="submit" class="btn btn-primary">Seans Boshlash</button>
                 </div>
             </form>
         </div>
@@ -215,20 +230,40 @@
 {% endfor %}
 
 <script>
+function toggleDashboardDurationField() {
+    const sessionType = document.querySelector('select[name="session_type"]').value;
+    const timeInputField = document.getElementById('dashboardTimeInputField');
+    const amountInputField = document.getElementById('dashboardAmountInputField');
+    const inputTypeField = document.getElementById('dashboardInputType');
+    
+    if (sessionType === 'fixed') {
+        timeInputField.style.display = 'block';
+        inputTypeField.style.display = 'block';
+        toggleDashboardInputType();
+    } else {
+        timeInputField.style.display = 'none';
+        amountInputField.style.display = 'none';
+        inputTypeField.style.display = 'none';
+    }
+}
+
+function toggleDashboardInputType() {
+    const inputType = document.querySelector('select[name="input_type"]').value;
+    const timeInputField = document.getElementById('dashboardTimeInputField');
+    const amountInputField = document.getElementById('dashboardAmountInputField');
+    
+    if (inputType === 'time') {
+        timeInputField.style.display = 'block';
+        amountInputField.style.display = 'none';
+    } else {
+        timeInputField.style.display = 'none';
+        amountInputField.style.display = 'block';
+    }
+}
+
 // Session type change handler
 document.addEventListener('DOMContentLoaded', function() {
-    const sessionTypeSelect = document.querySelector('select[name="session_type"]');
-    const durationFields = document.getElementById('durationFields');
-    
-    if (sessionTypeSelect) {
-        sessionTypeSelect.addEventListener('change', function() {
-            if (this.value === 'vip') {
-                durationFields.style.display = 'none';
-            } else {
-                durationFields.style.display = 'block';
-            }
-        });
-    }
+    toggleDashboardDurationField();
     
     // Auto-refresh dashboard every 30 seconds
     setInterval(function() {

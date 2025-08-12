@@ -8,14 +8,14 @@ class LoginForm(FlaskForm):
 
 class RoomCategoryForm(FlaskForm):
     name = StringField('Kategoriya nomi', validators=[DataRequired(), Length(min=1, max=100)])
-    description = TextAreaField('Tavsif')
+    description = TextAreaField('Tavsif', validators=[Optional()])
     price_per_30min = FloatField('30 daqiqa uchun narx (som)', validators=[DataRequired(), NumberRange(min=0)], default=15000)
 
 class RoomForm(FlaskForm):
     name = StringField('Xona nomi', validators=[DataRequired(), Length(min=1, max=100)])
-    description = TextAreaField('Tavsif')
+    description = TextAreaField('Tavsif', validators=[Optional()])
     category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
-    custom_price_per_30min = FloatField('Maxsus narx (30 daqiqa)', validators=[NumberRange(min=0)])
+    custom_price_per_30min = FloatField('Maxsus narx (30 daqiqa)', validators=[Optional(), NumberRange(min=0)])
 
 class RegisterForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
