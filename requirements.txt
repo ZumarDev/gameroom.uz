@@ -28,3 +28,7 @@ flask
 flask-sqlalchemy
 gunicorn
 psycopg2-binary
+openpyxl
+pandas
+reportlab
+weasyprint

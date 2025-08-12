@@ -1,12 +1,23 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_file, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy import func, extract
 import math
+import os
+import pandas as pd
+from io import BytesIO
+import tempfile
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
 from werkzeug.security import generate_password_hash
 from translations import get_translation, get_current_language
 
@@ -177,12 +188,18 @@ def dashboard():
     total_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
     total_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
     
+    # Get data for modals
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    available_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
     return render_template('dashboard.html',
                          active_sessions=active_sessions,
                          today_revenue=today_revenue,
                          total_rooms=total_rooms,
                          total_products=total_products,
-                         session_count=len(today_sessions))
+                         session_count=len(today_sessions),
+                         user_rooms=user_rooms,
+                         available_products=available_products)
 
 @app.route('/rooms-management')
 @login_required
@@ -943,3 +960,247 @@ def get_session_time(session_id):
             'elapsed_seconds': int(elapsed.total_seconds()),
             'current_cost': current_cost
         })
+
+# Excel Import/Export Routes
+@app.route('/products/export-excel')
+@login_required
+def export_products_excel():
+    """Excel formatida mahsulotlarni export qilish"""
+    products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
+    # Create DataFrame
+    data = []
+    for product in products:
+        data.append({
+            'Nomi': product.name,
+            'Kategoriya': product.category,
+            'Narxi (som)': product.price,
+            'Zaxira miqdori': product.stock_quantity or 0,
+            'Minimum zaxira': product.min_stock_alert or 0,
+            'Holati': product.stock_status(),
+            'Yaratilgan sana': product.created_at.strftime('%Y-%m-%d') if product.created_at else ''
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Mahsulotlar', index=False)
+    
+    output.seek(0)
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=f'mahsulotlar_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    )
+
+@app.route('/products/import-excel', methods=['POST'])
+@login_required
+def import_products_excel():
+    """Excel faylidan mahsulotlarni import qilish"""
+    if 'file' not in request.files:
+        flash('Fayl tanlanmagan!', 'danger')
+        return redirect(url_for('products'))
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('Fayl tanlanmagan!', 'danger')
+        return redirect(url_for('products'))
+    
+    if not file.filename.endswith('.xlsx'):
+        flash('Faqat .xlsx formatidagi fayllar qabul qilinadi!', 'danger')
+        return redirect(url_for('products'))
+    
+    try:
+        # Read Excel file
+        df = pd.read_excel(file, sheet_name=0)
+        
+        # Validate required columns
+        required_columns = ['Nomi', 'Kategoriya', 'Narxi (som)']
+        for col in required_columns:
+            if col not in df.columns:
+                flash(f'Kerakli ustun topilmadi: {col}', 'danger')
+                return redirect(url_for('products'))
+        
+        imported_count = 0
+        for _, row in df.iterrows():
+            # Check if product already exists
+            existing_product = Product.query.filter_by(
+                admin_user_id=current_user.id,
+                name=row['Nomi'],
+                is_active=True
+            ).first()
+            
+            if not existing_product:
+                product = Product()
+                product.admin_user_id = current_user.id
+                product.name = row['Nomi']
+                product.category = row['Kategoriya']
+                product.price = float(row['Narxi (som)'])
+                product.stock_quantity = int(row.get('Zaxira miqdori', 0))
+                product.min_stock_alert = int(row.get('Minimum zaxira', 0))
+                
+                db.session.add(product)
+                imported_count += 1
+        
+        db.session.commit()
+        flash(f'{imported_count} ta mahsulot muvaffaqiyatli import qilindi!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Import paytida xatolik: {str(e)}', 'danger')
+    
+    return redirect(url_for('products'))
+
+# PDF Report Routes
+@app.route('/reports/pdf/<report_type>')
+@login_required
+def generate_pdf_report(report_type):
+    """PDF hisobot yaratish"""
+    # Get date range from query params
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    
+    if not start_date_str or not end_date_str:
+        flash('Sana oralig\'ini tanlang!', 'danger')
+        return redirect(url_for('analytics'))
+    
+    try:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Sana formati noto\'g\'ri!', 'danger')
+        return redirect(url_for('analytics'))
+    
+    # Get user's rooms
+    user_room_ids = [room.id for room in Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
+    
+    # Get sessions data
+    sessions = Session.query.filter(
+        Session.room_id.in_(user_room_ids),
+        func.date(Session.created_at) >= start_date,
+        func.date(Session.created_at) <= end_date,
+        Session.is_active == False
+    ).all()
+    
+    # Create PDF
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    styles = getSampleStyleSheet()
+    elements = []
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.darkblue,
+        alignment=1,  # Center
+        spaceAfter=30
+    )
+    
+    report_titles = {
+        'daily': 'Kunlik Hisobot',
+        'weekly': 'Xaftalik Hisobot', 
+        'monthly': 'Oylik Hisobot'
+    }
+    
+    title = f"{current_user.gaming_center_name}\n{report_titles.get(report_type, 'Hisobot')}"
+    elements.append(Paragraph(title, title_style))
+    elements.append(Spacer(1, 12))
+    
+    # Date range
+    date_text = f"Sana oralig'i: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
+    elements.append(Paragraph(date_text, styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Statistics
+    total_revenue = sum(session.total_price for session in sessions)
+    total_sessions = len(sessions)
+    
+    stats_data = [
+        ['Jami seanslar', str(total_sessions)],
+        ['Jami daromad', f"{total_revenue:,.0f} som"],
+        ['O\'rtacha seans summasi', f"{total_revenue/total_sessions if total_sessions > 0 else 0:,.0f} som"]
+    ]
+    
+    stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
+    stats_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(stats_table)
+    elements.append(Spacer(1, 30))
+    
+    # Sessions table
+    if sessions:
+        elements.append(Paragraph("Seanslar ro'yxati:", styles['Heading2']))
+        elements.append(Spacer(1, 12))
+        
+        session_data = [['Xona', 'Sana', 'Vaqt', 'Davomiyligi', 'Summa (som)']]
+        
+        for session in sessions[:50]:  # Limit to 50 sessions for PDF
+            duration_display = session.get_duration_display() if hasattr(session, 'get_duration_display') else 'N/A'
+            session_data.append([
+                session.room.name,
+                session.created_at.strftime('%d.%m.%Y'),
+                session.start_time.strftime('%H:%M') if session.start_time else 'N/A',
+                duration_display,
+                f"{session.total_price:,.0f}"
+            ])
+        
+        session_table = Table(session_data, colWidths=[1*inch, 1*inch, 1*inch, 1*inch, 1*inch])
+        session_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 8)
+        ]))
+        
+        elements.append(session_table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"{report_type}_hisobot_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.pdf"
+    
+    return send_file(
+        buffer,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=filename
+    )
+
+@app.route('/inventory-stats')
+@login_required  
+def inventory_stats_api():
+    """Zaxira statistikasi uchun API endpoint"""
+    products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
+    total_products = len(products)
+    in_stock = len([p for p in products if p.stock_quantity and p.stock_quantity > 0])
+    low_stock = len([p for p in products if p.stock_quantity and p.min_stock_alert and p.stock_quantity <= p.min_stock_alert])
+    out_of_stock = len([p for p in products if not p.stock_quantity or p.stock_quantity <= 0])
+    
+    return jsonify({
+        'total': total_products,
+        'in_stock': in_stock,
+        'low_stock': low_stock,
+        'out_of_stock': out_of_stock
+    })

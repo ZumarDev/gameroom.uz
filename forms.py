@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, IntegerField, FloatField, TextAreaField, HiddenField, SubmitField
+from wtforms import StringField, PasswordField, SelectField, IntegerField, FloatField, TextAreaField, HiddenField, SubmitField, FileField, DateField
 from wtforms.validators import DataRequired, Email, Length, NumberRange, Optional, EqualTo
 
 class LoginForm(FlaskForm):
@@ -84,3 +84,19 @@ class ResetPasswordForm(FlaskForm):
 class ProfileForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
     gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
+
+class QuickAddProductForm(FlaskForm):
+    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    quantity = IntegerField('Miqdori', validators=[DataRequired(), NumberRange(min=1)], default=1)
+
+class ExcelImportForm(FlaskForm):
+    file = FileField('Excel fayl', validators=[DataRequired()])
+    
+class ReportForm(FlaskForm):
+    report_type = SelectField('Hisobot turi', choices=[
+        ('daily', 'Kunlik'),
+        ('weekly', 'Xaftalik'), 
+        ('monthly', 'Oylik')
+    ], validators=[DataRequired()])
+    start_date = DateField('Boshlanish sanasi', validators=[DataRequired()])
+    end_date = DateField('Tugash sanasi', validators=[DataRequired()])

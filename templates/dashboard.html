@@ -52,10 +52,15 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-activity"></i> {{ t('active_gaming_sessions') }}</h5>
-                <a href="{{ url_for('sessions') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus"></i> Yangi Seans Boshlash
-                </a>
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Faol Seanslar</h5>
+                <div>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newSessionModal">
+                        <i class="bi bi-plus"></i> Yangi Seans
+                    </button>
+                    <a href="{{ url_for('sessions') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-list"></i> Barchasi
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 {% if active_sessions %}
@@ -94,6 +99,11 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#addProductModal{{ session.id }}">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
                                             <a href="{{ url_for('session_detail', session_id=session.id) }}" 
                                                class="btn btn-outline-primary">
                                                 <i class="bi bi-eye"></i>
@@ -121,4 +131,110 @@
         </div>
     </div>
 </div>
+
+<!-- New Session Modal -->
+<div class="modal fade" id="newSessionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-light">Yangi Seans Boshlash</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('start_session') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Xona</label>
+                        <select name="room_id" class="form-select bg-secondary text-light" required>
+                            <option value="">Xonani tanlang</option>
+                            {% for room in user_rooms %}
+                                <option value="{{ room.id }}">{{ room.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Seans turi</label>
+                        <select name="session_type" class="form-select bg-secondary text-light" required>
+                            <option value="fixed">Belgilangan vaqt</option>
+                            <option value="vip">VIP</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="durationFields">
+                        <label class="form-label text-light">Davomiyligi</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="number" name="duration_hours" class="form-control bg-secondary text-light" placeholder="Soat" min="0" max="24" value="0">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="duration_minutes" class="form-control bg-secondary text-light" placeholder="Daqiqa" min="0" max="59" value="30">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Seansni Boshlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modals for each session -->
+{% for session in active_sessions %}
+<div class="modal fade" id="addProductModal{{ session.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-light">Mahsulot Qo'shish - {{ session.room.name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_product_to_session', session_id=session.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-light">Mahsulot</label>
+                        <select name="product_id" class="form-select bg-secondary text-light" required>
+                            <option value="">Mahsulotni tanlang</option>
+                            {% for product in available_products %}
+                                <option value="{{ product.id }}">{{ product.name }} - {{ "{:,.0f}".format(product.price) }} som</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Miqdori</label>
+                        <input type="number" name="quantity" class="form-control bg-secondary text-light" min="1" value="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-success">Qo'shish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+// Session type change handler
+document.addEventListener('DOMContentLoaded', function() {
+    const sessionTypeSelect = document.querySelector('select[name="session_type"]');
+    const durationFields = document.getElementById('durationFields');
+    
+    if (sessionTypeSelect) {
+        sessionTypeSelect.addEventListener('change', function() {
+            if (this.value === 'vip') {
+                durationFields.style.display = 'none';
+            } else {
+                durationFields.style.display = 'block';
+            }
+        });
+    }
+    
+    // Auto-refresh dashboard every 30 seconds
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+});
+</script>
+
 {% endblock %}
