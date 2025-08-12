@@ -40,6 +40,10 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
+# Initialize CSRF protection
+from flask_wtf.csrf import CSRFProtect
+csrf = CSRFProtect(app)
+
 @login_manager.user_loader
 def load_user(user_id):
     from models import AdminUser
@@ -65,10 +69,12 @@ def translate_filter(key, lang=None):
 def inject_translation_context():
     """Inject translation context into all templates"""
     from flask_login import current_user
+    from flask_wtf.csrf import generate_csrf
     current_lang = get_current_language(current_user if hasattr(current_user, 'preferred_language') else None)
     return {
         'current_lang': current_lang,
-        't': lambda key: get_translation(key, current_lang)
+        't': lambda key: get_translation(key, current_lang),
+        'csrf_token': generate_csrf
     }
 
 # Import and register views

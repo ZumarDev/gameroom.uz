@@ -137,7 +137,6 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="{{ url_for('start_session') }}" method="POST">
-                {{ csrf_token() }}
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-header">
                     <h5 class="modal-title">Yangi Seans Boshlash</h5>
@@ -206,7 +205,6 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('add_product_to_session', session_id=session.id) }}" method="POST">
-                {{ csrf_token() }}
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
