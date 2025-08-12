@@ -1,5 +1,5 @@
-modules = ["web", "python-3.11", "nodejs-20", "postgresql-16"]
-run = "python main.py"
+modules = ["web", "python-3.11", "nodejs-20"]
+run = "python app.py"
 
 [nix]
 channel = "stable-25_05"
@@ -7,7 +7,7 @@ packages = ["cacert", "openssl", "postgresql"]
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["sh", "-c", "python main.py"]
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 
 [workflows]
 runButton = "Project"
