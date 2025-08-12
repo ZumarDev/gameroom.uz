@@ -71,9 +71,14 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
+                                                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">
+                                                    <i class="bi bi-pencil"></i> Tahrirlash
+                                                </a>
+                                            </li>
+                                            <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_product_category', category_id=category.id) }}"
                                                    onclick="return confirm('{{ category.name }} kategoriyasini o\'chirishga rozimisiz?')">
-                                                    <i class="bi bi-trash"></i> {{ t('delete') }}
+                                                    <i class="bi bi-trash"></i> O'chirish
                                                 </a>
                                             </li>
                                         </ul>
@@ -158,6 +163,12 @@
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
                                         <ul class="dropdown-menu">
+                                            <li>
+                                                <button class="dropdown-item" onclick="editProduct({{ product.id }}, '{{ product.name }}', {{ product.category_id }}, {{ product.price }}, '{{ product.unit }}', {{ product.stock_quantity }}, {{ product.min_stock_alert }})">
+                                                    <i class="bi bi-pencil"></i> Tahrirlash
+                                                </button>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_product', product_id=product.id) }}"
                                                    onclick="return confirm('{{ product.name }} mahsulotini o\'chirishga rozimisiz?')">
@@ -405,6 +416,110 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Mahsulotni Tahrirlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="editProductForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mahsulot nomi</label>
+                        <input type="text" class="form-control" name="name" id="editProductName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategoriya</label>
+                        <select class="form-select" name="category_id" id="editProductCategory" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Narx</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="price" id="editProductPrice" min="0" step="100" required>
+                            <span class="input-group-text">som</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">O'lchov birligi</label>
+                        <input type="text" class="form-control" name="unit" id="editProductUnit" placeholder="Masalan: dona, litr, kg" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Zaxira miqdori</label>
+                                <input type="number" class="form-control" name="stock_quantity" id="editProductStock" min="0" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Minimum zaxira ogohlantirish</label>
+                                <input type="number" class="form-control" name="min_stock_alert" id="editProductMinStock" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modals for Products -->
+{% for category in categories %}
+<div class="modal fade" id="editCategoryModal{{ category.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Kategoriyani Tahrirlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_product_category', category_id=category.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Kategoriya nomi</label>
+                        <input type="text" class="form-control" name="name" value="{{ category.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tavsif</label>
+                        <textarea class="form-control" name="description" rows="3">{{ category.description or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function editProduct(productId, name, categoryId, price, unit, stockQuantity, minStockAlert) {
+    document.getElementById('editProductName').value = name;
+    document.getElementById('editProductCategory').value = categoryId;
+    document.getElementById('editProductPrice').value = price;
+    document.getElementById('editProductUnit').value = unit;
+    document.getElementById('editProductStock').value = stockQuantity;
+    document.getElementById('editProductMinStock').value = minStockAlert;
+    
+    const form = document.getElementById('editProductForm');
+    form.action = '/products/edit/' + productId;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+    modal.show();
+}
+</script>
 
 <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
 {% endblock %}

@@ -244,17 +244,21 @@ def add_room_category():
         flash(f'Kategoriya "{category.name}" muvaffaqiyatli yaratildi!', 'success')
     return redirect(url_for('rooms_management'))
 
-@app.route('/room-categories/<int:category_id>/edit', methods=['POST'])
+@app.route('/room-categories/edit/<int:category_id>', methods=['POST'])
 @login_required
 def edit_room_category(category_id):
     category = RoomCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
-    form = RoomCategoryForm()
-    if form.validate_on_submit():
-        category.name = form.name.data
-        category.description = form.description.data
-        category.price_per_30min = form.price_per_30min.data
+    
+    try:
+        category.name = request.form.get('name')
+        category.description = request.form.get('description')
+        category.price_per_30min = float(request.form.get('price_per_30min', 0))
         db.session.commit()
-        flash(f'Kategoriya "{category.name}" yangilandi!', 'success')
+        flash(f'Kategoriya "{category.name}" muvaffaqiyatli yangilandi!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Kategoriya yangilashda xatolik: {str(e)}', 'danger')
+    
     return redirect(url_for('rooms_management'))
 
 @app.route('/room-categories/<int:category_id>/delete')
@@ -375,6 +379,28 @@ def add_product():
         flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
     return redirect(url_for('products'))
 
+@app.route('/products/edit/<int:product_id>', methods=['POST'])
+@login_required
+def edit_product(product_id):
+    # Multi-tenant: Only allow editing of current user's products
+    product = Product.query.filter_by(id=product_id, admin_user_id=current_user.id).first_or_404()
+    
+    try:
+        product.name = request.form.get('name')
+        product.category_id = request.form.get('category_id')
+        product.price = float(request.form.get('price', 0))
+        product.unit = request.form.get('unit')
+        product.stock_quantity = int(request.form.get('stock_quantity', 0))
+        product.min_stock_alert = int(request.form.get('min_stock_alert', 0))
+        
+        db.session.commit()
+        flash(f'{product.name} mahsuloti muvaffaqiyatli yangilandi!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Mahsulot yangilashda xatolik: {str(e)}', 'danger')
+    
+    return redirect(url_for('products'))
+
 @app.route('/products/delete/<int:product_id>')
 @login_required
 def delete_product(product_id):
@@ -405,14 +431,16 @@ def add_product_category():
 @login_required
 def edit_product_category(category_id):
     category = ProductCategory.query.filter_by(id=category_id, admin_user_id=current_user.id).first_or_404()
-    form = ProductCategoryForm()
-    if form.validate_on_submit():
-        category.name = form.name.data
-        category.description = form.description.data
+    
+    try:
+        category.name = request.form.get('name')
+        category.description = request.form.get('description')
         db.session.commit()
         flash(f'Kategoriya "{category.name}" yangilandi!', 'success')
-    else:
-        flash('Kategoriya yangilashda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Kategoriya yangilashda xatolik: {str(e)}', 'danger')
+    
     return redirect(url_for('products'))
 
 @app.route('/products/delete-category/<int:category_id>')
