@@ -27,11 +27,19 @@ app.config['WTF_CSRF_SECRET_KEY'] = secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    # Use SQLite as fallback for development
+    database_url = "sqlite:///gaming_center.db"
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
+else:
+    # PostgreSQL configuration with connection pooling
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300,
+        "pool_pre_ping": True,
+    }
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 # Initialize extensions
 db.init_app(app)
@@ -53,6 +61,9 @@ with app.app_context():
     # Import models to ensure tables are created
     import models  # noqa: F401
     db.create_all()
+
+# Import views to register routes
+import views  # noqa: F401
 
 # Import translation helper
 from translations import get_translation, get_current_language
