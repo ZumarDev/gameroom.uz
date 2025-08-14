@@ -399,6 +399,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('import_products_excel') }}" method="POST" enctype="multipart/form-data">
+                {{ csrf_token() }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label text-light">Excel Fayl</label>
