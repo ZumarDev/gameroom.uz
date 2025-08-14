@@ -66,17 +66,12 @@ class SessionTimer {
             }
 
             if (timer.sessionType === 'fixed') {
-                // Show remaining time and current cost for fixed sessions
+                // Show remaining time for fixed sessions (countdown)
                 const remainingTime = this.formatTime(data.remaining_seconds);
-                const elapsedTime = this.formatTime(data.elapsed_seconds);
                 timeDisplay.innerHTML = `
                     <div>
-                        <span class="text-warning d-block">${remainingTime} qoldi</span>
-                        <small class="text-muted">${elapsedTime} o'tdi</small>
-                        <div class="mt-1">
-                            <strong class="text-info">${data.total_current ? (data.total_current).toLocaleString() + ' som' : '0 som'}</strong>
-                            <small class="text-muted d-block">Jami summa</small>
-                        </div>
+                        <span class="text-warning d-block fs-4 fw-bold">${remainingTime}</span>
+                        <small class="text-muted">qoldi</small>
                     </div>`;
                 
                 // Update the session price display in real-time for fixed sessions
@@ -85,32 +80,33 @@ class SessionTimer {
                 if (sessionPriceEl && data.current_cost) {
                     sessionPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
                 }
-                if (totalPriceEl && data.current_cost) {
-                    totalPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
+                if (totalPriceEl && data.total_current) {
+                    totalPriceEl.textContent = `${Math.round(data.total_current).toLocaleString()} som`;
                 }
                 
                 // Add warning classes when time is running low
                 if (data.remaining_seconds <= 300) { // 5 minutes
                     timeDisplay.innerHTML = `
                         <div>
-                            <span class="text-danger d-block">${remainingTime} qoldi!</span>
-                            <small class="text-muted">${elapsedTime} o'tdi</small>
+                            <span class="text-danger d-block fs-4 fw-bold">${remainingTime}</span>
+                            <small class="text-danger">qoldi!</small>
                         </div>`;
                     timeDisplay.parentElement.classList.add('text-danger');
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
+                    timeDisplay.innerHTML = `
+                        <div>
+                            <span class="text-warning d-block fs-4 fw-bold">${remainingTime}</span>
+                            <small class="text-warning">qoldi</small>
+                        </div>`;
                     timeDisplay.parentElement.classList.add('text-warning');
                 }
             } else {
-                // Show elapsed time and current cost for VIP sessions
+                // Show elapsed time for VIP sessions (counting up)
                 const elapsedTime = this.formatTime(data.elapsed_seconds);
                 timeDisplay.innerHTML = `
                     <div>
-                        <span class="text-info d-block">${elapsedTime} o'tdi</span>
+                        <span class="text-info d-block fs-4 fw-bold">${elapsedTime}</span>
                         <small class="text-success">VIP seans</small>
-                        <div class="mt-1">
-                            <strong class="text-success">${data.total_current ? (data.total_current).toLocaleString() + ' som' : '0 som'}</strong>
-                            <small class="text-muted d-block">Jami summa</small>
-                        </div>
                     </div>`;
                 
                 // Update the session price display in real-time for VIP sessions
@@ -119,10 +115,8 @@ class SessionTimer {
                 if (sessionPriceEl && data.current_cost) {
                     sessionPriceEl.textContent = `${Math.round(data.current_cost).toLocaleString()} som`;
                 }
-                if (totalPriceEl && data.current_cost) {
-                    const productsTotal = parseFloat(totalPriceEl.dataset.productsTotal || 0);
-                    const finalTotal = data.current_cost + productsTotal;
-                    totalPriceEl.textContent = `${Math.round(finalTotal).toLocaleString()} som`;
+                if (totalPriceEl && data.total_current) {
+                    totalPriceEl.textContent = `${Math.round(data.total_current).toLocaleString()} som`;
                 }
             }
             
