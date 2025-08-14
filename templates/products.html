@@ -152,7 +152,7 @@
                                             {{ product.product_category.name }}
                                         </span>
                                         <div class="text-muted">
-                                            <small><i class="bi bi-currency-dollar"></i> {{ "{:,.0f}".format(product.price) }} som/{{ product.unit }}</small><br>
+                                            <small><span class="fw-bold text-success">UZS</span> {{ "{:,.0f}".format(product.price) }} som/{{ product.unit }}</small><br>
                                             <small><i class="bi bi-boxes"></i> Zaxira: {{ product.stock_quantity }} {{ product.unit }}</small><br>
                                             <span class="badge bg-{{ product.get_stock_color() }} badge-sm">
                                                 {{ product.get_stock_status_text() }}

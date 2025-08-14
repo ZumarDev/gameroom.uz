@@ -61,7 +61,7 @@
                                             <p class="card-text text-muted">{{ category.description }}</p>
                                         {% endif %}
                                         <div class="text-muted">
-                                            <small><i class="bi bi-currency-dollar"></i> {{ "{:,.0f}".format(category.price_per_30min) }} som/30daq</small><br>
+                                            <small><span class="fw-bold text-success">UZS</span> {{ "{:,.0f}".format(category.price_per_30min) }} som/30daq</small><br>
                                             <small><i class="bi bi-house"></i> {{ category.rooms|length }} ta xona</small><br>
                                             <small>Yaratilgan: {{ category.created_at.strftime('%Y-%m-%d') }}</small>
                                         </div>
@@ -140,7 +140,7 @@
                                             <p class="card-text text-muted">{{ room.description }}</p>
                                         {% endif %}
                                         <div class="text-muted">
-                                            <small><i class="bi bi-currency-dollar"></i> 
+                                            <small><span class="fw-bold text-success">UZS</span> 
                                                 {% if room.custom_price_per_30min %}
                                                     {{ "{:,.0f}".format(room.custom_price_per_30min) }} som/30daq (maxsus)
                                                 {% else %}
