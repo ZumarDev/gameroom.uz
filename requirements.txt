@@ -52,3 +52,6 @@ psycopg2-binary
 sqlalchemy
 werkzeug
 wtforms
+openpyxl
+pandas
+reportlab

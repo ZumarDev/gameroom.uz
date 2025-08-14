@@ -18,8 +18,8 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control") }}
+                        {{ form.username.label(class="form-label text-light") }}
+                        {{ form.username(class="form-control bg-secondary text-light border-dark") }}
                         {% if form.username.errors %}
                             <div class="text-danger small">
                                 {% for error in form.username.errors %}
@@ -30,8 +30,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
+                        {{ form.password.label(class="form-label text-light") }}
+                        {{ form.password(class="form-control bg-secondary text-light border-dark") }}
                         {% if form.password.errors %}
                             <div class="text-danger small">
                                 {% for error in form.password.errors %}

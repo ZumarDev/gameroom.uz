@@ -118,12 +118,13 @@ def change_password():
     if form.validate_on_submit():
         # Check current password if not temp password
         if not current_user.is_temp_password:
-            if not check_password_hash(current_user.password_hash, form.current_password.data):
+            if not current_user.password_hash or not check_password_hash(current_user.password_hash, form.current_password.data):
                 flash('Joriy parol noto\'g\'ri!', 'danger')
                 return render_template('change_password.html', form=form)
         
         # Update password
-        current_user.password_hash = generate_password_hash(form.new_password.data)
+        if form.new_password.data:
+            current_user.password_hash = generate_password_hash(form.new_password.data)
         current_user.is_temp_password = False
         db.session.commit()
         flash('Parol muvaffaqiyatli o\'zgartirildi!', 'success')
@@ -1026,11 +1027,11 @@ def export_products_excel():
     for product in products:
         data.append({
             'Nomi': product.name,
-            'Kategoriya': product.category,
+            'Kategoriya': product.product_category.name if product.product_category else 'Kategoriyasiz',
             'Narxi (som)': product.price,
             'Zaxira miqdori': product.stock_quantity or 0,
             'Minimum zaxira': product.min_stock_alert or 0,
-            'Holati': product.stock_status(),
+            'Holati': product.get_stock_status_text() if hasattr(product, 'get_stock_status_text') else 'Mavjud',
             'Yaratilgan sana': product.created_at.strftime('%Y-%m-%d') if product.created_at else ''
         })
     
@@ -1063,7 +1064,7 @@ def import_products_excel():
         flash('Fayl tanlanmagan!', 'danger')
         return redirect(url_for('products'))
     
-    if not file.filename.endswith('.xlsx'):
+    if not file.filename or not file.filename.endswith('.xlsx'):
         flash('Faqat .xlsx formatidagi fayllar qabul qilinadi!', 'danger')
         return redirect(url_for('products'))
     
@@ -1088,13 +1089,27 @@ def import_products_excel():
             ).first()
             
             if not existing_product:
+                # Get or create category
+                category_name = str(row['Kategoriya'])
+                category = ProductCategory.query.filter_by(
+                    admin_user_id=current_user.id,
+                    name=category_name
+                ).first()
+                if not category:
+                    category = ProductCategory(
+                        name=category_name,
+                        admin_user_id=current_user.id
+                    )
+                    db.session.add(category)
+                    db.session.flush()  # Get the ID
+                
                 product = Product()
                 product.admin_user_id = current_user.id
-                product.name = row['Nomi']
-                product.category = row['Kategoriya']
-                product.price = float(row['Narxi (som)'])
-                product.stock_quantity = int(row.get('Zaxira miqdori', 0))
-                product.min_stock_alert = int(row.get('Minimum zaxira', 0))
+                product.name = str(row['Nomi'])
+                product.category_id = category.id
+                product.price = float(row['Narxi (som)']) if pd.notna(row['Narxi (som)']) else 0
+                product.stock_quantity = int(row.get('Zaxira miqdori', 0)) if pd.notna(row.get('Zaxira miqdori', 0)) else 0
+                product.min_stock_alert = int(row.get('Minimum zaxira', 0)) if pd.notna(row.get('Minimum zaxira', 0)) else 0
                 
                 db.session.add(product)
                 imported_count += 1
