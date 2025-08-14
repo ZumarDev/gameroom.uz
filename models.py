@@ -232,10 +232,21 @@ class CartItem(db.Model):
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
+    price_at_time = db.Column(db.Float, nullable=False)  # Price when added to cart
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationships
     product = db.relationship('Product')
+    
+    @property
+    def price(self):
+        """Get the price per unit (for backward compatibility)"""
+        return self.price_at_time
+    
+    @property
+    def total_price(self):
+        """Calculate total price for this cart item"""
+        return self.price_at_time * self.quantity
 
 # Fixed session pricing configuration
 FIXED_SESSION_PRICES = {

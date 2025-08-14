@@ -737,6 +737,7 @@ def add_product_to_session(session_id):
             cart_item.session_id = session_id
             cart_item.product_id = product_id
             cart_item.quantity = quantity
+            cart_item.price_at_time = product.price  # Store current product price
             db.session.add(cart_item)
         
         # Deduct stock
@@ -984,11 +985,16 @@ def get_session_time(session_id):
                 'current_cost': current_cost
             })
         
+        # Update session totals including products
+        session.update_total_price()
+        
         return jsonify({
             'expired': False,
             'remaining_seconds': int(remaining.total_seconds()),
             'elapsed_seconds': int(elapsed.total_seconds()),
-            'current_cost': current_cost
+            'current_cost': current_cost,
+            'products_total': session.products_total,
+            'total_current': session.total_price
         })
     
     else:  # VIP session
@@ -1008,11 +1014,16 @@ def get_session_time(session_id):
         price_per_minute = price_per_30min / 30
         current_cost = elapsed_minutes * price_per_minute
         
+        # Update session totals including products
+        session.update_total_price()
+        
         return jsonify({
             'expired': False,
             'remaining_seconds': 0,
             'elapsed_seconds': int(elapsed.total_seconds()),
-            'current_cost': current_cost
+            'current_cost': current_cost,
+            'products_total': session.products_total,
+            'total_current': session.total_price
         })
 
 # Excel Import/Export Routes
@@ -1266,7 +1277,7 @@ def generate_pdf_report(report_type):
             else:
                 product_sales[product_name] = {
                     'quantity': item.quantity,
-                    'unit_price': item.price,
+                    'unit_price': item.price_at_time,
                     'total': item.total_price
                 }
         

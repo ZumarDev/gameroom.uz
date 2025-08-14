@@ -73,6 +73,10 @@ class SessionTimer {
                     <div>
                         <span class="text-warning d-block">${remainingTime} qoldi</span>
                         <small class="text-muted">${elapsedTime} o'tdi</small>
+                        <div class="mt-1">
+                            <strong class="text-info">${data.total_current ? (data.total_current).toLocaleString() + ' som' : '0 som'}</strong>
+                            <small class="text-muted d-block">Jami summa</small>
+                        </div>
                     </div>`;
                 
                 // Update the session price display in real-time for fixed sessions
@@ -103,6 +107,10 @@ class SessionTimer {
                     <div>
                         <span class="text-info d-block">${elapsedTime} o'tdi</span>
                         <small class="text-success">VIP seans</small>
+                        <div class="mt-1">
+                            <strong class="text-success">${data.total_current ? (data.total_current).toLocaleString() + ' som' : '0 som'}</strong>
+                            <small class="text-muted d-block">Jami summa</small>
+                        </div>
                     </div>`;
                 
                 // Update the session price display in real-time for VIP sessions
