@@ -36,7 +36,7 @@ def login():
     if form.validate_on_submit():
         user = AdminUser.query.filter_by(username=form.username.data).first()
         password_data = form.password.data
-        if user and user.password_hash and password_data and check_password_hash(user.password_hash, password_data):
+        if user and user.password_hash and password_data and check_password_hash(str(user.password_hash), password_data):
             login_user(user)
             if user.is_temp_password:
                 flash('Vaqtinchalik parol bilan kirdingiz. Iltimos, parolni o\'zgartiring!', 'warning')
@@ -1050,8 +1050,12 @@ def export_products_excel():
     
     # Create Excel file in memory
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Mahsulotlar', index=False)
+    try:
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Mahsulotlar', index=False)
+    except Exception as e:
+        flash(f'Excel yaratishda xatolik: {str(e)}', 'danger')
+        return redirect(url_for('products'))
     
     output.seek(0)
     
@@ -1107,10 +1111,9 @@ def import_products_excel():
                     name=category_name
                 ).first()
                 if not category:
-                    category = ProductCategory(
-                        name=category_name,
-                        admin_user_id=current_user.id
-                    )
+                    category = ProductCategory()
+                    category.name = category_name
+                    category.admin_user_id = current_user.id
                     db.session.add(category)
                     db.session.flush()  # Get the ID
                 
@@ -1118,9 +1121,22 @@ def import_products_excel():
                 product.admin_user_id = current_user.id
                 product.name = str(row['Nomi'])
                 product.category_id = category.id
-                product.price = float(row['Narxi (som)']) if pd.notna(row['Narxi (som)']) else 0
-                product.stock_quantity = int(row.get('Zaxira miqdori', 0)) if pd.notna(row.get('Zaxira miqdori', 0)) else 0
-                product.min_stock_alert = int(row.get('Minimum zaxira', 0)) if pd.notna(row.get('Minimum zaxira', 0)) else 0
+                try:
+                    product.price = float(row['Narxi (som)']) if pd.notna(row['Narxi (som)']) else 0.0
+                except (ValueError, TypeError):
+                    product.price = 0.0
+                
+                try:
+                    stock_val = row.get('Zaxira miqdori', 0)
+                    product.stock_quantity = int(stock_val) if pd.notna(stock_val) and str(stock_val).strip() != '' else 0
+                except (ValueError, TypeError):
+                    product.stock_quantity = 0
+                
+                try:
+                    min_stock_val = row.get('Minimum zaxira', 0)
+                    product.min_stock_alert = int(min_stock_val) if pd.notna(min_stock_val) and str(min_stock_val).strip() != '' else 0
+                except (ValueError, TypeError):
+                    product.min_stock_alert = 0
                 
                 db.session.add(product)
                 imported_count += 1
