@@ -934,8 +934,8 @@ def analytics():
                          daily_sessions=len(today_sessions),
                          weekly_revenue=weekly_revenue,
                          weekly_sessions=len(weekly_sessions),
-                         monthly_revenue=main_revenue if report_type == 'monthly' else 0,
-                         monthly_sessions=main_sessions if report_type == 'monthly' else 0,
+                         monthly_revenue=main_revenue,
+                         monthly_sessions=main_sessions,
                          session_revenue=session_revenue,
                          products_revenue=products_revenue)
 

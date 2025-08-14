@@ -126,7 +126,7 @@
                                 {% else %}
                                     {% set session_percent = 0 %}
                                 {% endif %}
-                                <div class="progress-bar bg-primary" style="width: {{ session_percent }}%"></div>
+                                <div class="progress-bar bg-primary" style="width: {{ "%.1f"|format(session_percent) }}%"></div>
                             </div>
                             <small>Jami {{ "{:.1f}".format(session_percent) }}%</small>
                         </div>
@@ -141,7 +141,7 @@
                                 {% else %}
                                     {% set products_percent = 0 %}
                                 {% endif %}
-                                <div class="progress-bar bg-success" style="width: {{ products_percent }}%"></div>
+                                <div class="progress-bar bg-success" style="width: {{ "%.1f"|format(products_percent) }}%"></div>
                             </div>
                             <small>Jami {{ "{:.1f}".format(products_percent) }}%</small>
                         </div>
