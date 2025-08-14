@@ -38,7 +38,7 @@ def login():
         password_data = form.password.data
         if user and user.password_hash and password_data and check_password_hash(user.password_hash, password_data):
             login_user(user)
-            if hasattr(user, 'is_temp_password') and user.is_temp_password:
+            if user.is_temp_password:
                 flash('Vaqtinchalik parol bilan kirdingiz. Iltimos, parolni o\'zgartiring!', 'warning')
                 return redirect(url_for('change_password'))
             flash('Muvaffaqiyatli kirildi!', 'success')
@@ -117,15 +117,14 @@ def change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
         # Check current password if not temp password
-        if not (hasattr(current_user, 'is_temp_password') and current_user.is_temp_password):
+        if not current_user.is_temp_password:
             if not check_password_hash(current_user.password_hash, form.current_password.data):
                 flash('Joriy parol noto\'g\'ri!', 'danger')
                 return render_template('change_password.html', form=form)
         
         # Update password
         current_user.password_hash = generate_password_hash(form.new_password.data)
-        if hasattr(current_user, 'is_temp_password'):
-            current_user.is_temp_password = False
+        current_user.is_temp_password = False
         db.session.commit()
         flash('Parol muvaffaqiyatli o\'zgartirildi!', 'success')
         return redirect(url_for('dashboard'))
@@ -155,8 +154,7 @@ def reset_password():
         # Generate temporary password
         temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
         user.password_hash = generate_password_hash(temp_password)
-        if hasattr(user, 'is_temp_password'):
-            user.is_temp_password = True
+        user.is_temp_password = True
         db.session.commit()
         
         flash(f'Vaqtinchalik parol yaratildi: {temp_password}', 'success')
@@ -1229,6 +1227,69 @@ def generate_pdf_report(report_type):
         
         elements.append(session_table)
     
+    # Product sales data
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("Sotilgan mahsulotlar:", styles['Heading2']))
+    elements.append(Spacer(1, 12))
+    
+    # Get product sales data for the date range
+    cart_items = CartItem.query.join(Session).filter(
+        Session.room_id.in_(user_room_ids),
+        func.date(Session.created_at) >= start_date,
+        func.date(Session.created_at) <= end_date,
+        Session.is_active == False
+    ).all()
+    
+    if cart_items:
+        # Group products by name and calculate totals
+        product_sales = {}
+        for item in cart_items:
+            product_name = item.product.name if item.product else 'Noma\'lum mahsulot'
+            if product_name in product_sales:
+                product_sales[product_name]['quantity'] += item.quantity
+                product_sales[product_name]['total'] += item.total_price
+            else:
+                product_sales[product_name] = {
+                    'quantity': item.quantity,
+                    'unit_price': item.price,
+                    'total': item.total_price
+                }
+        
+        # Create products table
+        product_data = [['Mahsulot', 'Miqdori', 'Narxi (som)', 'Jami (som)']]
+        total_product_revenue = 0
+        
+        for product_name, data in product_sales.items():
+            product_data.append([
+                product_name,
+                f"{data['quantity']} ta",
+                f"{data['unit_price']:,.0f}",
+                f"{data['total']:,.0f}"
+            ])
+            total_product_revenue += data['total']
+        
+        # Add total row
+        product_data.append(['JAMI', '', '', f"{total_product_revenue:,.0f}"])
+        
+        product_table = Table(product_data, colWidths=[2*inch, 1*inch, 1*inch, 1*inch])
+        product_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 8)
+        ]))
+        
+        elements.append(product_table)
+    else:
+        elements.append(Paragraph("Bu davr ichida mahsulot sotilmagan.", styles['Normal']))
+    
     # Build PDF
     doc.build(elements)
     buffer.seek(0)
@@ -1249,13 +1310,21 @@ def inventory_stats_api():
     products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     
     total_products = len(products)
-    in_stock = len([p for p in products if p.stock_quantity and p.stock_quantity > 0])
-    low_stock = len([p for p in products if p.stock_quantity and p.min_stock_alert and p.stock_quantity <= p.min_stock_alert])
-    out_of_stock = len([p for p in products if not p.stock_quantity or p.stock_quantity <= 0])
+    available_products = 0
+    low_stock_products = 0
+    out_of_stock_products = 0
+    
+    for product in products:
+        if product.stock_quantity is None or product.stock_quantity <= 0:
+            out_of_stock_products += 1
+        elif product.min_stock_alert and product.stock_quantity <= product.min_stock_alert:
+            low_stock_products += 1
+        else:
+            available_products += 1
     
     return jsonify({
         'total': total_products,
-        'in_stock': in_stock,
-        'low_stock': low_stock,
-        'out_of_stock': out_of_stock
+        'available': available_products,
+        'low_stock': low_stock_products,
+        'out_of_stock': out_of_stock_products
     })

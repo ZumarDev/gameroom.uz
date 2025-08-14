@@ -13,15 +13,26 @@
     <!-- Stock Overview Cards -->
     <div class="row mb-4">
         {% set total_products = products|length %}
-        {% set low_stock_products = products|selectattr('get_stock_status', 'equalto', 'low_stock')|list|length %}
-        {% set out_of_stock_products = products|selectattr('get_stock_status', 'equalto', 'out_of_stock')|list|length %}
+        {% set available_products = [] %}
+        {% set low_stock_products = [] %}
+        {% set out_of_stock_products = [] %}
+        
+        {% for product in products %}
+            {% if not product.stock_quantity or product.stock_quantity <= 0 %}
+                {% if out_of_stock_products.append(product) %}{% endif %}
+            {% elif product.min_stock_alert and product.stock_quantity <= product.min_stock_alert %}
+                {% if low_stock_products.append(product) %}{% endif %}
+            {% else %}
+                {% if available_products.append(product) %}{% endif %}
+            {% endif %}
+        {% endfor %}
         
         <div class="col-md-3">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">{{ t('total_products') }}</h5>
+                            <h5 class="card-title">Jami Mahsulotlar</h5>
                             <h2 class="mb-0">{{ total_products }}</h2>
                         </div>
                         <i class="bi bi-box-seam fs-1"></i>
@@ -35,8 +46,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">{{ t('available') }}</h5>
-                            <h2 class="mb-0">{{ total_products - low_stock_products - out_of_stock_products }}</h2>
+                            <h5 class="card-title">Mavjud</h5>
+                            <h2 class="mb-0">{{ available_products|length }}</h2>
                         </div>
                         <i class="bi bi-check-circle fs-1"></i>
                     </div>
@@ -49,8 +60,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">{{ t('low_stock') }}</h5>
-                            <h2 class="mb-0">{{ low_stock_products }}</h2>
+                            <h5 class="card-title">Kam Qolgan</h5>
+                            <h2 class="mb-0">{{ low_stock_products|length }}</h2>
                         </div>
                         <i class="bi bi-exclamation-triangle fs-1"></i>
                     </div>
@@ -63,8 +74,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">{{ t('out_of_stock') }}</h5>
-                            <h2 class="mb-0">{{ out_of_stock_products }}</h2>
+                            <h5 class="card-title">Tugagan</h5>
+                            <h2 class="mb-0">{{ out_of_stock_products|length }}</h2>
                         </div>
                         <i class="bi bi-x-circle fs-1"></i>
                     </div>

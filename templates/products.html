@@ -202,17 +202,17 @@
 <!-- Add Product Modal -->
 <div class="modal fade" id="addProductModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content bg-dark border-secondary">
             <form method="POST" action="{{ url_for('add_product') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Yangi Mahsulot Qo'shish</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title text-light">Yangi Mahsulot Qo'shish</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        {{ form.name.label(class="form-label") }}
-                        {{ form.name(class="form-control") }}
+                        {{ form.name.label(class="form-label text-light") }}
+                        {{ form.name(class="form-control bg-secondary text-light border-dark") }}
                         {% if form.name.errors %}
                             <div class="text-danger small">
                                 {% for error in form.name.errors %}
@@ -223,8 +223,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.category_id.label(class="form-label") }}
-                        {{ form.category_id(class="form-select") }}
+                        {{ form.category_id.label(class="form-label text-light") }}
+                        {{ form.category_id(class="form-select bg-secondary text-light border-dark") }}
                         {% if form.category_id.errors %}
                             <div class="text-danger small">
                                 {% for error in form.category_id.errors %}
@@ -235,10 +235,10 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.price.label(class="form-label") }}
+                        {{ form.price.label(class="form-label text-light") }}
                         <div class="input-group">
-                            {{ form.price(class="form-control") }}
-                            <span class="input-group-text">som</span>
+                            {{ form.price(class="form-control bg-secondary text-light border-dark") }}
+                            <span class="input-group-text bg-secondary text-light border-dark">som</span>
                         </div>
                         {% if form.price.errors %}
                             <div class="text-danger small">
@@ -250,8 +250,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        {{ form.unit.label(class="form-label") }}
-                        {{ form.unit(class="form-control", placeholder="Masalan: dona, litr, kg") }}
+                        {{ form.unit.label(class="form-label text-light") }}
+                        {{ form.unit(class="form-control bg-secondary text-light border-dark", placeholder="Masalan: dona, litr, kg") }}
                         {% if form.unit.errors %}
                             <div class="text-danger small">
                                 {% for error in form.unit.errors %}
@@ -264,8 +264,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                {{ form.stock_quantity.label(class="form-label") }}
-                                {{ form.stock_quantity(class="form-control") }}
+                                {{ form.stock_quantity.label(class="form-label text-light") }}
+                                {{ form.stock_quantity(class="form-control bg-secondary text-light border-dark") }}
                                 {% if form.stock_quantity.errors %}
                                     <div class="text-danger small">
                                         {% for error in form.stock_quantity.errors %}
@@ -277,8 +277,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                {{ form.min_stock_alert.label(class="form-label") }}
-                                {{ form.min_stock_alert(class="form-control") }}
+                                {{ form.min_stock_alert.label(class="form-label text-light") }}
+                                {{ form.min_stock_alert(class="form-control bg-secondary text-light border-dark") }}
                                 {% if form.min_stock_alert.errors %}
                                     <div class="text-danger small">
                                         {% for error in form.min_stock_alert.errors %}
@@ -302,17 +302,17 @@
 <!-- Add Category Modal for Products -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content bg-dark border-secondary">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Yangi Kategoriya Qo'shish</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-light"><i class="bi bi-plus-circle"></i> Yangi Kategoriya Qo'shish</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('add_product_category') }}">
                 {{ category_form.hidden_tag() }}
                 <div class="modal-body">
                     <div class="mb-3">
-                        {{ category_form.name.label(class="form-label") }}
-                        {{ category_form.name(class="form-control", placeholder="Masalan: Shirinliklar, Salqin ichimliklar") }}
+                        {{ category_form.name.label(class="form-label text-light") }}
+                        {{ category_form.name(class="form-control bg-secondary text-light border-dark", placeholder="Masalan: Shirinliklar, Salqin ichimliklar") }}
                         {% if category_form.name.errors %}
                             <div class="text-danger small">
                                 {% for error in category_form.name.errors %}
@@ -322,8 +322,8 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        {{ category_form.description.label(class="form-label") }}
-                        {{ category_form.description(class="form-control", placeholder="Kategoriya haqida qo'shimcha ma'lumot") }}
+                        {{ category_form.description.label(class="form-label text-light") }}
+                        {{ category_form.description(class="form-control bg-secondary text-light border-dark", placeholder="Kategoriya haqida qo'shimcha ma'lumot") }}
                         {% if category_form.description.errors %}
                             <div class="text-danger small">
                                 {% for error in category_form.description.errors %}
