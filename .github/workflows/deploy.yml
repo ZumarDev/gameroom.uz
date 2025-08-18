@@ -3,7 +3,7 @@ name: Deploy Flask App to Server
 on:
   push:
     branches:
-      - main  # yoki master, siz ishlatayotgan branch
+      - main  # Agar master ishlatsangiz, o'shani yozing
 
 jobs:
   deploy:
@@ -13,6 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Fayllarni serverga yuborish
     - name: Copy files to server via SSH
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -20,10 +21,11 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: 22
-        source: "."
+        source: "." # Barcha kod
         target: "/www/wwwroot/gameroom.uz"
 
-    - name: Restart Flask app on server
+    # Serverda .env fayl yaratish va app'ni restart qilish
+    - name: Setup environment and restart Flask app
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.SERVER_HOST }}
@@ -32,6 +34,18 @@ jobs:
         port: 22
         script: |
           cd /www/wwwroot/gameroom.uz
+
+          # .env faylni qaytadan yozamiz
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" > .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "SECRET_ADMIN_KEY=${{ secrets.SECRET_ADMIN_KEY }}" >> .env
+
+          # Python virtual env aktivlashtirish
           source venv/bin/activate
-          git pull origin main
+
+          # Zarur paketlarni o‘rnatish
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+          # Flask app’ni qayta ishga tushirish
           sudo systemctl restart flaskapp
