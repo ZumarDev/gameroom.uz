@@ -118,7 +118,7 @@ def change_password():
     if form.validate_on_submit():
         # Check current password if not temp password
         if not current_user.is_temp_password:
-            if not current_user.password_hash or not check_password_hash(current_user.password_hash, form.current_password.data):
+            if not current_user.password_hash or not form.current_password.data or not check_password_hash(str(current_user.password_hash), form.current_password.data):
                 flash('Joriy parol noto\'g\'ri!', 'danger')
                 return render_template('change_password.html', form=form)
         

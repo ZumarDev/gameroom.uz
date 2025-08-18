@@ -73,9 +73,15 @@ class AddProductToSessionForm(FlaskForm):
     session_id = HiddenField()
 
 class ChangePasswordForm(FlaskForm):
-    current_password = PasswordField('Joriy parol', validators=[DataRequired()])
+    current_password = PasswordField('Joriy parol', validators=[Optional()])
     new_password = PasswordField('Yangi parol', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Yangi parolni tasdiqlash', validators=[DataRequired(), EqualTo('new_password', message='Parollar mos emas')])
+    
+    def validate_current_password(self, field):
+        from flask_login import current_user
+        if not current_user.is_temp_password and not field.data:
+            from wtforms.validators import ValidationError
+            raise ValidationError('Joriy parol majburiy!')
 
 class ResetPasswordForm(FlaskForm):
     username = StringField('Foydalanuvchi nomi', validators=[DataRequired()])
