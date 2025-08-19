@@ -7,12 +7,17 @@ from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
+import pytz
+from datetime import datetime
 
 # Load environment variables from .env
 load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Set timezone to Uzbekistan/Tashkent
+os.environ['TZ'] = 'Asia/Tashkent'
 
 class Base(DeclarativeBase):
     pass
@@ -67,6 +72,12 @@ import views  # noqa: F401
 
 # Import translation helper
 from translations import get_translation, get_current_language
+
+# Timezone utility function
+def get_tashkent_time():
+    """Get current time in Tashkent timezone"""
+    tashkent_tz = pytz.timezone('Asia/Tashkent')
+    return datetime.now(tashkent_tz)
 
 @app.template_filter('translate')
 def translate_filter(key, lang=None):

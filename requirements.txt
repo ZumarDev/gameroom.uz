@@ -88,3 +88,4 @@ psycopg2-binary
 sqlalchemy
 werkzeug
 wtforms
+pytz
