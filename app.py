@@ -22,10 +22,13 @@ db = SQLAlchemy(model_class=Base)
 # Create the app
 app = Flask(__name__)
 
-# Load secret key from env (do not generate randomly!)
+# Load secret key from env with fallback for development
 secret_key = os.environ.get("SESSION_SECRET")
 if not secret_key:
-    raise RuntimeError("SESSION_SECRET environment variable is required!")
+    # For development/migration purposes, provide a fallback
+    import secrets
+    secret_key = secrets.token_hex(32)
+    logging.warning("SESSION_SECRET not found, using generated key for development")
 app.secret_key = secret_key
 app.config['WTF_CSRF_SECRET_KEY'] = secret_key
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)

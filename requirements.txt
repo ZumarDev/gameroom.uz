@@ -78,3 +78,13 @@ psycopg2-binary
 sqlalchemy
 werkzeug
 wtforms
+email-validator
+flask
+flask-login
+flask-sqlalchemy
+flask-wtf
+gunicorn
+psycopg2-binary
+sqlalchemy
+werkzeug
+wtforms
