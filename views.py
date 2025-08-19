@@ -838,9 +838,11 @@ def analytics():
     # Get report type and date from query parameters
     report_type = request.args.get('type', 'monthly')
     selected_date = request.args.get('date')
+    selected_week_date = request.args.get('week_date')
     selected_month = request.args.get('month')
     
-    today = datetime.utcnow().date()
+    from app import get_tashkent_time
+    today = get_tashkent_time().date()
     current_date = today.strftime('%Y-%m-%d')
     current_month = today.strftime('%Y-%m')
     
@@ -872,6 +874,40 @@ def analytics():
         # Calculate revenue breakdown for the day
         session_revenue = sum(session.session_price for session in daily_sessions)
         products_revenue = sum(session.products_total for session in daily_sessions)
+        
+    elif report_type == 'weekly':
+        # Weekly analytics for specific week
+        if selected_week_date:
+            try:
+                base_date = datetime.strptime(selected_week_date, '%Y-%m-%d').date()
+            except ValueError:
+                base_date = today
+        else:
+            base_date = today
+            
+        # Calculate week start (Sunday) and end (Saturday)
+        week_start = base_date - timedelta(days=base_date.weekday())
+        week_end = week_start + timedelta(days=6)
+        
+        # Multi-tenant: Get sessions for current user's rooms only
+        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+        user_room_ids = [room.id for room in user_rooms]
+        weekly_sessions_data = Session.query.filter(
+            Session.room_id.in_(user_room_ids),
+            func.date(Session.created_at) >= week_start,
+            func.date(Session.created_at) <= week_end,
+            Session.is_active == False
+        ).all()
+        weekly_revenue_data = sum(session.total_price for session in weekly_sessions_data)
+        
+        # For weekly view, show the selected week as "main" data
+        main_revenue = weekly_revenue_data
+        main_sessions = len(weekly_sessions_data)
+        main_title = f"Haftalik Hisobot - {week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m.%Y')}"
+        
+        # Calculate revenue breakdown for the week
+        session_revenue = sum(session.session_price for session in weekly_sessions_data)
+        products_revenue = sum(session.products_total for session in weekly_sessions_data)
         
     else:
         # Monthly analytics for specific month
@@ -1245,11 +1281,17 @@ def generate_pdf_report(report_type):
         session_data = [['Xona', 'Sana', 'Vaqt', 'Davomiyligi', 'Summa (som)']]
         
         for session in sessions[:50]:  # Limit to 50 sessions for PDF
-            duration_display = session.get_duration_display() if hasattr(session, 'get_duration_display') else 'N/A'
+            from app import utc_to_tashkent
+            duration_display = session.get_formatted_duration()
+            
+            # Convert times to Tashkent timezone
+            created_date = utc_to_tashkent(session.created_at).strftime('%d.%m.%Y')
+            start_time = utc_to_tashkent(session.start_time).strftime('%H:%M') if session.start_time else 'N/A'
+            
             session_data.append([
                 session.room.name,
-                session.created_at.strftime('%d.%m.%Y'),
-                session.start_time.strftime('%H:%M') if session.start_time else 'N/A',
+                created_date,
+                start_time,
                 duration_display,
                 f"{session.total_price:,.0f}"
             ])

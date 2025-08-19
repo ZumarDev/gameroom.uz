@@ -22,6 +22,7 @@
             <label class="form-label fw-bold">Hisobot turi:</label>
             <select class="form-select" id="reportType" onchange="toggleDateInputs()">
                 <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Kunlik</option>
+                <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>Haftalik</option>
                 <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Oylik</option>
             </select>
         </div>
@@ -29,7 +30,12 @@
             <label class="form-label fw-bold">Kun tanlang:</label>
             <input type="date" class="form-control" id="selectedDate" value="{{ current_date }}">
         </div>
-        <div class="col-md-3" id="monthlyDateSection" {% if report_type == 'daily' %}style="display: none;"{% endif %}>
+        <div class="col-md-3" id="weeklyDateSection" {% if report_type != 'weekly' %}style="display: none;"{% endif %}>
+            <label class="form-label fw-bold">Hafta uchun kun tanlang:</label>
+            <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_date }}">
+            <small class="text-muted">Tanlangan kunning haftalik hisoboti</small>
+        </div>
+        <div class="col-md-3" id="monthlyDateSection" {% if report_type != 'monthly' %}style="display: none;"{% endif %}>
             <label class="form-label fw-bold">Oy tanlang:</label>
             <input type="month" class="form-control" id="selectedMonth" value="{{ current_month }}">
         </div>
@@ -241,26 +247,89 @@
 
 <script>
 function downloadPDFReport(reportType) {
-    const currentDate = new Date();
     let startDate, endDate;
     
     if (reportType === 'daily') {
-        startDate = currentDate.toISOString().split('T')[0];
-        endDate = startDate;
+        // Use the selected date from the form or current date
+        const selectedDate = document.getElementById('selectedDate').value || new Date().toISOString().split('T')[0];
+        startDate = selectedDate;
+        endDate = selectedDate;
     } else if (reportType === 'weekly') {
-        const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay()));
-        const weekEnd = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 6));
+        // Calculate week start and end based on selected date or current date
+        const baseDate = document.getElementById('selectedWeekDate').value ? 
+            new Date(document.getElementById('selectedWeekDate').value) : 
+            new Date();
+        const weekStart = new Date(baseDate);
+        weekStart.setDate(baseDate.getDate() - baseDate.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
         startDate = weekStart.toISOString().split('T')[0];
         endDate = weekEnd.toISOString().split('T')[0];
     } else if (reportType === 'monthly') {
-        const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        startDate = monthStart.toISOString().split('T')[0];
-        endDate = monthEnd.toISOString().split('T')[0];
+        // Use the selected month from the form or current month
+        const selectedMonth = document.getElementById('selectedMonth').value;
+        if (selectedMonth) {
+            const [year, month] = selectedMonth.split('-');
+            const monthStart = new Date(parseInt(year), parseInt(month) - 1, 1);
+            const monthEnd = new Date(parseInt(year), parseInt(month), 0);
+            startDate = monthStart.toISOString().split('T')[0];
+            endDate = monthEnd.toISOString().split('T')[0];
+        } else {
+            const currentDate = new Date();
+            const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            startDate = monthStart.toISOString().split('T')[0];
+            endDate = monthEnd.toISOString().split('T')[0];
+        }
     }
     
     const url = `/reports/pdf/${reportType}?start_date=${startDate}&end_date=${endDate}`;
     window.open(url, '_blank');
+}
+
+function toggleDateInputs() {
+    const reportType = document.getElementById('reportType').value;
+    const dailySection = document.getElementById('dailyDateSection');
+    const weeklySection = document.getElementById('weeklyDateSection');
+    const monthlySection = document.getElementById('monthlyDateSection');
+    
+    // Hide all sections first
+    dailySection.style.display = 'none';
+    weeklySection.style.display = 'none';
+    monthlySection.style.display = 'none';
+    
+    // Show the relevant section
+    if (reportType === 'daily') {
+        dailySection.style.display = 'block';
+    } else if (reportType === 'weekly') {
+        weeklySection.style.display = 'block';
+    } else if (reportType === 'monthly') {
+        monthlySection.style.display = 'block';
+    }
+}
+
+function loadReport() {
+    const reportType = document.getElementById('reportType').value;
+    let url = '/analytics?type=' + reportType;
+    
+    if (reportType === 'daily') {
+        const selectedDate = document.getElementById('selectedDate').value;
+        if (selectedDate) {
+            url += '&date=' + selectedDate;
+        }
+    } else if (reportType === 'weekly') {
+        const selectedWeekDate = document.getElementById('selectedWeekDate').value;
+        if (selectedWeekDate) {
+            url += '&week_date=' + selectedWeekDate;
+        }
+    } else if (reportType === 'monthly') {
+        const selectedMonth = document.getElementById('selectedMonth').value;
+        if (selectedMonth) {
+            url += '&month=' + selectedMonth;
+        }
+    }
+    
+    window.location.href = url;
 }
 </script>
 

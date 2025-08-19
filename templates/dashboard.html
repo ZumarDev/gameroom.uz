@@ -88,7 +88,7 @@
                                             {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
                                         </span>
                                     </td>
-                                    <td>{{ session.start_time.strftime('%H:%M') }}</td>
+                                    <td>{{ session.start_time|tashkent_time('%H:%M') }}</td>
                                     <td>
                                         <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}" 
                                              {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>

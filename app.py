@@ -19,6 +19,19 @@ logging.basicConfig(level=logging.DEBUG)
 # Set timezone to Uzbekistan/Tashkent
 os.environ['TZ'] = 'Asia/Tashkent'
 
+# Create timezone object for consistent use
+TASHKENT_TZ = pytz.timezone('Asia/Tashkent')
+
+def get_tashkent_time():
+    """Get current time in Tashkent timezone"""
+    return datetime.now(TASHKENT_TZ)
+
+def utc_to_tashkent(utc_time):
+    """Convert UTC time to Tashkent time"""
+    if utc_time.tzinfo is None:
+        utc_time = pytz.utc.localize(utc_time)
+    return utc_time.astimezone(TASHKENT_TZ)
+
 class Base(DeclarativeBase):
     pass
 
@@ -94,7 +107,25 @@ def inject_translation_context():
     return {
         'current_lang': current_lang,
         't': lambda key: get_translation(key, current_lang),
-        'csrf_token': generate_csrf
+        'csrf_token': generate_csrf,
+        'utc_to_tashkent': utc_to_tashkent,
+        'get_tashkent_time': get_tashkent_time
     }
+
+@app.template_filter('tashkent_time')
+def tashkent_time_filter(utc_time, format='%H:%M'):
+    """Convert UTC time to Tashkent time and format it"""
+    if utc_time:
+        tashkent_time = utc_to_tashkent(utc_time)
+        return tashkent_time.strftime(format)
+    return 'N/A'
+
+@app.template_filter('tashkent_date') 
+def tashkent_date_filter(utc_time, format='%d.%m.%Y'):
+    """Convert UTC time to Tashkent date and format it"""
+    if utc_time:
+        tashkent_time = utc_to_tashkent(utc_time)
+        return tashkent_time.strftime(format)
+    return 'N/A'
 
 from views import *  # noqa: F401, F403
