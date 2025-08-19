@@ -78,7 +78,7 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_room_category', category_id=category.id) }}"
-                                                   onclick="return confirm('{{ category.name }} kategoriyasini o\\'chirishga rozimisiz?')">
+                                                   onclick="return confirm('{{ category.name }} kategoriyasini o`chirishga rozimisiz?')">
                                                     <i class="bi bi-trash"></i> O'chirish
                                                 </a>
                                             </li>
@@ -156,14 +156,14 @@
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li>
-                                                <button class="dropdown-item" onclick="editRoom({{ room.id }}, '{{ room.name }}', '{{ room.description or '' }}', {{ room.category_id }}, {{ room.custom_price_per_30min or 'null' }})">
+                                                <button class="dropdown-item" onclick="editRoom({{ room.id }}, '{{ room.name|replace("'", "`") }}', '{{ (room.description or '')|replace("'", "`") }}', {{ room.category_id }}, {{ room.custom_price_per_30min or 'null' }})">
                                                     <i class="bi bi-pencil"></i> Tahrirlash
                                                 </button>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_room', room_id=room.id) }}"
-                                                   onclick="return confirm('{{ room.name }} xonasini o\\'chirishga rozimisiz?')">
+                                                   onclick="return confirm('{{ room.name }} xonasini o`chirishga rozimisiz?')">
                                                     <i class="bi bi-trash"></i> O'chirish
                                                 </a>
                                             </li>
@@ -316,6 +316,12 @@ function editRoom(roomId, name, description, categoryId, customPrice) {
     form.action = '/rooms/edit/' + roomId;
     
     const modal = new bootstrap.Modal(document.getElementById('editRoomModal'));
+    modal.show();
+}
+
+function editCategory(categoryId, name, description, price) {
+    // This function opens the category edit modal
+    const modal = new bootstrap.Modal(document.getElementById('editCategoryModal' + categoryId));
     modal.show();
 }
 </script>
