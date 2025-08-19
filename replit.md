@@ -126,16 +126,15 @@ Interface preferences: Uzbek language throughout, centered section headers, enha
 
 ## Recent Changes (August 2025)
 
-### Migration to Standard Replit Environment (August 14, 2025)
-- **Successful Migration**: Completed migration from Replit Agent to standard Replit environment
-- **Database Configuration**: Fixed database configuration with SQLite fallback for compatibility
-- **Package Installation**: All required Flask packages properly installed and configured (gunicorn, flask, flask-login, flask-sqlalchemy, flask-wtf, psycopg2-binary, sqlalchemy, werkzeug, wtforms, email-validator)
-- **Import System Fixes**: Resolved Excel import functionality errors with proper pandas handling and type safety
-- **Authentication Fixes**: Fixed password hash validation and login security issues
-- **Product Management**: Enhanced product import system with better error handling and validation
-- **Code Quality**: Fixed LSP diagnostic issues and improved type safety throughout the application
+### Migration to Standard Replit Environment (August 19, 2025)
+- **Complete Migration Success**: Successfully migrated from Replit Agent to standard Replit environment
+- **Package Installation**: All required Flask packages properly installed and configured (gunicorn, flask, flask-login, flask-sqlalchemy, flask-wtf, psycopg2-binary, sqlalchemy, werkzeug, wtforms, email-validator, pytz)
+- **Environment Configuration**: Fixed SESSION_SECRET environment variable with fallback for development
+- **Timezone Setup**: Configured application timezone to Asia/Tashkent (Uzbekistan/Tashkent)
+- **UI Improvements**: Removed "Dashboard" menu item from navbar as requested, logo now serves as primary dashboard link
+- **CSRF Security**: Fixed CSRF token issues in room and category edit forms for secure form submissions
 - **Application Status**: Flask application successfully running on port 5000 with all features operational
-- **Design Optimization**: Implemented minimalist design with smaller page headers, compact buttons, reduced spacing, and streamlined interface elements for better visual hierarchy
+- **User Interface**: Clean navbar with logo linking to dashboard, all edit functions working properly
 
 ## Previous Changes (July 2025)
 
