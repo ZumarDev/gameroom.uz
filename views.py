@@ -644,6 +644,7 @@ def sessions():
             date_from = datetime.strptime(filter_date_from, '%Y-%m-%d')
             completed_sessions_query = completed_sessions_query.filter(Session.created_at >= date_from)
         except ValueError:
+            # Ignore invalid date format - don't apply date_from filter
             pass
     
     if filter_date_to:
@@ -651,6 +652,7 @@ def sessions():
             date_to = datetime.strptime(filter_date_to, '%Y-%m-%d') + timedelta(days=1)
             completed_sessions_query = completed_sessions_query.filter(Session.created_at < date_to)
         except ValueError:
+            # Ignore invalid date format - don't apply date_to filter
             pass
     
     if filter_min_sum is not None:
