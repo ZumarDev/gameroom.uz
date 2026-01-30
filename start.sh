@@ -82,7 +82,6 @@ MODE=${1:-dev}
 
 if [ "$MODE" = "prod" ]; then
     echo -e "${GREEN}🏭 Production rejimida ishga tushirilmoqda (Gunicorn)...${NC}"
-    pip install -q gunicorn 2>/dev/null
     gunicorn --bind 0.0.0.0:3000 --workers 4 --threads 2 app:app
 else
     echo -e "${YELLOW}🔧 Development rejimida ishga tushirilmoqda...${NC}"
