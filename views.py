@@ -24,14 +24,15 @@ try:
     pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
     UNICODE_FONT = 'DejaVuSans'
     UNICODE_FONT_BOLD = 'DejaVuSans-Bold'
-except:
+except Exception:
+    # Fallback to Helvetica if DejaVuSans is not available
     UNICODE_FONT = 'Helvetica'
     UNICODE_FONT_BOLD = 'Helvetica-Bold'
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
 from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
 from werkzeug.security import generate_password_hash
-from translations import get_translation, get_current_language, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
+from translations import get_translation, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
 from flask import session, g
 
 @app.before_request
@@ -644,6 +645,7 @@ def sessions():
             date_from = datetime.strptime(filter_date_from, '%Y-%m-%d')
             completed_sessions_query = completed_sessions_query.filter(Session.created_at >= date_from)
         except ValueError:
+            # Invalid date format - skip filter
             pass
     
     if filter_date_to:
@@ -651,6 +653,7 @@ def sessions():
             date_to = datetime.strptime(filter_date_to, '%Y-%m-%d') + timedelta(days=1)
             completed_sessions_query = completed_sessions_query.filter(Session.created_at < date_to)
         except ValueError:
+            # Invalid date format - skip filter
             pass
     
     if filter_min_sum is not None:

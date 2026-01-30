@@ -1125,7 +1125,6 @@ function updateMiniTimers() {
     document.querySelectorAll('.timer-mini').forEach(function(timerEl) {
         const sessionId = timerEl.dataset.sessionId;
         const sessionType = timerEl.dataset.sessionType;
-        const duration = timerEl.dataset.duration;
         
         fetch(`/api/session_time/${sessionId}`)
             .then(response => response.json())
