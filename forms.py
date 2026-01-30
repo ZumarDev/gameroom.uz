@@ -45,6 +45,7 @@ class StockUpdateForm(FlaskForm):
     note = TextAreaField('Izoh')
 
 class InventoryForm(FlaskForm):
+    category_id = SelectField('Kategoriya', coerce=int, validators=[Optional()])
     product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
     quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
     action = SelectField('Amal', choices=[

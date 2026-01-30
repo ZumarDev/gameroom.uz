@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hisobotlar - Gameroom{% endblock %}
+{% block title %}{{ t('analytics_title') }} - Gameroom{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,10 +8,10 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <h1 class="display-4 fw-bold text-warning">
-                    <i class="bi bi-graph-up-arrow"></i>Hisobotlar va Statistika
+                <h1 class="display-4 fw-bold">
+                    <i class="bi bi-graph-up-arrow"></i> {{ t('analytics_title') }}
                 </h1>
-                <p class="lead text-muted">Daromad va faoliyat ko'rsatkichlari</p>
+                <p class="lead text-muted">{{ t('analytics_total_revenue') }}</p>
             </div>
         </div>
     </div>
@@ -19,45 +19,45 @@
     <!-- Date Selection and Report Type -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <label class="form-label fw-bold">Hisobot turi:</label>
+            <label class="form-label fw-bold">{{ t('analytics_period') }}:</label>
             <select class="form-select" id="reportType" onchange="toggleDateInputs()">
-                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Kunlik</option>
-                <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>Haftalik</option>
-                <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>Oylik</option>
+                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>{{ t('analytics_today') }}</option>
+                <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>{{ t('analytics_week') }}</option>
+                <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>{{ t('analytics_month') }}</option>
             </select>
         </div>
         <div class="col-md-3" id="dailyDateSection" {% if report_type != 'daily' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">Kun tanlang:</label>
+            <label class="form-label fw-bold">{{ t('pdf_date') }}:</label>
             <input type="date" class="form-control" id="selectedDate" value="{{ current_date }}">
         </div>
         <div class="col-md-3" id="weeklyDateSection" {% if report_type != 'weekly' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">Hafta uchun kun tanlang:</label>
+            <label class="form-label fw-bold">{{ t('analytics_week') }}:</label>
             <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_date }}">
-            <small class="text-muted">Tanlangan kunning haftalik hisoboti</small>
+            <small class="text-muted">{{ t('analytics_custom') }}</small>
         </div>
         <div class="col-md-3" id="monthlyDateSection" {% if report_type != 'monthly' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">Oy tanlang:</label>
+            <label class="form-label fw-bold">{{ t('analytics_month') }}:</label>
             <input type="month" class="form-control" id="selectedMonth" value="{{ current_month }}">
         </div>
         <div class="col-md-3">
             <label class="form-label">&nbsp;</label>
             <div class="d-grid gap-2">
                 <button class="btn btn-primary" onclick="loadReport()">
-                    <i class="bi bi-arrow-clockwise"></i> Hisobotni yangilash
+                    <i class="bi bi-arrow-clockwise"></i> {{ t('analytics_generate') }}
                 </button>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-danger dropdown-toggle btn-sm" data-bs-toggle="dropdown">
-                        <i class="bi bi-file-earmark-pdf"></i> PDF Hisobot
+                        <i class="bi bi-file-earmark-pdf"></i> {{ t('analytics_download_pdf') }}
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('daily')">
-                            <i class="bi bi-calendar-day"></i> Kunlik
+                            <i class="bi bi-calendar-day"></i> {{ t('analytics_today') }}
                         </a></li>
                         <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('weekly')">
-                            <i class="bi bi-calendar-week"></i> Xaftalik
+                            <i class="bi bi-calendar-week"></i> {{ t('analytics_week') }}
                         </a></li>
                         <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('monthly')">
-                            <i class="bi bi-calendar-month"></i> Oylik
+                            <i class="bi bi-calendar-month"></i> {{ t('analytics_month') }}
                         </a></li>
                     </ul>
                 </div>
@@ -72,9 +72,9 @@
         <div class="card bg-gradient-primary text-white">
             <div class="card-body text-center py-4">
                 <i class="bi bi-graph-up display-1 mb-3"></i>
-                <h2 class="display-4 fw-bold">{{ "{:,.0f}".format(main_revenue) }} som</h2>
+                <h2 class="display-4 fw-bold">{{ "{:,.0f}".format(main_revenue) }} {{ t('currency') }}</h2>
                 <h4 class="mb-0">{{ main_title }}</h4>
-                <p class="lead">{{ main_sessions }} seans o'tkazildi</p>
+                <p class="lead">{{ main_sessions }} {{ t('pdf_sessions') }}</p>
             </div>
         </div>
     </div>
@@ -86,9 +86,9 @@
         <div class="card bg-primary">
             <div class="card-body text-center">
                 <i class="bi bi-calendar-day fs-1"></i>
-                <h4>{{ "{:,.0f}".format(daily_revenue) }} som</h4>
-                <p class="mb-0">Bugungi Daromad</p>
-                <small>{{ daily_sessions }} seans</small>
+                <h4>{{ "{:,.0f}".format(daily_revenue) }} {{ t('currency') }}</h4>
+                <p class="mb-0">{{ t('analytics_today_revenue') }}</p>
+                <small>{{ daily_sessions }} {{ t('analytics_sessions') }}</small>
             </div>
         </div>
     </div>
@@ -96,9 +96,9 @@
         <div class="card bg-success">
             <div class="card-body text-center">
                 <i class="bi bi-calendar-week fs-1"></i>
-                <h4>{{ "{:,.0f}".format(weekly_revenue) }} som</h4>
-                <p class="mb-0">Bu Hafta</p>
-                <small>{{ weekly_sessions }} seans</small>
+                <h4>{{ "{:,.0f}".format(weekly_revenue) }} {{ t('currency') }}</h4>
+                <p class="mb-0">{{ t('analytics_this_week') }}</p>
+                <small>{{ weekly_sessions }} {{ t('analytics_sessions') }}</small>
             </div>
         </div>
     </div>
@@ -106,9 +106,9 @@
         <div class="card bg-info">
             <div class="card-body text-center">
                 <i class="bi bi-calendar-check fs-1"></i>
-                <h4>{{ "{:,.0f}".format(main_revenue) }} som</h4>
-                <p class="mb-0">Tanlangan Davr</p>
-                <small>{{ main_sessions }} seans</small>
+                <h4>{{ "{:,.0f}".format(main_revenue) }} {{ t('currency') }}</h4>
+                <p class="mb-0">{{ t('analytics_selected_period') }}</p>
+                <small>{{ main_sessions }} {{ t('analytics_sessions') }}</small>
             </div>
         </div>
     </div>
@@ -119,14 +119,14 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Oylik Daromad Taqsimoti</h5>
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> {{ t('analytics_monthly_breakdown') }}</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-6">
                         <div class="text-center">
                             <h4 class="text-primary">{{ "{:,.0f}".format(session_revenue) }}</h4>
-                            <p class="text-muted">O'yin Seanslari</p>
+                            <p class="text-muted">{{ t('analytics_game_sessions') }}</p>
                             <div class="progress mb-2">
                                 {% if monthly_revenue > 0 %}
                                     {% set session_percent = (session_revenue / monthly_revenue) * 100 %}
@@ -135,13 +135,13 @@
                                 {% endif %}
                                 <div class="progress-bar bg-primary" style="width: {{ "%.1f"|format(session_percent) }}%"></div>
                             </div>
-                            <small>Jami {{ "{:.1f}".format(session_percent) }}%</small>
+                            <small>{{ t('analytics_total') }} {{ "{:.1f}".format(session_percent) }}%</small>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="text-center">
                             <h4 class="text-success">{{ "{:,.0f}".format(products_revenue) }}</h4>
-                            <p class="text-muted">Sotilgan Mahsulotlar</p>
+                            <p class="text-muted">{{ t('analytics_sold_products') }}</p>
                             <div class="progress mb-2">
                                 {% if monthly_revenue > 0 %}
                                     {% set products_percent = (products_revenue / monthly_revenue) * 100 %}
@@ -150,7 +150,7 @@
                                 {% endif %}
                                 <div class="progress-bar bg-success" style="width: {{ "%.1f"|format(products_percent) }}%"></div>
                             </div>
-                            <small>Jami {{ "{:.1f}".format(products_percent) }}%</small>
+                            <small>{{ t('analytics_total') }} {{ "{:.1f}".format(products_percent) }}%</small>
                         </div>
                     </div>
                 </div>
@@ -161,17 +161,17 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-trophy"></i> Samaradorlik Ko'rsatkichlari</h5>
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> {{ t('analytics_performance') }}</h5>
             </div>
             <div class="card-body">
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
-                        <span>O'rtacha Seans Qiymati</span>
+                        <span>{{ t('analytics_avg_session_value') }}</span>
                         <strong>
                             {% if monthly_sessions > 0 %}
-                                {{ "{:,.0f}".format(monthly_revenue / monthly_sessions) }} som
+                                {{ "{:,.0f}".format(monthly_revenue / monthly_sessions) }} {{ t('currency') }}
                             {% else %}
-                                0 som
+                                0 {{ t('currency') }}
                             {% endif %}
                         </strong>
                     </div>
@@ -179,7 +179,7 @@
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
-                        <span>Har Seans Uchun O'rtacha Mahsulot</span>
+                        <span>{{ t('analytics_avg_product_per_session') }}</span>
                         <strong>
                             {% if monthly_sessions > 0 %}
                                 {{ "{:.1f}".format(products_revenue / session_revenue * 100) if session_revenue > 0 else 0 }}%
@@ -192,14 +192,14 @@
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
-                        <span>Kunlik O'rtacha</span>
-                        <strong>{{ "{:,.0f}".format(monthly_revenue / 30) }} som</strong>
+                        <span>{{ t('analytics_daily_average') }}</span>
+                        <strong>{{ "{:,.0f}".format(monthly_revenue / 30) }} {{ t('currency') }}</strong>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
-                        <span>Kuniga Seanslar (o'rt.)</span>
+                        <span>{{ t('analytics_sessions_per_day') }}</span>
                         <strong>{{ "{:.1f}".format(monthly_sessions / 30) }}</strong>
                     </div>
                 </div>
@@ -213,21 +213,21 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Tezkor Statistika</h5>
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> {{ t('analytics_quick_stats') }}</h5>
             </div>
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-3">
                         <h4 class="text-primary">{{ daily_sessions }}</h4>
-                        <p class="text-muted">Bugungi Seanslar</p>
+                        <p class="text-muted">{{ t('analytics_today_sessions') }}</p>
                     </div>
                     <div class="col-md-3">
                         <h4 class="text-success">{{ weekly_sessions }}</h4>
-                        <p class="text-muted">Bu Haftadagi Seanslar</p>
+                        <p class="text-muted">{{ t('analytics_this_week_sessions') }}</p>
                     </div>
                     <div class="col-md-3">
                         <h4 class="text-info">{{ monthly_sessions }}</h4>
-                        <p class="text-muted">Bu Oydagi Seanslar</p>
+                        <p class="text-muted">{{ t('analytics_this_month_sessions') }}</p>
                     </div>
                     <div class="col-md-3">
                         <h4 class="text-warning">
@@ -237,9 +237,169 @@
                                 0
                             {% endif %}
                         </h4>
-                        <p class="text-muted">Bugun O'rtacha Seans Qiymati</p>
+                        <p class="text-muted">{{ t('analytics_today_avg_session') }}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Performers Section -->
+<div class="row mt-4">
+    <!-- Top Rooms -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary">
+                <h5 class="mb-0"><i class="bi bi-house-door"></i> {{ t('analytics_top_rooms') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if top_rooms %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ t('analytics_room') }}</th>
+                                    <th class="text-center">{{ t('sessions_title') }}</th>
+                                    <th class="text-end">{{ t('analytics_revenue') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room_name, stats in top_rooms %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td><strong>{{ room_name }}</strong></td>
+                                    <td class="text-center"><span class="badge bg-info">{{ stats.count }}</span></td>
+                                    <td class="text-end text-success fw-bold">{{ "{:,.0f}".format(stats.revenue) }} {{ t('currency') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p>{{ t('analytics_no_data') }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Products -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success">
+                <h5 class="mb-0"><i class="bi bi-cup-straw"></i> {{ t('analytics_top_products') }}</h5>
+            </div>
+            <div class="card-body">
+                {% if top_products %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>{{ t('products_name') }}</th>
+                                    <th class="text-end">{{ t('analytics_sold') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product_name, quantity in top_products %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td><strong>{{ product_name }}</strong></td>
+                                    <td class="text-end"><span class="badge bg-warning text-dark">{{ quantity }} {{ t('analytics_pcs') }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p>{{ t('analytics_no_products_sold') }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sessions List -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> {{ main_title }} - {{ t('analytics_sessions_list') }}</h5>
+                <span class="badge bg-secondary">{{ report_sessions|length }} {{ t('analytics_sessions') }}</span>
+            </div>
+            <div class="card-body">
+                {% if report_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>{{ t('analytics_date') }}</th>
+                                    <th>{{ t('analytics_room') }}</th>
+                                    <th>{{ t('analytics_type') }}</th>
+                                    <th>{{ t('analytics_billing') }}</th>
+                                    <th>{{ t('analytics_started') }}</th>
+                                    <th>{{ t('analytics_ended') }}</th>
+                                    <th>{{ t('analytics_duration') }}</th>
+                                    <th class="text-end">{{ t('analytics_session_amount') }}</th>
+                                    <th class="text-end">{{ t('analytics_products_amount') }}</th>
+                                    <th class="text-end">{{ t('analytics_total_amount') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in report_sessions %}
+                                <tr>
+                                    <td>{{ session.created_at|tashkent_time('%d.%m.%Y') }}</td>
+                                    <td><span class="badge bg-secondary">{{ session.room.name if session.room else 'N/A' }}</span></td>
+                                    <td>
+                                        <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
+                                            {% if session.session_type == 'fixed' %}{{ t('analytics_fixed') }}{% else %}VIP{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if session.billing_type == 'actual' %}
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> {{ t('analytics_actual') }}</span>
+                                        {% else %}
+                                            <span class="badge bg-success"><i class="bi bi-cash"></i> {{ t('analytics_full') }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ session.start_time|tashkent_time('%H:%M') if session.start_time else 'N/A' }}</td>
+                                    <td>{{ session.end_time|tashkent_time('%H:%M') if session.end_time else 'N/A' }}</td>
+                                    <td>{{ session.get_formatted_duration() }}</td>
+                                    <td class="text-end">{{ "{:,.0f}".format(session.session_price) }}</td>
+                                    <td class="text-end">
+                                        {% if session.products_total > 0 %}
+                                            <span class="text-info">{{ "{:,.0f}".format(session.products_total) }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold text-success">{{ "{:,.0f}".format(session.total_price) }} {{ t('currency') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <td colspan="7" class="text-end fw-bold">{{ t('analytics_total_amount') }}:</td>
+                                    <td class="text-end fw-bold">{{ "{:,.0f}".format(session_revenue) }}</td>
+                                    <td class="text-end fw-bold text-info">{{ "{:,.0f}".format(products_revenue) }}</td>
+                                    <td class="text-end fw-bold text-success">{{ "{:,.0f}".format(main_revenue) }} {{ t('currency') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-x fs-1"></i>
+                        <p>{{ t('analytics_no_sessions') }}</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

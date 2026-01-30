@@ -9,10 +9,17 @@ class AdminUser(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     gaming_center_name = db.Column(db.String(100), nullable=False, default="O'yinxona")
+    logo_filename = db.Column(db.String(255), nullable=True)  # Custom logo
     is_admin_active = db.Column(db.Boolean, default=True)
     preferred_language = db.Column(db.String(5), default='uz')  # Language preference
     is_temp_password = db.Column(db.Boolean, default=False)  # Temporary password flag
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def get_logo_url(self):
+        """Logo URL'ini qaytaradi - custom yoki default"""
+        if self.logo_filename:
+            return f'/static/uploads/{self.logo_filename}'
+        return '/static/img/default-logo.svg'
 
 class RoomCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -113,6 +120,7 @@ class Session(db.Model):
     prepaid_amount = db.Column(db.Float, default=0.0)  # Amount user actually paid (for prepaid sessions)
     products_total = db.Column(db.Float, default=0.0)  # Total from products
     total_price = db.Column(db.Float, default=0.0)  # session_price + products_total
+    billing_type = db.Column(db.String(20), default='full')  # 'full' = to'liq summa, 'actual' = haqiqiy vaqt
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with cart items

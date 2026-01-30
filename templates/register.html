@@ -1,29 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Ro'yxatdan O'tish - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
+{% block title %}{{ t('auth_register') }} - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+    <!-- Til tanlash - Register sahifasi uchun -->
+    <div class="row mb-3">
+        <div class="col-12 text-end">
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {% for lang in languages %}
+                        {% if lang.code == current_language %}{{ lang.flag }} {{ lang.name }}{% endif %}
+                    {% endfor %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    {% for lang in languages %}
+                    <li>
+                        <a class="dropdown-item {% if lang.code == current_language %}active{% endif %}" 
+                           href="{{ url_for('set_language', lang=lang.code) }}">
+                            {{ lang.flag }} {{ lang.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <i class="bi bi-person-plus display-4 text-success mb-3"></i>
-                <h1 class="display-5 fw-bold text-success">Yangi O'yinxona Ro'yxatdan O'tkazish</h1>
-                <p class="lead text-muted">Boshqaruv tizimiga qo'shilish</p>
+                <i class="bi bi-person-plus display-4 mb-3"></i>
+                <h1 class="display-5 fw-bold">{{ t('auth_register') }}</h1>
+                <p class="lead text-muted">{{ t('auth_create_account') }}</p>
             </div>
         </div>
     </div>
     
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card bg-dark border-secondary shadow-lg">
-                <div class="card-header bg-gradient text-center py-4">
-                    <i class="bi bi-building display-1 text-success mb-3"></i>
-                    <h3 class="text-light mb-0">Yangi O'yinxona Yaratish</h3>
-                    <p class="text-muted">Barcha maydonlar majburiy</p>
+        <div class="col-md-8 col-lg-5">
+            <div class="login-card">
+                <div class="login-header">
+                    <i class="bi bi-building login-logo"></i>
+                    <h3 class="login-title">{{ t('auth_create_account') }}</h3>
+                    <p class="text-muted mb-0">{{ t('msg_required_field') }}</p>
                 </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -39,8 +62,8 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-3">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control") }}
+                        <label class="form-label">{{ t('auth_username') }}</label>
+                        {{ form.username(class="form-control", placeholder=t('auth_username')) }}
                         {% if form.username.errors %}
                             <div class="text-danger">
                                 {% for error in form.username.errors %}
@@ -53,8 +76,8 @@
 
 
                     <div class="mb-3">
-                        {{ form.gaming_center_name.label(class="form-label") }}
-                        {{ form.gaming_center_name(class="form-control", placeholder="Masalan: Cyber Arena, Game Zone") }}
+                        <label class="form-label">{{ t('profile_company') }}</label>
+                        {{ form.gaming_center_name(class="form-control", placeholder=t('profile_company')) }}
                         {% if form.gaming_center_name.errors %}
                             <div class="text-danger">
                                 {% for error in form.gaming_center_name.errors %}
@@ -65,8 +88,8 @@
                     </div>
 
                     <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
+                        <label class="form-label">{{ t('auth_password') }}</label>
+                        {{ form.password(class="form-control", placeholder=t('auth_password')) }}
                         {% if form.password.errors %}
                             <div class="text-danger">
                                 {% for error in form.password.errors %}
@@ -77,8 +100,8 @@
                     </div>
 
                     <div class="mb-3">
-                        {{ form.confirm_password.label(class="form-label") }}
-                        {{ form.confirm_password(class="form-control") }}
+                        <label class="form-label">{{ t('profile_confirm_password') }}</label>
+                        {{ form.confirm_password(class="form-control", placeholder=t('profile_confirm_password')) }}
                         {% if form.confirm_password.errors %}
                             <div class="text-danger">
                                 {% for error in form.confirm_password.errors %}
@@ -89,8 +112,8 @@
                     </div>
 
                     <div class="mb-3">
-                        {{ form.secret_key.label(class="form-label") }}
-                        {{ form.secret_key(class="form-control", placeholder="Admin yaratish uchun maxfiy kalit") }}
+                        <label class="form-label">{{ t('auth_admin_key') }}</label>
+                        {{ form.secret_key(class="form-control", placeholder=t('auth_admin_key')) }}
                         {% if form.secret_key.errors %}
                             <div class="text-danger">
                                 {% for error in form.secret_key.errors %}
@@ -98,20 +121,19 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <small class="text-muted">Bu kalitni loyiha egasidan oling</small>
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-person-plus"></i> Ro'yxatdan O'tish
+                            <i class="bi bi-person-plus"></i> {{ t('auth_register_button') }}
                         </button>
                     </div>
                 </form>
 
                 <div class="text-center mt-3">
-                    <p class="text-muted">Allaqachon akkauntingiz bormi?</p>
+                    <p class="text-muted">{{ t('auth_have_account') }}</p>
                     <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-box-arrow-in-right"></i> Kirish
+                        <i class="bi bi-box-arrow-in-right"></i> {{ t('auth_login') }}
                     </a>
                 </div>
             </div>

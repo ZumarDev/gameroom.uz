@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Xona Kategoriyalari - Gameroom{% endblock %}
+{% block title %}{{ t('room_categories_title') }} - Gameroom{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,9 +8,9 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <i class="bi bi-collection display-4 text-primary mb-3"></i>
-                <h1 class="display-5 fw-bold text-primary">Xona Kategoriyalari</h1>
-                <p class="lead text-muted">O'yin xonalarini kategoriyalar bo'yicha boshqarish</p>
+                <i class="bi bi-collection display-4 mb-3"></i>
+                <h1 class="display-5 fw-bold">{{ t('room_categories_title') }}</h1>
+                <p class="lead text-muted">{{ t('room_categories_subtitle') }}</p>
             </div>
         </div>
     </div>
@@ -20,12 +20,12 @@
         <div class="col-md-6">
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="categorySearch" placeholder="Kategoriya qidirish...">
+                <input type="text" class="form-control" id="categorySearch" placeholder="{{ t('room_categories_search') }}">
             </div>
         </div>
         <div class="col-md-6 text-end">
             <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                <i class="bi bi-plus-circle"></i> Yangi Kategoriya
+                <i class="bi bi-plus-circle"></i> {{ t('room_categories_new') }}
             </button>
         </div>
     </div>
@@ -36,7 +36,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-list"></i> Kategoriyalar Ro'yxati</h5>
+                <h5 class="mb-0"><i class="bi bi-list"></i> {{ t('room_categories_list') }}</h5>
             </div>
             <div class="card-body">
                 {% if categories %}
@@ -44,12 +44,12 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Nomi</th>
-                                    <th>Tavsif</th>
-                                    <th>30 Daqiqa Narxi</th>
-                                    <th>Xonalar Soni</th>
-                                    <th>Yaratilgan</th>
-                                    <th>Amallar</th>
+                                    <th>{{ t('room_categories_name') }}</th>
+                                    <th>{{ t('room_categories_description') }}</th>
+                                    <th>{{ t('room_categories_price_30min') }}</th>
+                                    <th>{{ t('room_categories_room_count') }}</th>
+                                    <th>{{ t('room_categories_created') }}</th>
+                                    <th>{{ t('room_categories_actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,7 +57,7 @@
                                 <tr>
                                     <td><strong>{{ category.name }}</strong></td>
                                     <td>{{ category.description or '-' }}</td>
-                                    <td><span class="badge bg-success">{{ "{:,.0f}".format(category.price_per_30min) }} som</span></td>
+                                    <td><span class="badge bg-success">{{ "{:,.0f}".format(category.price_per_30min) }} {{ t('currency') }}</span></td>
                                     <td>{{ category.rooms|length }}</td>
                                     <td>{{ category.created_at.strftime('%d/%m/%Y') }}</td>
                                     <td>
@@ -68,7 +68,7 @@
                                         </button>
                                         <a href="{{ url_for('delete_room_category', category_id=category.id) }}" 
                                            class="btn btn-outline-danger btn-sm"
-                                           onclick="return confirm('Bu kategoriyani o\'chirishga rozimisiz?')">
+                                           onclick="return confirm('{{ t('room_categories_delete_confirm') }}')">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </td>
@@ -80,9 +80,9 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-collection fs-1 text-muted"></i>
-                        <p class="text-muted">Hali kategoriyalar yaratilmagan</p>
+                        <p class="text-muted">{{ t('room_categories_empty') }}</p>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                            Birinchi Kategoriyani Yaratish
+                            {{ t('room_categories_create_first') }}
                         </button>
                     </div>
                 {% endif %}
@@ -98,7 +98,7 @@
             <form method="POST" action="{{ url_for('add_room_category') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Yangi Kategoriya Yaratish</h5>
+                    <h5 class="modal-title">{{ t('room_categories_create_new') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -116,8 +116,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Kategoriya Yaratish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('room_categories_create') }}</button>
                 </div>
             </form>
         </div>
@@ -132,26 +132,26 @@
             <form method="POST" action="{{ url_for('edit_room_category', category_id=category.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Kategoriya Tahrirlash</h5>
+                    <h5 class="modal-title">{{ t('room_categories_edit') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Kategoriya nomi</label>
+                        <label class="form-label">{{ t('room_categories_cat_name') }}</label>
                         <input type="text" name="name" class="form-control" value="{{ category.name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tavsif</label>
+                        <label class="form-label">{{ t('room_categories_description') }}</label>
                         <textarea name="description" class="form-control" rows="3">{{ category.description or '' }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">30 daqiqa uchun narx (som)</label>
+                        <label class="form-label">{{ t('room_categories_price_hint') }}</label>
                         <input type="number" name="price_per_30min" class="form-control" value="{{ category.price_per_30min }}" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('save') }}</button>
                 </div>
             </form>
         </div>

@@ -1,11 +1,16 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,flask
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode,flask
+# GameRoom.uz - Git Ignore
+# ========================
 
 ### Flask ###
 instance/*
 !instance/.gitignore
 .webassets-cache
 .env
+
+### Database ###
+*.db
+*.sqlite
+*.sqlite3
 
 ### Flask.Python Stack ###
 # Byte-compiled / optimized / DLL files
@@ -279,3 +284,21 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,flask
+# Replit
+.replit
+replit.md
+.local/
+attached_assets/
+
+# Dev/Migration files
+migrate_*.py
+create_admin.py
+uv.lock
+pyproject.toml
+
+# Uploads (user data)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Local config
+.htmlhintrc

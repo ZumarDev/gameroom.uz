@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Xonalar - Gameroom{% endblock %}
+{% block title %}{{ t('rooms_page_title') }} - Gameroom{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,9 +8,9 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <i class="bi bi-house-door display-4 text-success mb-3"></i>
-                <h1 class="display-5 fw-bold text-success">Xonalar Boshqaruvi</h1>
-                <p class="lead text-muted">O'yin xonalarini yaratish va boshqarish</p>
+                <i class="bi bi-house-door display-4 mb-3"></i>
+                <h1 class="display-5 fw-bold">{{ t('rooms_management') }}</h1>
+                <p class="lead text-muted">{{ t('rooms_management_subtitle') }}</p>
             </div>
         </div>
     </div>
@@ -20,12 +20,12 @@
         <div class="col-md-4">
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="roomSearch" placeholder="Xona qidirish...">
+                <input type="text" class="form-control" id="roomSearch" placeholder="{{ t('rooms_search') }}">
             </div>
         </div>
         <div class="col-md-4">
             <select class="form-select" id="categoryFilter">
-                <option value="">Barcha kategoriyalar</option>
+                <option value="">{{ t('rooms_all_categories') }}</option>
                 {% set categories_set = [] %}
                 {% for room in rooms %}
                     {% if room.category and room.category.name not in categories_set %}
@@ -37,7 +37,7 @@
         </div>
         <div class="col-md-4 text-end">
             <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                <i class="bi bi-plus-circle"></i> Xona Qo'shish
+                <i class="bi bi-plus-circle"></i> {{ t('rooms_add') }}
             </button>
         </div>
     </div>
@@ -52,19 +52,19 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="card-title">{{ room.name }}</h5>
-                            <span class="badge bg-info mb-2">{{ room.category.name if room.category else 'Kategoriyasiz' }}</span>
+                            <span class="badge bg-info mb-2">{{ room.category.name if room.category else t('rooms_no_category') }}</span>
                             {% if room.description %}
                                 <p class="card-text text-muted">{{ room.description }}</p>
                             {% endif %}
                             <div class="text-muted">
                                 <small><span class="fw-bold text-success">UZS</span> 
                                     {% if room.custom_price_per_30min %}
-                                        {{ "{:,.0f}".format(room.custom_price_per_30min) }} som/30daq (maxsus)
+                                        {{ "{:,.0f}".format(room.custom_price_per_30min) }} {{ t('rooms_per_30min') }} ({{ t('rooms_custom') }})
                                     {% else %}
-                                        {{ "{:,.0f}".format(room.category.price_per_30min if room.category else 15000) }} som/30daq
+                                        {{ "{:,.0f}".format(room.category.price_per_30min if room.category else 15000) }} {{ t('rooms_per_30min') }}
                                     {% endif %}
                                 </small><br>
-                                <small>Yaratilgan: {{ room.created_at.strftime('%Y-%m-%d') }}</small>
+                                <small>{{ t('rooms_created') }}: {{ room.created_at.strftime('%Y-%m-%d') }}</small>
                             </div>
                         </div>
                         <div class="dropdown">
@@ -76,15 +76,15 @@
                                     <button type="button" class="dropdown-item" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editRoomModal{{ room.id }}">
-                                        <i class="bi bi-pencil"></i> Tahrirlash
+                                        <i class="bi bi-pencil"></i> {{ t('rooms_edit') }}
                                     </button>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item text-danger" 
                                        href="{{ url_for('delete_room', room_id=room.id) }}"
-                                       onclick="return confirm('{{ room.name }} xonasini o\'chirishga rozimisiz?')">
-                                        <i class="bi bi-trash"></i> O'chirish
+                                       onclick="return confirm('{{ room.name }} {{ t('rooms_delete_confirm') }}')">
+                                        <i class="bi bi-trash"></i> {{ t('rooms_delete') }}
                                     </a>
                                 </li>
                             </ul>
@@ -95,14 +95,14 @@
                     {% set active_session = room.sessions|selectattr('is_active', 'equalto', true)|first %}
                     {% if active_session %}
                         <div class="mt-2">
-                            <span class="badge bg-danger">Bandlik</span>
+                            <span class="badge bg-danger">{{ t('rooms_busy') }}</span>
                             <small class="text-muted">
-                                Since {{ active_session.start_time.strftime('%H:%M') }}
+                                {{ t('rooms_since') }} {{ active_session.start_time.strftime('%H:%M') }}
                             </small>
                         </div>
                     {% else %}
                         <div class="mt-2">
-                            <span class="badge bg-success">Bo'sh</span>
+                            <span class="badge bg-success">{{ t('rooms_free') }}</span>
                         </div>
                     {% endif %}
                 </div>
@@ -113,10 +113,10 @@
         <div class="col-12">
             <div class="text-center py-5">
                 <i class="bi bi-house fs-1 text-muted"></i>
-                <h3 class="text-muted">Hali xonalar yo'q</h3>
-                <p class="text-muted">Ishni boshlash uchun birinchi o'yin xonasini qo'shing</p>
+                <h3 class="text-muted">{{ t('rooms_empty_title') }}</h3>
+                <p class="text-muted">{{ t('rooms_empty_subtitle') }}</p>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
-                    <i class="bi bi-plus"></i> Birinchi Xonani Qo'shish
+                    <i class="bi bi-plus"></i> {{ t('rooms_add_first') }}
                 </button>
             </div>
         </div>
@@ -130,7 +130,7 @@
             <form method="POST" action="{{ url_for('add_room') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Yangi Xona Qo'shish</h5>
+                    <h5 class="modal-title">{{ t('rooms_add_new') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -180,12 +180,12 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Bo'sh qoldiring kategoriya narxini ishlatish uchun</div>
+                        <div class="form-text">{{ t('rooms_custom_price_hint') }}</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Xona Qo'shish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('rooms_add') }}</button>
                 </div>
             </form>
         </div>
@@ -200,16 +200,16 @@
             <form method="POST" action="{{ url_for('edit_room', room_id=room.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Xonani Tahrirlash</h5>
+                    <h5 class="modal-title">{{ t('rooms_edit_modal') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Xona nomi</label>
+                        <label class="form-label">{{ t('rooms_room_name') }}</label>
                         <input type="text" name="name" class="form-control" value="{{ room.name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Kategoriya</label>
+                        <label class="form-label">{{ t('rooms_category_label') }}</label>
                         <select name="category_id" class="form-select" required>
                             {% for choice in form.category_id.choices %}
                                 <option value="{{ choice[0] }}" {% if choice[0] == room.category_id %}selected{% endif %}>
@@ -219,18 +219,18 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tavsif</label>
+                        <label class="form-label">{{ t('description') }}</label>
                         <textarea name="description" class="form-control" rows="3">{{ room.description or '' }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Maxsus narx (30 daqiqa)</label>
+                        <label class="form-label">{{ t('rooms_custom_price_30min') }}</label>
                         <input type="number" name="custom_price_per_30min" class="form-control" value="{{ room.custom_price_per_30min or '' }}">
-                        <div class="form-text">Bo'sh qoldiring kategoriya narxini ishlatish uchun</div>
+                        <div class="form-text">{{ t('rooms_custom_price_hint') }}</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('save') }}</button>
                 </div>
             </form>
         </div>
