@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Profil{% endblock %}
+{% block title %}{{ t('nav_profile') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,36 +8,63 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <i class="bi bi-person-circle display-4 text-info mb-3"></i>
-                <h1 class="display-5 fw-bold text-info">Profil Ma'lumotlari</h1>
-                <p class="lead text-muted">Shaxsiy ma'lumotlarni boshqarish</p>
+                <img src="{{ current_user.get_logo_url() }}" alt="Logo" class="mb-3" 
+                     style="width: 100px; height: 100px; object-fit: contain; border-radius: 15px;">
+                <h1 class="display-5 fw-bold">{{ t('profile_title') }}</h1>
+                <p class="lead text-muted">{{ t('nav_profile') }}</p>
             </div>
         </div>
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card bg-dark border-secondary shadow-lg">
-                <div class="card-header bg-gradient text-center py-4">
-                    <i class="bi bi-person-gear display-1 text-info mb-3"></i>
-                    <h3 class="text-light mb-0">Profil Sozlamalari</h3>
-                    <p class="text-muted">{{ current_user.gaming_center_name }}</p>
+        <div class="col-md-8 col-lg-5">
+            <div class="card">
+                <div class="card-header text-center py-4">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="{{ current_user.get_logo_url() }}" alt="Logo" 
+                             id="logoPreview"
+                             style="width: 100px; height: 100px; object-fit: contain; border-radius: 16px; border: 3px solid var(--primary);">
+                    </div>
+                    <h3 class="mb-1">{{ t('profile_title') }}</h3>
+                    <p class="text-muted mb-0">{{ current_user.gaming_center_name }}</p>
                 </div>
-                <div class="card-body">
-                    <form method="POST">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         
-                        <div class="mb-3">
-                            {{ form.username.label(class="form-label text-light") }}
-                            {{ form.username(class="form-control bg-secondary text-light border-dark") }}
-                            {% for error in form.username.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
+                        <!-- Logo Upload Section -->
+                        <div class="mb-4 p-3 border rounded" style="border-color: var(--border) !important;">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2"></i>{{ t('profile_logo') }}
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="flex-grow-1">
+                                    <input type="file" name="logo" id="logoInput" 
+                                           class="form-control"
+                                           accept="image/png,image/jpeg,image/gif,image/svg+xml,image/webp"
+                                           onchange="previewLogo(this)">
+                                    <div class="form-text text-muted">{{ t('profile_logo_info') }}</div>
+                                </div>
+                            </div>
+                            {% if current_user.logo_filename %}
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmRemoveLogo()">
+                                    <i class="bi bi-trash me-1"></i>{{ t('profile_remove_logo') }}
+                                </button>
+                            </div>
+                            {% endif %}
                         </div>
                         
                         <div class="mb-3">
-                            {{ form.gaming_center_name.label(class="form-label text-light") }}
-                            {{ form.gaming_center_name(class="form-control bg-secondary text-light border-dark") }}
+                            <label class="form-label">{{ t('auth_username') }}</label>
+                            <input type="text" class="form-control" 
+                                   value="{{ current_user.username }}" disabled readonly>
+                            <div class="form-text text-muted">{{ t('profile_username_readonly') }}</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">{{ t('profile_company') }}</label>
+                            {{ form.gaming_center_name(class="form-control") }}
                             {% for error in form.gaming_center_name.errors %}
                                 <div class="text-danger small">{{ error }}</div>
                             {% endfor %}
@@ -45,21 +72,21 @@
                         
                         <div class="row g-2">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary w-100">
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
                                     <i class="bi bi-check-circle me-2"></i>
-                                    Ma'lumotlarni Yangilash
+                                    {{ t('profile_update') }}
                                 </button>
                             </div>
                             <div class="col-6">
                                 <a href="{{ url_for('change_password') }}" class="btn btn-warning w-100">
                                     <i class="bi bi-key me-2"></i>
-                                    Parol O'zgartirish
+                                    {{ t('profile_change_password') }}
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary w-100">
                                     <i class="bi bi-arrow-left me-2"></i>
-                                    Orqaga
+                                    {{ t('action_back') }}
                                 </a>
                             </div>
                         </div>
@@ -69,4 +96,27 @@
         </div>
     </div>
 </div>
+
+<!-- Remove Logo Form (outside main form) -->
+<form action="{{ url_for('remove_logo') }}" method="POST" id="removeLogoForm" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+<script>
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('logoPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function confirmRemoveLogo() {
+    if (confirm('Logoni o\'chirmoqchimisiz? Standart logo qo\'yiladi.')) {
+        document.getElementById('removeLogoForm').submit();
+    }
+}
+</script>
 {% endblock %}

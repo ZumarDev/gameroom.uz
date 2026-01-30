@@ -15,11 +15,56 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register DejaVuSans font for Cyrillic support
+try:
+    pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+    pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))
+    UNICODE_FONT = 'DejaVuSans'
+    UNICODE_FONT_BOLD = 'DejaVuSans-Bold'
+except:
+    UNICODE_FONT = 'Helvetica'
+    UNICODE_FONT_BOLD = 'Helvetica-Bold'
 from app import app, db
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
 from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
 from werkzeug.security import generate_password_hash
-from translations import get_translation, get_current_language
+from translations import get_translation, get_current_language, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
+from flask import session, g
+
+@app.before_request
+def before_request():
+    """Har bir so'rov oldidan til sozlamalarini o'rnatish"""
+    # Session'dan tilni olish, aks holda default til
+    g.lang = session.get('language', DEFAULT_LANGUAGE)
+    g.t = lambda key: get_translation(key, g.lang)
+    g.languages = get_languages()
+    g.current_language = g.lang
+
+
+@app.context_processor
+def inject_translations():
+    """Barcha template'larga tarjimalarni va til ma'lumotlarini inject qilish"""
+    lang = session.get('language', DEFAULT_LANGUAGE)
+    return {
+        't': lambda key: get_translation(key, lang),
+        'translations': get_all_translations(lang),
+        'current_language': lang,
+        'languages': get_languages(),
+    }
+
+
+@app.route('/set-language/<lang>')
+def set_language(lang):
+    """Til tanlash"""
+    valid_langs = [l['code'] for l in get_languages()]
+    if lang in valid_langs:
+        session['language'] = lang
+        flash(get_translation('msg_updated', lang), 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
 
 @app.route('/')
 def index():
@@ -39,11 +84,11 @@ def login():
         if user and user.password_hash and password_data and check_password_hash(str(user.password_hash), password_data):
             login_user(user)
             if user.is_temp_password:
-                flash('Vaqtinchalik parol bilan kirdingiz. Iltimos, parolni o\'zgartiring!', 'warning')
+                flash(t('msg_temp_password'), 'warning')
                 return redirect(url_for('change_password'))
-            flash('Muvaffaqiyatli kirildi!', 'success')
+            flash(t('msg_login_success'), 'success')
             return redirect(url_for('dashboard'))
-        flash('Foydalanuvchi nomi yoki parol noto\'g\'ri', 'danger')
+        flash(t('msg_invalid_credentials'), 'danger')
     
     return render_template('login.html', form=form)
 
@@ -55,13 +100,13 @@ def register():
         import os
         secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
         if form.secret_key.data != secret_key:
-            flash('Maxfiy kalit noto\'g\'ri!', 'danger')
+            flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('register.html', form=form)
         
         # Check if username already exists
         existing_user = AdminUser.query.filter_by(username=form.username.data).first()
         if existing_user:
-            flash('Bu foydalanuvchi nomi band!', 'danger')
+            flash(t('msg_username_taken'), 'danger')
             return render_template('register.html', form=form)
         
         # Create new admin user
@@ -74,7 +119,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        flash(f'{form.gaming_center_name.data} uchun admin akkaunt yaratildi!', 'success')
+        flash(t('msg_admin_created'), 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
@@ -83,7 +128,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('Tizimdan chiqdingiz.', 'info')
+    flash(t('msg_logout'), 'info')
     return redirect(url_for('login'))
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -91,25 +136,57 @@ def logout():
 def profile():
     form = ProfileForm()
     if form.validate_on_submit():
-        # Check if username is taken by another user
-        existing_user = AdminUser.query.filter(
-            AdminUser.username == form.username.data,
-            AdminUser.id != current_user.id
-        ).first()
-        if existing_user:
-            flash('Bu foydalanuvchi nomi band!', 'danger')
-            return render_template('profile.html', form=form)
-        
-        current_user.username = form.username.data
+        # Username o'zgartirib bo'lmaydi - faqat gaming_center_name o'zgartiriladi
         current_user.gaming_center_name = form.gaming_center_name.data
+        
+        # Handle logo upload
+        if 'logo' in request.files:
+            logo_file = request.files['logo']
+            if logo_file and logo_file.filename:
+                # Validate file type
+                allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'}
+                filename = logo_file.filename
+                if '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                    # Delete old logo if exists
+                    if current_user.logo_filename:
+                        old_logo_path = os.path.join(app.root_path, 'static', 'uploads', current_user.logo_filename)
+                        if os.path.exists(old_logo_path):
+                            os.remove(old_logo_path)
+                    
+                    # Generate unique filename
+                    ext = filename.rsplit('.', 1)[1].lower()
+                    new_filename = f"logo_{current_user.id}_{int(datetime.utcnow().timestamp())}.{ext}"
+                    logo_path = os.path.join(app.root_path, 'static', 'uploads', new_filename)
+                    logo_file.save(logo_path)
+                    current_user.logo_filename = new_filename
+                    flash(t('msg_logo_uploaded'), 'success')
+                else:
+                    flash(t('msg_only_images'), 'warning')
+        
         db.session.commit()
-        flash('Profil muvaffaqiyatli yangilandi!', 'success')
+        flash(t('msg_profile_updated'), 'success')
         return redirect(url_for('profile'))
     
     # Pre-fill form with current data
     form.username.data = current_user.username
     form.gaming_center_name.data = current_user.gaming_center_name
     return render_template('profile.html', form=form)
+
+@app.route('/profile/remove-logo', methods=['POST'])
+@login_required
+def remove_logo():
+    """Logoni o'chirish va default logoga qaytarish"""
+    if current_user.logo_filename:
+        # Delete the file
+        logo_path = os.path.join(app.root_path, 'static', 'uploads', current_user.logo_filename)
+        if os.path.exists(logo_path):
+            os.remove(logo_path)
+        current_user.logo_filename = None
+        db.session.commit()
+        flash(t('msg_logo_removed'), 'success')
+    else:
+        flash(t('msg_logo_not_found'), 'info')
+    return redirect(url_for('profile'))
 
 @app.route('/change-password', methods=['GET', 'POST'])
 @login_required
@@ -119,7 +196,7 @@ def change_password():
         # Check current password if not temp password
         if not current_user.is_temp_password:
             if not current_user.password_hash or not form.current_password.data or not check_password_hash(str(current_user.password_hash), form.current_password.data):
-                flash('Joriy parol noto\'g\'ri!', 'danger')
+                flash(t('msg_current_password_wrong'), 'danger')
                 return render_template('change_password.html', form=form)
         
         # Update password
@@ -127,7 +204,7 @@ def change_password():
             current_user.password_hash = generate_password_hash(form.new_password.data)
         current_user.is_temp_password = False
         db.session.commit()
-        flash('Parol muvaffaqiyatli o\'zgartirildi!', 'success')
+        flash(t('msg_password_changed'), 'success')
         return redirect(url_for('dashboard'))
     
     return render_template('change_password.html', form=form)
@@ -143,13 +220,13 @@ def reset_password():
         
         secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
         if form.secret_key.data != secret_key:
-            flash('Admin maxfiy kaliti noto\'g\'ri!', 'danger')
+            flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('reset_password.html', form=form)
         
         # Find user
         user = AdminUser.query.filter_by(username=form.username.data).first()
         if not user:
-            flash('Foydalanuvchi topilmadi!', 'danger')
+            flash(t('msg_user_not_found'), 'danger')
             return render_template('reset_password.html', form=form)
         
         # Generate temporary password
@@ -158,8 +235,8 @@ def reset_password():
         user.is_temp_password = True
         db.session.commit()
         
-        flash(f'Vaqtinchalik parol yaratildi: {temp_password}', 'success')
-        flash('Foydalanuvchi kirgach parolni o\'zgartirishi kerak!', 'info')
+        flash(f"{t('msg_temp_password_created')}: {temp_password}", 'success')
+        flash(t('msg_change_password_required'), 'info')
         return redirect(url_for('login'))
     
     return render_template('reset_password.html', form=form)
@@ -185,11 +262,27 @@ def dashboard():
     
     today_revenue = sum(session.total_price for session in today_sessions)
     total_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
-    total_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    # Count only products with stock > 0
+    total_products = Product.query.filter(
+        Product.admin_user_id == current_user.id,
+        Product.is_active == True,
+        Product.stock_quantity > 0
+    ).count()
     
     # Get data for modals
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-    available_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    # Only show products with stock > 0
+    available_products = Product.query.filter(
+        Product.admin_user_id == current_user.id,
+        Product.is_active == True,
+        Product.stock_quantity > 0
+    ).all()
+    room_categories = RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
+    # Find available rooms (not in active session)
+    active_room_ids = [s.room_id for s in active_sessions]
+    available_rooms = [r for r in user_rooms if r.id not in active_room_ids]
+    busy_rooms = [r for r in user_rooms if r.id in active_room_ids]
     
     return render_template('dashboard.html',
                          active_sessions=active_sessions,
@@ -198,6 +291,9 @@ def dashboard():
                          total_products=total_products,
                          session_count=len(today_sessions),
                          user_rooms=user_rooms,
+                         available_rooms=available_rooms,
+                         busy_rooms=busy_rooms,
+                         room_categories=room_categories,
                          available_products=available_products)
 
 @app.route('/rooms-management')
@@ -294,7 +390,7 @@ def add_room():
         flash(f'Xona "{room.name}" muvaffaqiyatli yaratildi!', 'success')
     else:
         flash('Xona qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
-    return redirect(url_for('rooms_management'))
+    return redirect(url_for('rooms_management') + '?tab=rooms')
 
 
 
@@ -305,7 +401,7 @@ def delete_room(room_id):
     room.is_active = False
     db.session.commit()
     flash(f'Xona "{room.name}" o\'chirildi!', 'success')
-    return redirect(url_for('rooms_management'))
+    return redirect(url_for('rooms_management') + '?tab=rooms')
 
 @app.route('/rooms/edit/<int:room_id>', methods=['POST'])
 @login_required
@@ -325,7 +421,7 @@ def edit_room(room_id):
     
     db.session.commit()
     flash(f'Xona "{room.name}" muvaffaqiyatli yangilandi!', 'success')
-    return redirect(url_for('rooms_management'))
+    return redirect(url_for('rooms_management') + '?tab=rooms')
 
 @app.route('/products')
 @login_required
@@ -376,7 +472,7 @@ def add_product():
         flash(f'Mahsulot "{product.name}" muvaffaqiyatli qo\'shildi!', 'success')
     else:
         flash('Mahsulot qo\'shishda xatolik. Ma\'lumotlarni tekshiring.', 'danger')
-    return redirect(url_for('products'))
+    return redirect(url_for('products') + '?tab=products')
 
 @app.route('/products/edit/<int:product_id>', methods=['POST'])
 @login_required
@@ -398,7 +494,7 @@ def edit_product(product_id):
         db.session.rollback()
         flash(f'Mahsulot yangilashda xatolik: {str(e)}', 'danger')
     
-    return redirect(url_for('products'))
+    return redirect(url_for('products') + '?tab=products')
 
 @app.route('/products/delete/<int:product_id>')
 @login_required
@@ -407,7 +503,7 @@ def delete_product(product_id):
     product.is_active = False
     db.session.commit()
     flash(f'Mahsulot "{product.name}" o\'chirildi!', 'success')
-    return redirect(url_for('products'))
+    return redirect(url_for('products') + '?tab=products')
 
 @app.route('/products/add-category', methods=['POST'])
 @login_required
@@ -518,20 +614,106 @@ def sessions():
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     user_room_ids = [room.id for room in user_rooms]
     active_sessions = Session.query.filter(Session.room_id.in_(user_room_ids), Session.is_active == True).all()
-    completed_sessions = Session.query.filter(Session.room_id.in_(user_room_ids), Session.is_active == False).order_by(Session.created_at.desc()).limit(20).all()
+    
+    # Get filter parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    filter_room = request.args.get('room_id', type=int)
+    filter_type = request.args.get('session_type')
+    filter_date_from = request.args.get('date_from')
+    filter_date_to = request.args.get('date_to')
+    filter_min_sum = request.args.get('min_sum', type=float)
+    filter_max_sum = request.args.get('max_sum', type=float)
+    sort_by = request.args.get('sort', 'date_desc')
+    
+    # Build query for completed sessions
+    completed_sessions_query = Session.query.filter(
+        Session.room_id.in_(user_room_ids), 
+        Session.is_active == False
+    )
+    
+    # Apply filters
+    if filter_room:
+        completed_sessions_query = completed_sessions_query.filter(Session.room_id == filter_room)
+    
+    if filter_type:
+        completed_sessions_query = completed_sessions_query.filter(Session.session_type == filter_type)
+    
+    if filter_date_from:
+        try:
+            date_from = datetime.strptime(filter_date_from, '%Y-%m-%d')
+            completed_sessions_query = completed_sessions_query.filter(Session.created_at >= date_from)
+        except ValueError:
+            pass
+    
+    if filter_date_to:
+        try:
+            date_to = datetime.strptime(filter_date_to, '%Y-%m-%d') + timedelta(days=1)
+            completed_sessions_query = completed_sessions_query.filter(Session.created_at < date_to)
+        except ValueError:
+            pass
+    
+    if filter_min_sum is not None:
+        completed_sessions_query = completed_sessions_query.filter(Session.total_price >= filter_min_sum)
+    
+    if filter_max_sum is not None:
+        completed_sessions_query = completed_sessions_query.filter(Session.total_price <= filter_max_sum)
+    
+    # Apply sorting
+    if sort_by == 'date_asc':
+        completed_sessions_query = completed_sessions_query.order_by(Session.created_at.asc())
+    elif sort_by == 'sum_desc':
+        completed_sessions_query = completed_sessions_query.order_by(Session.total_price.desc())
+    elif sort_by == 'sum_asc':
+        completed_sessions_query = completed_sessions_query.order_by(Session.total_price.asc())
+    else:  # date_desc (default)
+        completed_sessions_query = completed_sessions_query.order_by(Session.created_at.desc())
+    
+    # Paginate
+    pagination = completed_sessions_query.paginate(page=page, per_page=per_page, error_out=False)
+    completed_sessions = pagination.items
+    
+    # Calculate filtered totals
+    filtered_total_sum = sum(s.total_price for s in completed_sessions_query.all())
+    filtered_count = completed_sessions_query.count()
     
     # Setup form for new session
     form = SessionForm()
     form.room_id.choices = [(r.id, r.name) for r in user_rooms]
     
-    # Get available products for adding to sessions
-    available_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    # Get available products for adding to sessions (only with stock > 0)
+    available_products = Product.query.filter(
+        Product.admin_user_id == current_user.id,
+        Product.is_active == True,
+        Product.stock_quantity > 0
+    ).all()
+    
+    # Get room categories for filtering
+    room_categories = RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    
+    # Find rooms that are currently available (not in active session)
+    active_room_ids = [s.room_id for s in active_sessions]
+    available_rooms = [r for r in user_rooms if r.id not in active_room_ids]
     
     return render_template('sessions.html', 
                          active_sessions=active_sessions,
                          completed_sessions=completed_sessions,
+                         pagination=pagination,
+                         filtered_total_sum=filtered_total_sum,
+                         filtered_count=filtered_count,
                          form=form,
-                         available_products=available_products)
+                         available_products=available_products,
+                         room_categories=room_categories,
+                         user_rooms=user_rooms,
+                         available_rooms=available_rooms,
+                         # Pass current filter values back to template
+                         filter_room=filter_room,
+                         filter_type=filter_type,
+                         filter_date_from=filter_date_from,
+                         filter_date_to=filter_date_to,
+                         filter_min_sum=filter_min_sum,
+                         filter_max_sum=filter_max_sum,
+                         sort_by=sort_by)
 
 @app.route('/sessions/start', methods=['POST'])
 @login_required
@@ -643,17 +825,252 @@ def start_session():
     
     return redirect(url_for('sessions'))
 
+# Bir nechta xona uchun seans yaratish
+@app.route('/sessions/start-multiple', methods=['POST'])
+@login_required
+def start_multiple_sessions():
+    """Bir nechta xona uchun bir vaqtda seans yaratish"""
+    room_ids = request.form.getlist('room_ids[]')
+    session_type = request.form.get('session_type', 'fixed')
+    input_type = request.form.get('input_type', 'time')
+    duration_hours = int(request.form.get('duration_hours', 0) or 0)
+    duration_minutes_val = int(request.form.get('duration_minutes', 30) or 30)
+    amount_input = float(request.form.get('amount_input', 0) or 0)
+    
+    if not room_ids:
+        flash('Kamida bitta xona tanlang!', 'danger')
+        return redirect(url_for('sessions'))
+    
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    
+    created_count = 0
+    skipped_rooms = []
+    
+    for room_id_str in room_ids:
+        try:
+            room_id = int(room_id_str)
+        except ValueError:
+            continue
+            
+        # Check if room belongs to user
+        if room_id not in user_room_ids:
+            continue
+            
+        # Check if room is already in use
+        existing_session = Session.query.filter(
+            Session.room_id == room_id,
+            Session.is_active == True
+        ).first()
+        
+        if existing_session:
+            room = Room.query.get(room_id)
+            skipped_rooms.append(room.name if room else f"ID:{room_id}")
+            continue
+        
+        room = Room.query.get(room_id)
+        if not room:
+            continue
+        
+        # Create session based on type
+        if session_type == 'fixed':
+            if input_type == 'amount' and amount_input > 0:
+                # Calculate time from amount
+                if room.custom_price_per_30min:
+                    price_per_30min = room.custom_price_per_30min
+                elif room.category:
+                    price_per_30min = room.category.price_per_30min
+                else:
+                    price_per_30min = 15000
+                
+                calculated_seconds = (amount_input / price_per_30min) * 30 * 60
+                total_seconds = max(int(calculated_seconds), 60)
+                total_minutes = total_seconds / 60
+                
+                session = Session()
+                session.room_id = room_id
+                session.session_type = session_type
+                session.duration_minutes = total_minutes
+                session.duration_seconds = total_seconds
+                session.prepaid_amount = amount_input
+                session.session_price = amount_input
+                session.total_price = amount_input
+            else:
+                # Time-based
+                total_minutes = (duration_hours * 60) + duration_minutes_val
+                if total_minutes == 0:
+                    total_minutes = 30
+                    
+                session = Session()
+                session.room_id = room_id
+                session.session_type = session_type
+                session.duration_minutes = total_minutes
+                session.update_total_price()
+        else:
+            # VIP session
+            session = Session()
+            session.room_id = room_id
+            session.session_type = session_type
+            session.duration_minutes = None
+            session.session_price = 0
+            session.total_price = 0
+        
+        try:
+            db.session.add(session)
+            created_count += 1
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Xatolik: {str(e)}', 'danger')
+            return redirect(url_for('sessions'))
+    
+    db.session.commit()
+    
+    if created_count > 0:
+        flash(f'✅ {created_count} ta seans muvaffaqiyatli boshlandi!', 'success')
+    
+    if skipped_rooms:
+        flash(f'⚠️ Bu xonalar band: {", ".join(skipped_rooms)}', 'warning')
+    
+    return redirect(url_for('sessions'))
+
+# API: Kategoriya bo'yicha xonalarni olish
+@app.route('/api/rooms-by-category/<int:category_id>')
+@login_required
+def get_rooms_by_category(category_id):
+    """Kategoriya bo'yicha xonalarni qaytarish"""
+    rooms = Room.query.filter_by(
+        admin_user_id=current_user.id,
+        category_id=category_id,
+        is_active=True
+    ).all()
+    
+    # Get active session room IDs
+    active_sessions = Session.query.filter(
+        Session.room_id.in_([r.id for r in rooms]),
+        Session.is_active == True
+    ).all()
+    active_room_ids = [s.room_id for s in active_sessions]
+    
+    result = []
+    for room in rooms:
+        result.append({
+            'id': room.id,
+            'name': room.name,
+            'is_available': room.id not in active_room_ids,
+            'price_per_30min': room.custom_price_per_30min or (room.category.price_per_30min if room.category else 15000)
+        })
+    
+    return jsonify(result)
+
+# API: Barcha bo'sh xonalarni olish
+@app.route('/api/available-rooms')
+@login_required
+def get_available_rooms():
+    """Barcha bo'sh xonalarni qaytarish"""
+    category_id = request.args.get('category_id', type=int)
+    
+    query = Room.query.filter_by(admin_user_id=current_user.id, is_active=True)
+    
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    
+    rooms = query.all()
+    
+    # Get active session room IDs
+    active_sessions = Session.query.filter(
+        Session.room_id.in_([r.id for r in rooms]),
+        Session.is_active == True
+    ).all()
+    active_room_ids = [s.room_id for s in active_sessions]
+    
+    result = []
+    for room in rooms:
+        if room.id not in active_room_ids:
+            result.append({
+                'id': room.id,
+                'name': room.name,
+                'category_id': room.category_id,
+                'category_name': room.category.name if room.category else 'Kategoriyasiz',
+                'price_per_30min': room.custom_price_per_30min or (room.category.price_per_30min if room.category else 15000)
+            })
+    
+    return jsonify(result)
+
+# API: Seans hisob-kitob ma'lumotlari
+@app.route('/api/session-billing/<int:session_id>')
+@login_required
+def get_session_billing(session_id):
+    """Seans uchun hisob-kitob ma'lumotlarini qaytarish"""
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first()
+    
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    # Calculate actual time
+    now = datetime.utcnow()
+    actual_seconds = (now - session.start_time).total_seconds()
+    actual_minutes = actual_seconds / 60
+    
+    # Get room pricing
+    room = session.room
+    if room and room.custom_price_per_30min:
+        price_per_30min = room.custom_price_per_30min
+    elif room and room.category:
+        price_per_30min = room.category.price_per_30min
+    else:
+        price_per_30min = 15000
+    
+    price_per_minute = price_per_30min / 30
+    
+    # Calculate prices
+    actual_price = actual_minutes * price_per_minute
+    
+    # Full price (prepaid or planned)
+    if session.prepaid_amount and session.prepaid_amount > 0:
+        full_price = session.prepaid_amount
+        planned_minutes = (session.prepaid_amount / price_per_30min) * 30
+    elif session.duration_minutes:
+        full_price = session.duration_minutes * price_per_minute
+        planned_minutes = session.duration_minutes
+    else:
+        full_price = actual_price
+        planned_minutes = actual_minutes
+    
+    # Products total
+    products_total = session.products_total or 0
+    
+    return jsonify({
+        'session_id': session.id,
+        'room_name': room.name if room else 'Noma\'lum',
+        'session_type': session.session_type,
+        'start_time': session.start_time.strftime('%H:%M'),
+        'actual_minutes': round(actual_minutes, 1),
+        'planned_minutes': round(planned_minutes, 1),
+        'actual_price': round(actual_price),
+        'full_price': round(full_price),
+        'products_total': round(products_total),
+        'actual_total': round(actual_price + products_total),
+        'full_total': round(full_price + products_total),
+        'prepaid_amount': session.prepaid_amount or 0
+    })
+
 # Inventory management removed per user request
 
 @app.route('/sessions/stop/<int:session_id>')
 @login_required
 def stop_session(session_id):
+    """Seansni to'xtatish - modal orqali billing_type tanlanadi"""
     # Multi-tenant: Check session belongs to current user's room
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     user_room_ids = [room.id for room in user_rooms]
     session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
+    
+    # Agar GET so'rov bo'lsa - to'g'ridan-to'g'ri yopish (eski usul, default: full)
     session.end_time = datetime.utcnow()
     session.is_active = False
+    session.billing_type = 'full'
     
     # Update pricing (prepaid amounts will be preserved automatically in the model)
     session.update_total_price()
@@ -662,6 +1079,60 @@ def stop_session(session_id):
     actual_duration = (session.end_time - session.start_time).total_seconds() / 60
     session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"
     flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans - {actual_duration:.1f} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
+    return redirect(url_for('sessions'))
+
+@app.route('/sessions/stop/<int:session_id>/confirm', methods=['POST'])
+@login_required
+def stop_session_confirm(session_id):
+    """Seansni to'xtatish - billing_type bilan"""
+    # Multi-tenant: Check session belongs to current user's room
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_room_ids = [room.id for room in user_rooms]
+    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
+    
+    billing_type = request.form.get('billing_type', 'full')
+    session.end_time = datetime.utcnow()
+    session.is_active = False
+    session.billing_type = billing_type
+    
+    # Calculate actual time played
+    actual_seconds = (session.end_time - session.start_time).total_seconds()
+    actual_minutes = actual_seconds / 60
+    
+    # Get room pricing
+    room = session.room
+    if room and room.custom_price_per_30min:
+        price_per_30min = room.custom_price_per_30min
+    elif room and room.category:
+        price_per_30min = room.category.price_per_30min
+    else:
+        price_per_30min = 15000
+    
+    price_per_minute = price_per_30min / 30
+    
+    if billing_type == 'actual':
+        # Haqiqiy vaqt bo'yicha hisoblash
+        session.session_price = actual_minutes * price_per_minute
+    else:
+        # To'liq summa (prepaid yoki rejalashtirilgan vaqt)
+        if session.prepaid_amount and session.prepaid_amount > 0:
+            session.session_price = session.prepaid_amount
+        elif session.duration_minutes:
+            session.session_price = session.duration_minutes * price_per_minute
+        else:
+            session.session_price = actual_minutes * price_per_minute
+    
+    # Calculate products total
+    cart_items = CartItem.query.filter_by(session_id=session.id).all()
+    products_total = sum(item.product.price * item.quantity for item in cart_items if item.product)
+    session.products_total = products_total
+    session.total_price = session.session_price + session.products_total
+    
+    db.session.commit()
+    
+    billing_text = "To'liq summa" if billing_type == 'full' else "Haqiqiy vaqt bo'yicha"
+    session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"
+    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans ({billing_text}) - {actual_minutes:.1f} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/<int:session_id>')
@@ -761,61 +1232,6 @@ def add_product_to_session(session_id):
     # Redirect back to where the user came from (dashboard, sessions, or session detail)
     return redirect(request.referrer or url_for('sessions'))
 
-@app.route('/api/session_time/<int:session_id>')
-@login_required
-def api_session_time(session_id):
-    """API endpoint for real-time session timing data"""
-    # Multi-tenant: Check session belongs to current user's room
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-    user_room_ids = [room.id for room in user_rooms]
-    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
-    
-    if not session.is_active:
-        return jsonify({'error': 'Session not active'}), 400
-    
-    now = datetime.utcnow()
-    elapsed_seconds = int((now - session.start_time).total_seconds())
-    
-    if session.session_type == 'fixed':
-        # Fixed session - calculate remaining time
-        total_seconds = session.duration_minutes * 60 if session.duration_minutes else 1800  # Default 30 min
-        remaining_seconds = max(0, total_seconds - elapsed_seconds)
-        expired = remaining_seconds <= 0
-        
-        return jsonify({
-            'elapsed_seconds': elapsed_seconds,
-            'remaining_seconds': remaining_seconds,
-            'expired': expired,
-            'session_price': session.session_price or 0,
-            'total_price': session.total_price or 0,
-            'current_cost': session.session_price or 0
-        })
-    else:
-        # VIP session - calculate real-time pricing based on elapsed time
-        elapsed_minutes = elapsed_seconds / 60.0
-        
-        # Get VIP pricing from room category
-        room = session.room
-        room_category = room.category if room else None
-        vip_price_per_minute = getattr(room_category, 'vip_price_per_minute', 500) if room_category else 500  # Default 500 som/minute
-        
-        # Calculate current session price based on elapsed time
-        current_session_price = elapsed_minutes * vip_price_per_minute
-        
-        # Update session price in database for consistency
-        session.session_price = current_session_price
-        session.update_total_price()  # This will also include product costs
-        db.session.commit()
-        
-        return jsonify({
-            'elapsed_seconds': elapsed_seconds,
-            'remaining_seconds': None,
-            'expired': False,
-            'session_price': current_session_price,
-            'total_price': session.total_price or current_session_price,
-            'current_cost': current_session_price
-        })
-
 @app.route('/sessions/<int:session_id>/remove_product/<int:item_id>')
 @login_required
 def remove_product_from_session(session_id, item_id):
@@ -825,10 +1241,15 @@ def remove_product_from_session(session_id, item_id):
     session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
     cart_item = CartItem.query.get_or_404(item_id)
     
+    # Mahsulotni inventarga qaytarish
+    product = cart_item.product
+    if product:
+        product.stock_quantity += cart_item.quantity
+    
     db.session.delete(cart_item)
     session.update_total_price()
     db.session.commit()
-    flash('Mahsulot seansdan olib tashlandi!', 'success')
+    flash('Mahsulot seansdan olib tashlandi va inventarga qaytarildi!', 'success')
     
     return redirect(url_for('session_detail', session_id=session_id))
 
@@ -845,6 +1266,11 @@ def analytics():
     today = get_tashkent_time().date()
     current_date = today.strftime('%Y-%m-%d')
     current_month = today.strftime('%Y-%m')
+    
+    # Initialize variables
+    daily_sessions = []
+    weekly_sessions_data = []
+    monthly_sessions = []
     
     if report_type == 'daily':
         # Daily analytics for specific date
@@ -960,6 +1386,39 @@ def analytics():
     ).all()
     weekly_revenue = sum(session.total_price for session in weekly_sessions)
     
+    # Get sessions list for the selected period
+    if report_type == 'daily':
+        report_sessions = daily_sessions
+    elif report_type == 'weekly':
+        report_sessions = weekly_sessions_data
+    else:
+        report_sessions = monthly_sessions
+    
+    # Sort by created_at descending and limit to 50
+    report_sessions = sorted(report_sessions, key=lambda x: x.created_at, reverse=True)[:50]
+    
+    # Get top products sold in the period
+    from collections import Counter
+    product_sales = Counter()
+    for sess in (daily_sessions if report_type == 'daily' else (weekly_sessions_data if report_type == 'weekly' else monthly_sessions)):
+        for item in sess.cart_items:
+            if item.product:
+                product_sales[item.product.name] += item.quantity
+    top_products = product_sales.most_common(10)
+    
+    # Get room statistics
+    room_stats = {}
+    sessions_for_stats = daily_sessions if report_type == 'daily' else (weekly_sessions_data if report_type == 'weekly' else monthly_sessions)
+    for sess in sessions_for_stats:
+        room_name = sess.room.name if sess.room else 'Noma\'lum'
+        if room_name not in room_stats:
+            room_stats[room_name] = {'count': 0, 'revenue': 0}
+        room_stats[room_name]['count'] += 1
+        room_stats[room_name]['revenue'] += sess.total_price
+    
+    # Sort rooms by revenue
+    top_rooms = sorted(room_stats.items(), key=lambda x: x[1]['revenue'], reverse=True)[:10]
+    
     return render_template('analytics.html',
                          report_type=report_type,
                          current_date=current_date,
@@ -974,7 +1433,10 @@ def analytics():
                          monthly_revenue=main_revenue,
                          monthly_sessions=main_sessions,
                          session_revenue=session_revenue,
-                         products_revenue=products_revenue)
+                         products_revenue=products_revenue,
+                         report_sessions=report_sessions,
+                         top_products=top_products,
+                         top_rooms=top_rooms)
 
 @app.route('/api/session_time/<int:session_id>')
 @login_required
@@ -1196,14 +1658,14 @@ def generate_pdf_report(report_type):
     end_date_str = request.args.get('end_date')
     
     if not start_date_str or not end_date_str:
-        flash('Sana oralig\'ini tanlang!', 'danger')
+        flash(t('pdf_select_date_range'), 'danger')
         return redirect(url_for('analytics'))
     
     try:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
     except ValueError:
-        flash('Sana formati noto\'g\'ri!', 'danger')
+        flash(t('pdf_invalid_date'), 'danger')
         return redirect(url_for('analytics'))
     
     # Get user's rooms
@@ -1223,49 +1685,71 @@ def generate_pdf_report(report_type):
     styles = getSampleStyleSheet()
     elements = []
     
-    # Title
+    # Title style with Unicode font
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
+        fontName=UNICODE_FONT_BOLD,
         fontSize=18,
         textColor=colors.darkblue,
         alignment=1,  # Center
         spaceAfter=30
     )
     
+    # Normal style with Unicode font
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontName=UNICODE_FONT,
+        fontSize=10
+    )
+    
+    # Heading2 style with Unicode font
+    heading2_style = ParagraphStyle(
+        'CustomHeading2',
+        parent=styles['Heading2'],
+        fontName=UNICODE_FONT_BOLD,
+        fontSize=14
+    )
+    
     report_titles = {
-        'daily': 'Kunlik Hisobot',
-        'weekly': 'Xaftalik Hisobot', 
-        'monthly': 'Oylik Hisobot'
+        'daily': t('pdf_daily_report'),
+        'weekly': t('pdf_weekly_report'), 
+        'monthly': t('pdf_monthly_report')
     }
     
-    title = f"{current_user.gaming_center_name}\n{report_titles.get(report_type, 'Hisobot')}"
+    title = f"{current_user.gaming_center_name}\n{report_titles.get(report_type, t('pdf_report_title'))}"
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 12))
     
     # Date range
-    date_text = f"Sana oralig'i: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
-    elements.append(Paragraph(date_text, styles['Normal']))
+    date_text = f"{t('pdf_date_range')}: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
+    elements.append(Paragraph(date_text, normal_style))
     elements.append(Spacer(1, 20))
+    
+    # Get currency translation
+    currency = t('currency')
     
     # Statistics
     total_revenue = sum(session.total_price for session in sessions)
     total_sessions = len(sessions)
     
     stats_data = [
-        ['Jami seanslar', str(total_sessions)],
-        ['Jami daromad', f"{total_revenue:,.0f} som"],
-        ['O\'rtacha seans summasi', f"{total_revenue/total_sessions if total_sessions > 0 else 0:,.0f} som"]
+        [t('pdf_total_sessions'), str(total_sessions)],
+        [t('pdf_total_revenue'), f"{total_revenue:,.0f} {currency}"],
+        [t('pdf_avg_session'), f"{total_revenue/total_sessions if total_sessions > 0 else 0:,.0f} {currency}"]
     ]
     
-    stats_table = Table(stats_data, colWidths=[3*inch, 2*inch])
+    stats_table = Table(stats_data, colWidths=[3.5*inch, 2.5*inch])
     stats_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
+        ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
@@ -1275,10 +1759,10 @@ def generate_pdf_report(report_type):
     
     # Sessions table
     if sessions:
-        elements.append(Paragraph("Seanslar ro'yxati:", styles['Heading2']))
+        elements.append(Paragraph(f"{t('pdf_sessions_list')}:", heading2_style))
         elements.append(Spacer(1, 12))
         
-        session_data = [['Xona', 'Sana', 'Vaqt', 'Davomiyligi', 'Summa (som)']]
+        session_data = [[t('pdf_room'), t('pdf_date'), t('pdf_time'), t('pdf_duration'), f"{t('pdf_amount')} ({currency})"]]
         
         for session in sessions[:50]:  # Limit to 50 sessions for PDF
             from app import utc_to_tashkent
@@ -1296,24 +1780,26 @@ def generate_pdf_report(report_type):
                 f"{session.total_price:,.0f}"
             ])
         
-        session_table = Table(session_data, colWidths=[1*inch, 1*inch, 1*inch, 1*inch, 1*inch])
+        session_table = Table(session_data, colWidths=[1.4*inch, 0.9*inch, 0.7*inch, 1.2*inch, 1.2*inch])
         session_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
+            ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 1), (-1, -1), 8)
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         
         elements.append(session_table)
     
     # Product sales data
     elements.append(Spacer(1, 30))
-    elements.append(Paragraph("Sotilgan mahsulotlar:", styles['Heading2']))
+    elements.append(Paragraph(f"{t('pdf_sold_products')}:", heading2_style))
     elements.append(Spacer(1, 12))
     
     # Get product sales data for the date range
@@ -1324,11 +1810,14 @@ def generate_pdf_report(report_type):
         Session.is_active == False
     ).all()
     
+    # Get translation for unknown product
+    unknown_product = t('pdf_no_data')
+    
     if cart_items:
         # Group products by name and calculate totals
         product_sales = {}
         for item in cart_items:
-            product_name = item.product.name if item.product else 'Noma\'lum mahsulot'
+            product_name = item.product.name if item.product else unknown_product
             if product_name in product_sales:
                 product_sales[product_name]['quantity'] += item.quantity
                 product_sales[product_name]['total'] += item.total_price
@@ -1340,45 +1829,53 @@ def generate_pdf_report(report_type):
                 }
         
         # Create products table
-        product_data = [['Mahsulot', 'Miqdori', 'Narxi (som)', 'Jami (som)']]
+        product_data = [[t('pdf_product'), t('pdf_quantity'), f"{t('pdf_price')} ({currency})", f"{t('pdf_total')} ({currency})"]]
         total_product_revenue = 0
         
         for product_name, data in product_sales.items():
             product_data.append([
                 product_name,
-                f"{data['quantity']} ta",
+                f"{data['quantity']} {t('pdf_pcs')}",
                 f"{data['unit_price']:,.0f}",
                 f"{data['total']:,.0f}"
             ])
             total_product_revenue += data['total']
         
         # Add total row
-        product_data.append(['JAMI', '', '', f"{total_product_revenue:,.0f}"])
+        product_data.append([t('pdf_total').upper(), '', '', f"{total_product_revenue:,.0f}"])
         
-        product_table = Table(product_data, colWidths=[2*inch, 1*inch, 1*inch, 1*inch])
+        product_table = Table(product_data, colWidths=[2.5*inch, 1*inch, 1.2*inch, 1.2*inch])
         product_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
+            ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
             ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 1), (-1, -1), 8)
+            ('FONTNAME', (0, -1), (-1, -1), UNICODE_FONT_BOLD),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         
         elements.append(product_table)
     else:
-        elements.append(Paragraph("Bu davr ichida mahsulot sotilmagan.", styles['Normal']))
+        elements.append(Paragraph(t('pdf_no_products_sold'), normal_style))
     
     # Build PDF
     doc.build(elements)
     buffer.seek(0)
     
-    filename = f"{report_type}_hisobot_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.pdf"
+    # Generate filename based on language
+    report_filenames = {
+        'daily': t('pdf_daily_report'),
+        'weekly': t('pdf_weekly_report'),
+        'monthly': t('pdf_monthly_report')
+    }
+    filename = f"{report_filenames.get(report_type, 'report')}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.pdf"
     
     return send_file(
         buffer,

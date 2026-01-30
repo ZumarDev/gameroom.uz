@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Seans Tafsilotlari - Gameroom{% endblock %}
+{% block title %}{{ t('session_detail_title') }} - Gameroom{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <h1><i class="bi bi-info-circle"></i> Seans Tafsilotlari</h1>
+        <h1><i class="bi bi-info-circle"></i> {{ t('session_detail_title') }}</h1>
     </div>
     <div class="col-md-4 text-end">
         {% if session.is_active %}
             <a href="{{ url_for('stop_session', session_id=session.id) }}" 
                class="btn btn-danger"
-               onclick="return confirm('Bu seansni to\\'xtatishga rozimisiz?')">
-                <i class="bi bi-stop-circle"></i> Seansni To'xtatish
+               onclick="return confirm('{{ t('session_detail_stop_confirm') }}')">
+                <i class="bi bi-stop-circle"></i> {{ t('session_detail_stop') }}
             </a>
         {% endif %}
         <a href="{{ url_for('sessions') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Seanslarga Qaytish
+            <i class="bi bi-arrow-left"></i> {{ t('session_detail_back') }}
         </a>
     </div>
 </div>
@@ -26,61 +26,61 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-play-circle"></i> Seans Ma'lumotlari</h5>
+                <h5 class="mb-0"><i class="bi bi-play-circle"></i> {{ t('session_detail_info') }}</h5>
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong>Xona:</strong></td>
+                        <td><strong>{{ t('session_detail_room') }}:</strong></td>
                         <td><span class="badge bg-secondary">{{ session.room.name }}</span></td>
                     </tr>
                     <tr>
-                        <td><strong>Turi:</strong></td>
+                        <td><strong>{{ t('session_detail_type') }}:</strong></td>
                         <td>
                             <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
+                                {% if session.session_type == 'fixed' %}{{ t('session_detail_fixed') }}{% else %}VIP{% endif %}
                             </span>
                         </td>
                     </tr>
                     <tr>
-                        <td><strong>Boshlangan:</strong></td>
+                        <td><strong>{{ t('session_detail_started') }}:</strong></td>
                         <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
                     </tr>
                     {% if session.end_time %}
                     <tr>
-                        <td><strong>Tugagan:</strong></td>
+                        <td><strong>{{ t('session_detail_ended') }}:</strong></td>
                         <td>{{ session.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
                     </tr>
                     {% endif %}
                     <tr>
-                        <td><strong>Davomiyligi:</strong></td>
+                        <td><strong>{{ t('session_detail_duration') }}:</strong></td>
                         <td>
                             {% if session.session_type == 'fixed' %}
-                                {{ session.duration_minutes }} daqiqa (belgilangan)
+                                {{ session.duration_minutes }} {{ t('session_detail_minutes') }} ({{ t('session_detail_fixed_label') }})
                             {% else %}
                                 {% if session.is_active %}
                                     <div class="timer" data-session-id="{{ session.id }}" data-session-type="vip">
-                                        <span class="time-display">Yuklanmoqda...</span>
+                                        <span class="time-display">{{ t('session_detail_loading') }}</span>
                                     </div>
                                 {% else %}
-                                    {{ session.calculate_duration_minutes() }} daqiqa
+                                    {{ session.calculate_duration_minutes() }} {{ t('session_detail_minutes') }}
                                 {% endif %}
                             {% endif %}
                         </td>
                     </tr>
                     <tr>
-                        <td><strong>Holati:</strong></td>
+                        <td><strong>{{ t('session_detail_status') }}:</strong></td>
                         <td>
                             {% if session.is_active %}
-                                <span class="badge bg-success">Faol</span>
+                                <span class="badge bg-success">{{ t('session_detail_active') }}</span>
                                 {% if session.session_type == 'fixed' %}
                                     <div class="timer mt-2" data-session-id="{{ session.id }}" data-session-type="fixed" data-duration="{{ session.duration_minutes }}">
-                                        <small class="text-muted">Qolgan vaqt: </small>
-                                        <span class="time-display">Yuklanmoqda...</span>
+                                        <small class="text-muted">{{ t('session_detail_remaining') }}: </small>
+                                        <span class="time-display">{{ t('session_detail_loading') }}</span>
                                     </div>
                                 {% endif %}
                             {% else %}
-                                <span class="badge bg-secondary">Tugallangan</span>
+                                <span class="badge bg-secondary">{{ t('session_detail_completed') }}</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -92,21 +92,21 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><span class="fw-bold text-success">UZS</span> Narx Xulosasi</h5>
+                <h5 class="mb-0"><span class="fw-bold text-success">UZS</span> {{ t('session_detail_price_summary') }}</h5>
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong>Seans Narxi:</strong></td>
-                        <td class="text-end">{{ "{:,.0f}".format(session.session_price) }} som</td>
+                        <td><strong>{{ t('session_detail_session_price') }}:</strong></td>
+                        <td class="text-end">{{ "{:,.0f}".format(session.session_price) }} {{ t('currency') }}</td>
                     </tr>
                     <tr>
-                        <td><strong>Mahsulotlar Jami:</strong></td>
-                        <td class="text-end">{{ "{:,.0f}".format(session.products_total) }} som</td>
+                        <td><strong>{{ t('session_detail_products_total') }}:</strong></td>
+                        <td class="text-end">{{ "{:,.0f}".format(session.products_total) }} {{ t('currency') }}</td>
                     </tr>
                     <tr class="border-top">
-                        <td><strong>Umumiy Summa:</strong></td>
-                        <td class="text-end"><h4 class="text-success">{{ "{:,.0f}".format(session.total_price) }} som</h4></td>
+                        <td><strong>{{ t('session_detail_total') }}:</strong></td>
+                        <td class="text-end"><h4 class="text-success">{{ "{:,.0f}".format(session.total_price) }} {{ t('currency') }}</h4></td>
                     </tr>
                 </table>
             </div>
@@ -119,10 +119,10 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-cart"></i> Seansdagi Mahsulotlar</h5>
+                <h5 class="mb-0"><i class="bi bi-cart"></i> {{ t('session_detail_products_in_session') }}</h5>
                 {% if session.is_active %}
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="bi bi-plus"></i> Mahsulot Qo'shish
+                        <i class="bi bi-plus"></i> {{ t('session_detail_add_product') }}
                     </button>
                 {% endif %}
             </div>
@@ -132,13 +132,13 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Mahsulot</th>
-                                    <th>Kategoriya</th>
-                                    <th>Birlik Narxi</th>
-                                    <th>Miqdori</th>
-                                    <th>Jami</th>
+                                    <th>{{ t('session_detail_product') }}</th>
+                                    <th>{{ t('products_category') }}</th>
+                                    <th>{{ t('session_detail_unit_price') }}</th>
+                                    <th>{{ t('session_detail_quantity') }}</th>
+                                    <th>{{ t('session_detail_item_total') }}</th>
                                     {% if session.is_active %}
-                                        <th>Amallar</th>
+                                        <th>{{ t('session_detail_actions') }}</th>
                                     {% endif %}
                                 </tr>
                             </thead>
@@ -147,14 +147,14 @@
                                 <tr>
                                     <td><strong>{{ item.product.name }}</strong></td>
                                     <td><span class="badge bg-secondary">{{ item.product.product_category.name if item.product.product_category else 'N/A' }}</span></td>
-                                    <td>{{ "{:,.0f}".format(item.product.price) }} som</td>
+                                    <td>{{ "{:,.0f}".format(item.product.price) }} {{ t('currency') }}</td>
                                     <td>{{ item.quantity }}</td>
-                                    <td><strong>{{ "{:,.0f}".format(item.product.price * item.quantity) }} som</strong></td>
+                                    <td><strong>{{ "{:,.0f}".format(item.product.price * item.quantity) }} {{ t('currency') }}</strong></td>
                                     {% if session.is_active %}
                                         <td>
                                             <a href="{{ url_for('remove_product_from_session', session_id=session.id, item_id=item.id) }}" 
                                                class="btn btn-outline-danger btn-sm"
-                                               onclick="return confirm('Bu mahsulotni seansdan olib tashlashga rozimisiz?')">
+                                               onclick="return confirm('{{ t('session_detail_remove_confirm') }}')">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </td>
@@ -167,10 +167,10 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-cart fs-1 text-muted"></i>
-                        <p class="text-muted">Bu seansga hali mahsulotlar qo'shilmagan</p>
+                        <p class="text-muted">{{ t('session_detail_no_products') }}</p>
                         {% if session.is_active %}
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                                Birinchi Mahsulotni Qo'shish
+                                {{ t('session_detail_add_first_product') }}
                             </button>
                         {% endif %}
                     </div>
@@ -188,7 +188,7 @@
             <form method="POST" action="{{ url_for('add_product_to_session', session_id=session.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title">Seansga Mahsulot Qo'shish</h5>
+                    <h5 class="modal-title">{{ t('session_detail_add_to_session') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -217,8 +217,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Mahsulot Qo'shish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('session_detail_add_product') }}</button>
                 </div>
             </form>
         </div>

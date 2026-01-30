@@ -86,24 +86,17 @@ import views  # noqa: F401
 # Import translation helper
 from translations import get_translation, get_current_language
 
-# Timezone utility function
-def get_tashkent_time():
-    """Get current time in Tashkent timezone"""
-    tashkent_tz = pytz.timezone('Asia/Tashkent')
-    return datetime.now(tashkent_tz)
-
 @app.template_filter('translate')
 def translate_filter(key, lang=None):
-    from flask_login import current_user
     if not lang:
-        lang = get_current_language(current_user if hasattr(current_user, 'preferred_language') else None)
+        lang = get_current_language()
     return get_translation(key, lang)
 
 @app.context_processor
 def inject_translation_context():
     from flask_login import current_user
     from flask_wtf.csrf import generate_csrf
-    current_lang = get_current_language(current_user if hasattr(current_user, 'preferred_language') else None)
+    current_lang = get_current_language()
     return {
         'current_lang': current_lang,
         't': lambda key: get_translation(key, current_lang),
@@ -127,5 +120,3 @@ def tashkent_date_filter(utc_time, format='%d.%m.%Y'):
         tashkent_time = utc_to_tashkent(utc_time)
         return tashkent_time.strftime(format)
     return 'N/A'
-
-from views import *  # noqa: F401, F403

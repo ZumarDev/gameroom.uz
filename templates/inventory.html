@@ -4,10 +4,10 @@
 <div class="container-fluid">
     <!-- Header Section -->
     <div class="text-center page-header">
-        <h1 class="display-4 text-white">
-            <i class="bi bi-boxes"></i>{{ t('inventory_management') }}
+        <h1 class="display-4">
+            <i class="bi bi-boxes"></i> {{ t('inventory_title') }}
         </h1>
-        <p class="lead text-light">{{ t('track_manage_inventory') }}</p>
+        <p class="lead text-muted">{{ t('nav_inventory') }}</p>
     </div>
 
     <!-- Stock Overview Cards -->
@@ -32,7 +32,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Jami Mahsulotlar</h5>
+                            <h5 class="card-title">{{ t('dashboard_total_products') }}</h5>
                             <h2 class="mb-0">{{ total_products }}</h2>
                         </div>
                         <i class="bi bi-box-seam fs-1"></i>
@@ -46,7 +46,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Mavjud</h5>
+                            <h5 class="card-title">{{ t('dashboard_available') }}</h5>
                             <h2 class="mb-0">{{ available_products|length }}</h2>
                         </div>
                         <i class="bi bi-check-circle fs-1"></i>
@@ -60,7 +60,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Kam Qolgan</h5>
+                            <h5 class="card-title">{{ t('products_low_stock') }}</h5>
                             <h2 class="mb-0">{{ low_stock_products|length }}</h2>
                         </div>
                         <i class="bi bi-exclamation-triangle fs-1"></i>
@@ -74,7 +74,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h5 class="card-title">Tugagan</h5>
+                            <h5 class="card-title">{{ t('products_out_of_stock') }}</h5>
                             <h2 class="mb-0">{{ out_of_stock_products|length }}</h2>
                         </div>
                         <i class="bi bi-x-circle fs-1"></i>
@@ -96,8 +96,27 @@
                         {{ form.hidden_tag() }}
                         
                         <div class="mb-3">
+                            <label class="form-label">{{ t('products_category') }}</label>
+                            <select class="form-select" id="inventoryCategoryFilter">
+                                <option value="">{{ t('inventory_all_categories') }}</option>
+                                {% set categories_seen = [] %}
+                                {% for product in products %}
+                                    {% if product.product_category and product.product_category.name not in categories_seen %}
+                                        {% if categories_seen.append(product.product_category.name) %}{% endif %}
+                                        <option value="{{ product.product_category.id }}">{{ product.product_category.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
                             {{ form.product_id.label(class="form-label") }}
-                            {{ form.product_id(class="form-select") }}
+                            <select class="form-select" id="product_id" name="product_id" required>
+                                <option value="">{{ t('inventory_select') }}</option>
+                                {% for product in products %}
+                                    <option value="{{ product.id }}" data-category-id="{{ product.category_id }}">{{ product.name }} ({{ product.stock_quantity }} {{ product.unit }})</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         
                         <div class="mb-3">
@@ -112,11 +131,11 @@
                         
                         <div class="mb-3">
                             {{ form.note.label(class="form-label") }}
-                            {{ form.note(class="form-control", placeholder="Izoh (ixtiyoriy)") }}
+                            {{ form.note(class="form-control", placeholder=t('inventory_note_hint')) }}
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-save"></i> {{ t('update') }}
+                            <i class="bi bi-save"></i> {{ t('action_save') }}
                         </button>
                     </form>
                 </div>
@@ -135,12 +154,12 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>{{ t('product_name') }}</th>
-                                        <th>{{ t('category') }}</th>
-                                        <th>{{ t('price') }}</th>
-                                        <th>{{ t('current_stock') }}</th>
-                                        <th>{{ t('stock_status') }}</th>
-                                        <th>{{ t('min_limit') }}</th>
+                                        <th>{{ t('inventory_product_name') }}</th>
+                                        <th>{{ t('products_category') }}</th>
+                                        <th>{{ t('products_price') }}</th>
+                                        <th>{{ t('inventory_current_stock') }}</th>
+                                        <th>{{ t('inventory_stock_status') }}</th>
+                                        <th>{{ t('inventory_min_limit') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -152,7 +171,7 @@
                                         <td>
                                             <span class="badge bg-secondary">{{ product.product_category.name }}</span>
                                         </td>
-                                        <td>{{ "{:,.0f}".format(product.price) }} som</td>
+                                        <td>{{ "{:,.0f}".format(product.price) }} {{ t('currency') }}</td>
                                         <td>
                                             <span class="fw-bold">{{ product.stock_quantity }} {{ product.unit }}</span>
                                         </td>
@@ -170,9 +189,9 @@
                     {% else %}
                         <div class="text-center py-4">
                             <i class="bi bi-box text-muted" style="font-size: 3rem;"></i>
-                            <p class="text-muted mt-3">Hech qanday mahsulot topilmadi</p>
+                            <p class="text-muted mt-3">{{ t('inventory_no_products') }}</p>
                             <a href="{{ url_for('products') }}" class="btn btn-primary">
-                                <i class="bi bi-plus"></i> Mahsulot qo'shish
+                                <i class="bi bi-plus"></i> {{ t('inventory_add_product') }}
                             </a>
                         </div>
                     {% endif %}
@@ -181,4 +200,41 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryFilter = document.getElementById('inventoryCategoryFilter');
+    const productSelect = document.getElementById('product_id');
+    
+    if (categoryFilter && productSelect) {
+        // Store all options
+        const allOptions = Array.from(productSelect.querySelectorAll('option'));
+        const selectText = '{{ t("inventory_select") }}';
+        
+        categoryFilter.addEventListener('change', function() {
+            const selectedCategoryId = this.value;
+            
+            // Clear current options
+            productSelect.innerHTML = '';
+            
+            // Add default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = selectText;
+            productSelect.appendChild(defaultOption);
+            
+            // Filter and add matching options
+            allOptions.forEach(option => {
+                if (option.value === '') return; // Skip default option
+                
+                const categoryId = option.dataset.categoryId;
+                if (!selectedCategoryId || categoryId === selectedCategoryId) {
+                    const newOption = option.cloneNode(true);
+                    productSelect.appendChild(newOption);
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

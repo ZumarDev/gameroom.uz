@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Boshqaruv Paneli - Gameroom{% endblock %}
+{% block title %}{{ t('dashboard_title') }} - Gameroom{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12 text-center">
         <div class="page-header">
-            <h1 class="display-4 fw-bold text-primary">
-                <i class="bi bi-speedometer2"></i>{{ t('control_panel') }}
+            <h1 class="display-4 fw-bold">
+                <i class="bi bi-speedometer2"></i> {{ t('dashboard_title') }}
             </h1>
-            <p class="lead text-muted">{{ t('gaming_center_stats') }}</p>
+            <p class="lead text-muted">{{ t('dashboard_welcome') }}, {{ current_user.gaming_center_name }}</p>
         </div>
     </div>
 </div>
@@ -20,7 +20,7 @@
         <div class="dashboard-card">
             <i class="bi bi-play-circle fs-1"></i>
             <h3>{{ active_sessions|length }}</h3>
-            <p class="mb-0 text-muted">{{ t('active_sessions') }}</p>
+            <p class="mb-0 text-muted">{{ t('dashboard_active_sessions') }}</p>
             <div class="card-pulse"></div>
         </div>
     </div>
@@ -28,22 +28,95 @@
         <div class="dashboard-card">
             <span class="fs-1 fw-bold text-success">UZS</span>
             <h3>{{ "{:,.0f}".format(today_revenue) }}</h3>
-            <p class="mb-0 text-muted">{{ t('todays_revenue') }}</p>
-            <small class="text-success">{{ t('som') }}</small>
+            <p class="mb-0 text-muted">{{ t('dashboard_today_revenue') }}</p>
+            <small class="text-success">{{ t('currency') }}</small>
         </div>
     </div>
     <div class="col-md-3 mb-4">
         <div class="dashboard-card">
             <i class="bi bi-house fs-1"></i>
             <h3>{{ total_rooms }}</h3>
-            <p class="mb-0 text-muted">{{ t('total_rooms') }}</p>
+            <p class="mb-0 text-muted">{{ t('dashboard_available_rooms') }}</p>
         </div>
     </div>
     <div class="col-md-3 mb-4">
         <div class="dashboard-card">
             <i class="bi bi-cup-straw fs-1"></i>
             <h3>{{ total_products }}</h3>
-            <p class="mb-0 text-muted">{{ t('total_products') }}</p>
+            <p class="mb-0 text-muted">{{ t('dashboard_total_products') }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Rooms Status Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-house-door"></i> {{ t('dashboard_rooms_status') }}</h5>
+                <div class="d-flex align-items-center gap-2">
+                    <select id="roomCategoryFilter" class="form-select form-select-sm" style="width: auto;" onchange="filterRoomsByCategory()">
+                        <option value="all">{{ t('dashboard_all_categories') }}</option>
+                        {% for category in room_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="badge bg-success">{{ available_rooms|length }} {{ t('dashboard_available') }}</span>
+                    <span class="badge bg-danger">{{ busy_rooms|length }} {{ t('dashboard_busy') }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row" id="roomsContainer">
+                    <!-- Bo'sh xonalar -->
+                    {% for room in available_rooms %}
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3 room-card" data-category="{{ room.category_id }}" data-status="available">
+                        <div class="card h-100 border-success bg-success bg-opacity-10">
+                            <div class="card-body text-center p-2">
+                                <i class="bi bi-door-open fs-2 text-success"></i>
+                                <h6 class="mb-1 mt-2">{{ room.name }}</h6>
+                                <small class="text-muted">{{ room.category.name if room.category else t('rooms_no_categories') }}</small>
+                                <div class="mt-2">
+                                    <span class="badge bg-success">{{ t('dashboard_available') }}</span>
+                                </div>
+                                <small class="text-success d-block mt-1">
+                                    {{ "{:,.0f}".format(room.custom_price_per_30min or (room.category.price_per_30min if room.category else 0)) }} {{ t('currency') }}/30min
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Band xonalar -->
+                    {% for room in busy_rooms %}
+                    {% set room_session = active_sessions|selectattr('room_id', 'equalto', room.id)|first %}
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3 room-card" data-category="{{ room.category_id }}" data-status="busy">
+                        <div class="card h-100 border-danger bg-danger bg-opacity-10">
+                            <div class="card-body text-center p-2">
+                                <i class="bi bi-door-closed fs-2 text-danger"></i>
+                                <h6 class="mb-1 mt-2">{{ room.name }}</h6>
+                                <small class="text-muted">{{ room.category.name if room.category else t('rooms_no_categories') }}</small>
+                                <div class="mt-2">
+                                    <span class="badge bg-danger">{{ t('dashboard_busy') }}</span>
+                                </div>
+                                {% if room_session %}
+                                <div class="timer-mini mt-1" data-session-id="{{ room_session.id }}" data-session-type="{{ room_session.session_type }}" 
+                                     {% if room_session.session_type == 'fixed' %}data-duration="{{ room_session.duration_minutes }}"{% endif %}>
+                                    <small class="text-warning time-display">...</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not available_rooms and not busy_rooms %}
+                    <div class="col-12 text-center py-4">
+                        <i class="bi bi-house fs-1 text-muted"></i>
+                        <p class="text-muted">{{ t('rooms_no_rooms') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -53,13 +126,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-activity"></i> Faol Seanslar</h5>
+                <h5 class="mb-0"><i class="bi bi-activity"></i> {{ t('sessions_active') }}</h5>
                 <div>
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newSessionModal">
-                        <i class="bi bi-plus"></i> Yangi Seans
+                        <i class="bi bi-plus"></i> {{ t('sessions_new') }}
                     </button>
                     <a href="{{ url_for('sessions') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-list"></i> Barchasi
+                        <i class="bi bi-list"></i> {{ t('dashboard_view_all') }}
                     </a>
                 </div>
             </div>
@@ -69,12 +142,12 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Xona</th>
-                                    <th>Turi</th>
-                                    <th>Boshlangan</th>
-                                    <th>Vaqt</th>
-                                    <th>Jami Summa</th>
-                                    <th>Amallar</th>
+                                    <th>{{ t('sessions_room') }}</th>
+                                    <th>{{ t('sessions_type') }}</th>
+                                    <th>{{ t('sessions_start_time') }}</th>
+                                    <th>{{ t('sessions_duration') }}</th>
+                                    <th>{{ t('sessions_amount') }}</th>
+                                    <th>{{ t('sessions_actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -85,18 +158,18 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
-                                            {% if session.session_type == 'fixed' %}Belgilangan vaqt{% else %}VIP{% endif %}
+                                            {% if session.session_type == 'fixed' %}{{ t('sessions_fixed') }}{% else %}{{ t('sessions_vip') }}{% endif %}
                                         </span>
                                     </td>
                                     <td>{{ session.start_time|tashkent_time('%H:%M') }}</td>
                                     <td>
                                         <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}" 
                                              {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>
-                                            <span class="time-display">Yuklanmoqda...</span>
+                                            <span class="time-display">{{ t('msg_loading') }}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <strong>{{ "{:,.0f}".format(session.total_price) }} som</strong>
+                                        <strong>{{ "{:,.0f}".format(session.total_price) }} {{ t('currency') }}</strong>
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
@@ -109,11 +182,10 @@
                                                class="btn btn-outline-primary">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="{{ url_for('stop_session', session_id=session.id) }}" 
-                                               class="btn btn-outline-danger"
-                                               onclick="return confirm('Bu seansni to\\'xtatishga rozimisiz?')">
+                                            <button type="button" class="btn btn-outline-danger"
+                                                    onclick="openStopSessionModal({{ session.id }})">
                                                 <i class="bi bi-stop-circle"></i>
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -124,8 +196,8 @@
                 {% else %}
                     <div class="text-center py-4">
                         <i class="bi bi-play-circle fs-1 text-muted"></i>
-                        <p class="text-muted">Faol seanslar mavjud emas</p>
-                        <a href="{{ url_for('sessions') }}" class="btn btn-primary">Birinchi Seansni Boshlash</a>
+                        <p class="text-muted">{{ t('sessions_no_active') }}</p>
+                        <a href="{{ url_for('sessions') }}" class="btn btn-primary">{{ t('sessions_new') }}</a>
                     </div>
                 {% endif %}
             </div>
@@ -140,56 +212,56 @@
             <form action="{{ url_for('start_session') }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-header">
-                    <h5 class="modal-title">Yangi Seans Boshlash</h5>
+                    <h5 class="modal-title">{{ t('sessions_new') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Xona</label>
+                        <label class="form-label">{{ t('sessions_room') }}</label>
                         <select name="room_id" class="form-select" required>
-                            <option value="">Xonani tanlang</option>
+                            <option value="">{{ t('rooms_select') }}</option>
                             {% for room in user_rooms %}
                                 <option value="{{ room.id }}">{{ room.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Seans turi</label>
+                        <label class="form-label">{{ t('sessions_type') }}</label>
                         <select name="session_type" class="form-select" required onchange="toggleDashboardDurationField()">
-                            <option value="fixed">Belgilangan vaqt</option>
-                            <option value="vip">VIP</option>
+                            <option value="fixed">{{ t('sessions_fixed') }}</option>
+                            <option value="vip">{{ t('sessions_vip') }}</option>
                         </select>
                     </div>
                     <div class="mb-3" id="dashboardInputType">
-                        <label class="form-label">Qanday kiritasiz?</label>
+                        <label class="form-label">{{ t('modal_input_type') }}</label>
                         <select name="input_type" class="form-select" onchange="toggleDashboardInputType()">
-                            <option value="time">Vaqt davomiyligi</option>
-                            <option value="amount">Summa (avtomatik vaqt hisoblanadi)</option>
+                            <option value="time">{{ t('modal_input_time') }}</option>
+                            <option value="amount">{{ t('modal_input_amount') }}</option>
                         </select>
                     </div>
                     <div class="mb-3" id="dashboardTimeInputField">
-                        <label class="form-label">Vaqt davomiyligi</label>
+                        <label class="form-label">{{ t('sessions_duration') }}</label>
                         <div class="row">
                             <div class="col-6">
-                                <label class="form-label">Soat</label>
+                                <label class="form-label">{{ t('time_hours') }}</label>
                                 <input type="number" name="duration_hours" class="form-control" min="0" max="24" value="0">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">Daqiqa</label>
+                                <label class="form-label">{{ t('time_minutes') }}</label>
                                 <input type="number" name="duration_minutes" class="form-control" min="0" max="59" value="30">
                             </div>
                         </div>
-                        <div class="form-text">Xona narxiga qarab summa avtomatik hisoblanadi</div>
+                        <div class="form-text">{{ t('modal_price_auto_calculated') }}</div>
                     </div>
                     <div class="mb-3" id="dashboardAmountInputField" style="display: none;">
-                        <label class="form-label">Summa</label>
+                        <label class="form-label">{{ t('sessions_amount') }}</label>
                         <input type="number" name="amount_input" class="form-control" placeholder="Masalan: 15000" min="0">
-                        <div class="form-text">Xona narxiga qarab vaqt avtomatik hisoblanadi</div>
+                        <div class="form-text">{{ t('modal_time_auto_calculated') }}</div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Seans Boshlash</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('sessions_new') }}</button>
                 </div>
             </form>
         </div>
@@ -202,29 +274,29 @@
     <div class="modal-dialog">
         <div class="modal-content bg-dark">
             <div class="modal-header">
-                <h5 class="modal-title text-light">Mahsulot Qo'shish - {{ session.room.name }}</h5>
+                <h5 class="modal-title text-light">{{ t('sessions_add_product') }} - {{ session.room.name }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('add_product_to_session', session_id=session.id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label text-light">Mahsulot</label>
+                        <label class="form-label text-light">{{ t('products_title') }}</label>
                         <select name="product_id" class="form-select bg-secondary text-light" required>
-                            <option value="">Mahsulotni tanlang</option>
+                            <option value="">{{ t('products_select') }}</option>
                             {% for product in available_products %}
-                                <option value="{{ product.id }}">{{ product.name }} - {{ "{:,.0f}".format(product.price) }} som</option>
+                                <option value="{{ product.id }}">{{ product.name }} - {{ "{:,.0f}".format(product.price) }} {{ t('currency') }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-light">Miqdori</label>
+                        <label class="form-label text-light">{{ t('products_quantity') }}</label>
                         <input type="number" name="quantity" class="form-control bg-secondary text-light" min="1" value="1" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-success">Qo'shish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-success">{{ t('action_add') }}</button>
                 </div>
             </form>
         </div>
@@ -233,6 +305,21 @@
 {% endfor %}
 
 <script>
+// ========== XONALAR FILTERI ==========
+function filterRoomsByCategory() {
+    const selectedCategory = document.getElementById('roomCategoryFilter').value;
+    const roomCards = document.querySelectorAll('.room-card');
+    
+    roomCards.forEach(card => {
+        const cardCategory = card.getAttribute('data-category');
+        if (selectedCategory === 'all' || cardCategory === selectedCategory) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
 function toggleDashboardDurationField() {
     const sessionType = document.querySelector('select[name="session_type"]').value;
     const timeInputField = document.getElementById('dashboardTimeInputField');
@@ -264,6 +351,79 @@ function toggleDashboardInputType() {
     }
 }
 
+// ========== SEANS YAKUNLASH MODALI ==========
+// Tarjimalar
+const dashboardTranslations = {
+    error: '{{ t("msg_error") }}',
+    fixed_time: '{{ t("sessions_fixed") }}',
+    vip: '{{ t("sessions_vip") }}',
+    minute: '{{ t("time_minutes") }}',
+    no_diff: '{{ t("billing_no_diff") }}',
+    diff: '{{ t("billing_diff") }}',
+    data_error: '{{ t("msg_data_error") }}',
+    currency: '{{ t("currency") }}'
+};
+
+function openStopSessionModal(sessionId) {
+    fetch(`/api/session-billing/${sessionId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(dashboardTranslations.error + ': ' + data.error);
+                return;
+            }
+            
+            document.getElementById('stopSessionId').value = sessionId;
+            document.getElementById('stopRoomName').textContent = data.room_name;
+            document.getElementById('stopSessionType').textContent = data.session_type === 'fixed' ? dashboardTranslations.fixed_time : dashboardTranslations.vip;
+            document.getElementById('stopStartTime').textContent = data.start_time;
+            document.getElementById('stopActualMinutes').textContent = data.actual_minutes + ' ' + dashboardTranslations.minute;
+            document.getElementById('stopPlannedMinutes').textContent = data.planned_minutes + ' ' + dashboardTranslations.minute;
+            document.getElementById('stopProductsTotal').textContent = formatNumber(data.products_total) + ' ' + dashboardTranslations.currency;
+            
+            document.getElementById('stopFullPrice').textContent = formatNumber(data.full_price) + ' ' + dashboardTranslations.currency;
+            document.getElementById('stopFullTotal').textContent = formatNumber(data.full_total) + ' ' + dashboardTranslations.currency;
+            
+            document.getElementById('stopActualPrice').textContent = formatNumber(data.actual_price) + ' ' + dashboardTranslations.currency;
+            document.getElementById('stopActualTotal').textContent = formatNumber(data.actual_total) + ' ' + dashboardTranslations.currency;
+            
+            const difference = data.full_total - data.actual_total;
+            const diffElement = document.getElementById('stopPriceDifference');
+            if (difference > 0) {
+                diffElement.innerHTML = `<span class="text-success">+${formatNumber(difference)} ${dashboardTranslations.currency} ${dashboardTranslations.diff}</span>`;
+            } else if (difference < 0) {
+                diffElement.innerHTML = `<span class="text-danger">${formatNumber(difference)} ${dashboardTranslations.currency} ${dashboardTranslations.diff}</span>`;
+            } else {
+                diffElement.innerHTML = '<span class="text-muted">' + dashboardTranslations.no_diff + '</span>';
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('stopSessionModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(dashboardTranslations.data_error);
+        });
+}
+
+function formatNumber(num) {
+    return Math.round(num).toLocaleString('uz-UZ');
+}
+
+function selectBillingType(type) {
+    document.getElementById('billingFull').checked = (type === 'full');
+    document.getElementById('billingActual').checked = (type === 'actual');
+    document.getElementById('fullBillingCard').classList.toggle('border-4', type === 'full');
+    document.getElementById('actualBillingCard').classList.toggle('border-4', type === 'actual');
+}
+
+function submitStopSession() {
+    const form = document.getElementById('stopSessionForm');
+    const sessionId = document.getElementById('stopSessionId').value;
+    form.action = `/sessions/stop/${sessionId}/confirm`;
+    form.submit();
+}
+
 // Session type change handler
 document.addEventListener('DOMContentLoaded', function() {
     toggleDashboardDurationField();
@@ -274,5 +434,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 30000);
 });
 </script>
+
+<!-- Stop Session Modal -->
+<div class="modal fade" id="stopSessionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="stopSessionForm" method="POST" action="">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" id="stopSessionId" name="session_id" value="">
+                
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-stop-circle"></i> {{ t('sessions_end') }}</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-dark">
+                                <div class="card-body">
+                                    <h6 class="text-muted mb-3"><i class="bi bi-info-circle"></i> {{ t('billing_session_info') }}</h6>
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr><td class="text-muted">{{ t('sessions_room') }}:</td><td class="fw-bold" id="stopRoomName">-</td></tr>
+                                        <tr><td class="text-muted">{{ t('sessions_type') }}:</td><td id="stopSessionType">-</td></tr>
+                                        <tr><td class="text-muted">{{ t('sessions_start_time') }}:</td><td id="stopStartTime">-</td></tr>
+                                        <tr><td class="text-muted">{{ t('billing_planned') }}:</td><td id="stopPlannedMinutes">-</td></tr>
+                                        <tr><td class="text-muted">{{ t('billing_actual_time') }}:</td><td class="text-warning fw-bold" id="stopActualMinutes">-</td></tr>
+                                        <tr><td class="text-muted">{{ t('products_title') }}:</td><td class="text-info" id="stopProductsTotal">-</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-lightbulb"></i> <strong>{{ t('billing_choice') }}</strong>
+                                <p class="mb-0 small mt-2">{{ t('billing_choice_desc') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-success billing-option" id="fullBillingCard" onclick="selectBillingType('full')">
+                                <div class="card-header bg-success text-white">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" name="billing_type" id="billingFull" value="full" checked>
+                                        <label class="form-check-label fw-bold" for="billingFull"><i class="bi bi-cash-stack"></i> {{ t('billing_full') }}</label>
+                                    </div>
+                                </div>
+                                <div class="card-body text-center">
+                                    <p class="text-muted small mb-2">{{ t('billing_for_planned') }}</p>
+                                    <h4 class="text-success mb-1" id="stopFullPrice">0 {{ t('currency') }}</h4>
+                                    <p class="text-muted small mb-2">+ {{ t('products_title') }}</p>
+                                    <h3 class="text-success fw-bold" id="stopFullTotal">0 {{ t('currency') }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-warning billing-option" id="actualBillingCard" onclick="selectBillingType('actual')">
+                                <div class="card-header bg-warning text-dark">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" name="billing_type" id="billingActual" value="actual">
+                                        <label class="form-check-label fw-bold" for="billingActual"><i class="bi bi-clock-history"></i> {{ t('billing_actual') }}</label>
+                                    </div>
+                                </div>
+                                <div class="card-body text-center">
+                                    <p class="text-muted small mb-2">{{ t('billing_for_actual') }}</p>
+                                    <h4 class="text-warning mb-1" id="stopActualPrice">0 {{ t('currency') }}</h4>
+                                    <p class="text-muted small mb-2">+ {{ t('products_title') }}</p>
+                                    <h3 class="text-warning fw-bold" id="stopActualTotal">0 {{ t('currency') }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center" id="stopPriceDifference"></div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="button" class="btn btn-danger btn-lg" onclick="submitStopSession()">
+                        <i class="bi bi-stop-circle"></i> {{ t('sessions_end') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

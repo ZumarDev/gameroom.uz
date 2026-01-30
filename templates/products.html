@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mahsulotlar va Kategoriyalar - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
+{% block title %}{{ t('products_title') }} - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,10 +8,10 @@
     <div class="row mb-4">
         <div class="col-12 text-center">
             <div class="page-header">
-                <h1 class="display-4 fw-bold text-info">
-                    <i class="bi bi-shop"></i>Mahsulotlar va Kategoriyalar
+                <h1 class="display-4 fw-bold">
+                    <i class="bi bi-shop"></i> {{ t('products_title') }}
                 </h1>
-                <p class="lead text-muted">Ichimliklar, gazaklar va boshqa mahsulotlarni boshqarish</p>
+                <p class="lead text-muted">{{ t('nav_products') }}</p>
             </div>
         </div>
     </div>
@@ -20,12 +20,12 @@
     <ul class="nav nav-tabs mb-4" id="productManagementTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab">
-                <i class="bi bi-collection"></i> Kategoriyalar
+                <i class="bi bi-collection"></i> {{ t('rooms_categories') }}
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products-tab-content" type="button" role="tab">
-                <i class="bi bi-shop"></i> Mahsulotlar
+                <i class="bi bi-shop"></i> {{ t('nav_products') }}
             </button>
         </li>
     </ul>
@@ -38,12 +38,12 @@
                 <div class="col-md-8">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" id="categorySearch" placeholder="Kategoriya qidirish...">
+                        <input type="text" class="form-control" id="categorySearch" placeholder="{{ t('action_search') }}...">
                     </div>
                 </div>
                 <div class="col-md-4 text-end">
                     <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                        <i class="bi bi-plus-circle"></i> Kategoriya Qo'shish
+                        <i class="bi bi-plus-circle"></i> {{ t('rooms_add_category') }}
                     </button>
                 </div>
             </div>
@@ -58,9 +58,9 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5 class="card-title">{{ category.name }}</h5>
-                                        <p class="card-text text-muted">{{ category.description or 'No description' }}</p>
+                                        <p class="card-text text-muted">{{ category.description or t('msg_no_data') }}</p>
                                         <div class="text-muted">
-                                            <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', category.name)|list|length }} ta {{ t('products') }}</small>
+                                            <small><i class="bi bi-box"></i> {{ products|selectattr('product_category.name', 'equalto', category.name)|list|length }} {{ t('nav_products') }}</small>
                                         </div>
                                     </div>
                                     <div class="dropdown">
@@ -70,13 +70,13 @@
                                         <ul class="dropdown-menu">
                                             <li>
                                                 <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ category.id }}">
-                                                    <i class="bi bi-pencil"></i> Tahrirlash
+                                                    <i class="bi bi-pencil"></i> {{ t('action_edit') }}
                                                 </a>
                                             </li>
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_product_category', category_id=category.id) }}"
-                                                   onclick="return confirm('{{ category.name }} kategoriyasini o\'chirishga rozimisiz?')">
-                                                    <i class="bi bi-trash"></i> O'chirish
+                                                   onclick="return confirm('{{ t('msg_confirm_delete') }}')">
+                                                    <i class="bi bi-trash"></i> {{ t('action_delete') }}
                                                 </a>
                                             </li>
                                         </ul>
@@ -105,12 +105,12 @@
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" id="productSearch" placeholder="Mahsulot qidirish...">
+                        <input type="text" class="form-control" id="productSearch" placeholder="{{ t('products_search') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
                     <select class="form-select" id="productCategoryFilter">
-                        <option value="">Barcha kategoriyalar</option>
+                        <option value="">{{ t('products_all_categories') }}</option>
                         {% for category in categories %}
                         <option value="{{ category.name }}">{{ category.name }}</option>
                         {% endfor %}
@@ -118,7 +118,7 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <button type="button" class="btn btn-info btn-lg me-2" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="bi bi-plus-circle"></i> Mahsulot Qo'shish
+                        <i class="bi bi-plus-circle"></i> {{ t('products_add_new') }}
                     </button>
                     <div class="btn-group">
                         <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
@@ -129,7 +129,7 @@
                                 <i class="bi bi-download"></i> Export
                             </a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importExcelModal">
-                                <i class="bi bi-upload"></i> Import
+                                <i class="bi bi-upload"></i> {{ t('products_import') }}
                             </a></li>
                         </ul>
                     </div>
@@ -139,7 +139,7 @@
             {% if products %}
                 <div class="row">
                     {% for product in products %}
-                    <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="col-md-6 col-lg-4 mb-3 product-item" data-product-name="{{ product.name|lower }}" data-category="{{ product.product_category.name|lower }}">
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
@@ -149,8 +149,8 @@
                                             {{ product.product_category.name }}
                                         </span>
                                         <div class="text-muted">
-                                            <small><span class="fw-bold text-success">UZS</span> {{ "{:,.0f}".format(product.price) }} som/{{ product.unit }}</small><br>
-                                            <small><i class="bi bi-boxes"></i> Zaxira: {{ product.stock_quantity }} {{ product.unit }}</small><br>
+                                            <small><span class="fw-bold text-success">UZS</span> {{ "{:,.0f}".format(product.price) }} {{ t('currency') }}/{{ product.unit }}</small><br>
+                                            <small><i class="bi bi-boxes"></i> {{ t('products_stock_reserve') }}: {{ product.stock_quantity }} {{ product.unit }}</small><br>
                                             <span class="badge bg-{{ product.get_stock_color() }} badge-sm">
                                                 {{ product.get_stock_status_text() }}
                                             </span>
@@ -163,14 +163,14 @@
                                         <ul class="dropdown-menu">
                                             <li>
                                                 <button class="dropdown-item" onclick="editProduct({{ product.id }}, '{{ product.name }}', {{ product.category_id }}, {{ product.price }}, '{{ product.unit }}', {{ product.stock_quantity }}, {{ product.min_stock_alert }})">
-                                                    <i class="bi bi-pencil"></i> Tahrirlash
+                                                    <i class="bi bi-pencil"></i> {{ t('action_edit') }}
                                                 </button>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li>
                                                 <a class="dropdown-item text-danger" href="{{ url_for('delete_product', product_id=product.id) }}"
-                                                   onclick="return confirm('{{ product.name }} mahsulotini o\'chirishga rozimisiz?')">
-                                                    <i class="bi bi-trash"></i> O'chirish
+                                                   onclick="return confirm('{{ t('msg_confirm_delete') }}')">
+                                                    <i class="bi bi-trash"></i> {{ t('action_delete') }}
                                                 </a>
                                             </li>
                                         </ul>
@@ -185,10 +185,10 @@
                 <div class="col-12">
                     <div class="text-center py-5">
                         <i class="bi bi-cup-straw fs-1 text-muted"></i>
-                        <h3 class="text-muted">Hali mahsulotlar yo'q</h3>
-                        <p class="text-muted">Mijozlar o'yin seansida sotib olishi mumkin bo'lgan mahsulotlar qo'shing</p>
+                        <h3 class="text-muted">{{ t('products_no_products_yet') }}</h3>
+                        <p class="text-muted">{{ t('products_no_products_desc') }}</p>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                            <i class="bi bi-plus"></i> Birinchi Mahsulotni Qo'shish
+                            <i class="bi bi-plus"></i> {{ t('products_add_first') }}
                         </button>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
             <form method="POST" action="{{ url_for('add_product') }}">
                 {{ form.hidden_tag() }}
                 <div class="modal-header">
-                    <h5 class="modal-title text-light">Yangi Mahsulot Qo'shish</h5>
+                    <h5 class="modal-title text-light">{{ t('products_add_modal') }}</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -236,7 +236,7 @@
                         {{ form.price.label(class="form-label text-light") }}
                         <div class="input-group">
                             {{ form.price(class="form-control bg-secondary text-light border-dark") }}
-                            <span class="input-group-text bg-secondary text-light border-dark">som</span>
+                            <span class="input-group-text bg-secondary text-light border-dark">{{ t('currency') }}</span>
                         </div>
                         {% if form.price.errors %}
                             <div class="text-danger small">
@@ -249,7 +249,7 @@
                     
                     <div class="mb-3">
                         {{ form.unit.label(class="form-label text-light") }}
-                        {{ form.unit(class="form-control bg-secondary text-light border-dark", placeholder="Masalan: dona, litr, kg") }}
+                        {{ form.unit(class="form-control bg-secondary text-light border-dark", placeholder=t('products_unit_hint')) }}
                         {% if form.unit.errors %}
                             <div class="text-danger small">
                                 {% for error in form.unit.errors %}
@@ -289,8 +289,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Mahsulot Qo'shish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('products_add') }}</button>
                 </div>
             </form>
         </div>
@@ -302,7 +302,7 @@
     <div class="modal-dialog">
         <div class="modal-content bg-dark border-secondary">
             <div class="modal-header">
-                <h5 class="modal-title text-light"><i class="bi bi-plus-circle"></i> Yangi Kategoriya Qo'shish</h5>
+                <h5 class="modal-title text-light"><i class="bi bi-plus-circle"></i> {{ t('rooms_add_category') }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('add_product_category') }}">
@@ -310,7 +310,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         {{ category_form.name.label(class="form-label text-light") }}
-                        {{ category_form.name(class="form-control bg-secondary text-light border-dark", placeholder="Masalan: Shirinliklar, Salqin ichimliklar") }}
+                        {{ category_form.name(class="form-control bg-secondary text-light border-dark", placeholder=t('products_category_hint')) }}
                         {% if category_form.name.errors %}
                             <div class="text-danger small">
                                 {% for error in category_form.name.errors %}
@@ -321,7 +321,7 @@
                     </div>
                     <div class="mb-3">
                         {{ category_form.description.label(class="form-label text-light") }}
-                        {{ category_form.description(class="form-control bg-secondary text-light border-dark", placeholder="Kategoriya haqida qo'shimcha ma'lumot") }}
+                        {{ category_form.description(class="form-control bg-secondary text-light border-dark", placeholder=t('products_category_desc_hint')) }}
                         {% if category_form.description.errors %}
                             <div class="text-danger small">
                                 {% for error in category_form.description.errors %}
@@ -332,8 +332,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-info">Kategoriya Qo'shish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-info">{{ t('products_category_add') }}</button>
                 </div>
             </form>
         </div>
@@ -345,7 +345,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-collection"></i> Kategoriyalarni Boshqarish</h5>
+                <h5 class="modal-title"><i class="bi bi-collection"></i> {{ t('products_category_manage') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -353,17 +353,17 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Kategoriya nomi</th>
-                                <th>Tavsif</th>
-                                <th>Mahsulotlar soni</th>
-                                <th>Amallar</th>
+                                <th>{{ t('rooms_category_name') }}</th>
+                                <th>{{ t('rooms_description') }}</th>
+                                <th>{{ t('products_category_count') }}</th>
+                                <th>{{ t('action_actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for category in categories %}
                             <tr>
                                 <td><strong>{{ category.name }}</strong></td>
-                                <td class="text-muted">{{ category.description or 'Tavsif yo\'q' }}</td>
+                                <td class="text-muted">{{ category.description or t('products_no_desc') }}</td>
                                 <td><span class="badge bg-primary">{{ category.products|selectattr('is_active', 'equalto', true)|list|length }}</span></td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary me-1" 
@@ -373,7 +373,7 @@
                                     {% if category.products|selectattr('is_active', 'equalto', true)|list|length == 0 %}
                                     <a href="{{ url_for('delete_product_category', category_id=category.id) }}" 
                                        class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Kategoriyani o\'chirishni tasdiqlaysizmi?')">
+                                       onclick="return confirm('{{ t('products_category_delete_confirm') }}')">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                     {% endif %}
@@ -393,23 +393,23 @@
     <div class="modal-dialog">
         <div class="modal-content bg-dark">
             <div class="modal-header">
-                <h5 class="modal-title text-light">Excel dan Mahsulotlar Import</h5>
+                <h5 class="modal-title text-light">{{ t('products_excel_import') }}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('import_products_excel') }}" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label text-light">Excel Fayl</label>
+                        <label class="form-label text-light">{{ t('products_excel_file') }}</label>
                         <input type="file" name="file" class="form-control bg-secondary text-light" accept=".xlsx" required>
                         <div class="form-text text-muted">
-                            Faqat .xlsx formatidagi fayllar. Kerakli ustunlar: Nomi, Kategoriya, Narxi (som)
+                            {{ t('products_excel_hint') }}
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-success">Import</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-success">{{ t('products_import') }}</button>
                 </div>
             </form>
         </div>
@@ -421,18 +421,18 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-pencil"></i> Mahsulotni Tahrirlash</h5>
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> {{ t('products_edit_modal') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" id="editProductForm">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Mahsulot nomi</label>
+                        <label class="form-label">{{ t('products_name') }}</label>
                         <input type="text" class="form-control" name="name" id="editProductName" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Kategoriya</label>
+                        <label class="form-label">{{ t('products_category') }}</label>
                         <select class="form-select" name="category_id" id="editProductCategory" required>
                             {% for category in categories %}
                             <option value="{{ category.id }}">{{ category.name }}</option>
@@ -440,34 +440,34 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Narx</label>
+                        <label class="form-label">{{ t('products_price') }}</label>
                         <div class="input-group">
                             <input type="number" class="form-control" name="price" id="editProductPrice" min="0" step="100" required>
-                            <span class="input-group-text">som</span>
+                            <span class="input-group-text">{{ t('currency') }}</span>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">O'lchov birligi</label>
-                        <input type="text" class="form-control" name="unit" id="editProductUnit" placeholder="Masalan: dona, litr, kg" required>
+                        <label class="form-label">{{ t('products_unit') }}</label>
+                        <input type="text" class="form-control" name="unit" id="editProductUnit" placeholder="{{ t('products_unit_hint') }}" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Zaxira miqdori</label>
+                                <label class="form-label">{{ t('products_stock_qty') }}</label>
                                 <input type="number" class="form-control" name="stock_quantity" id="editProductStock" min="0" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Minimum zaxira ogohlantirish</label>
+                                <label class="form-label">{{ t('products_min_stock') }}</label>
                                 <input type="number" class="form-control" name="min_stock_alert" id="editProductMinStock" min="0" required>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('action_save') }}</button>
                 </div>
             </form>
         </div>
@@ -480,24 +480,24 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-pencil"></i> Kategoriyani Tahrirlash</h5>
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> {{ t('products_category_edit') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('edit_product_category', category_id=category.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Kategoriya nomi</label>
+                        <label class="form-label">{{ t('rooms_category_name') }}</label>
                         <input type="text" class="form-control" name="name" value="{{ category.name }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tavsif</label>
+                        <label class="form-label">{{ t('rooms_description') }}</label>
                         <textarea class="form-control" name="description" rows="3">{{ category.description or '' }}</textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ t('action_cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ t('action_save') }}</button>
                 </div>
             </form>
         </div>
@@ -520,6 +520,29 @@ function editProduct(productId, name, categoryId, price, unit, stockQuantity, mi
     const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
     modal.show();
 }
+</script>
+
+<script>
+// URL parametridan tab'ni aniqlash va ochish
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    if (activeTab === 'products') {
+        // Products tab'ini faollashtirish
+        const productsTabBtn = document.getElementById('products-tab');
+        const categoriesTabBtn = document.getElementById('categories-tab');
+        const productsPane = document.getElementById('products-tab-content');
+        const categoriesPane = document.getElementById('categories');
+        
+        if (productsTabBtn && categoriesTabBtn && productsPane && categoriesPane) {
+            categoriesTabBtn.classList.remove('active');
+            categoriesPane.classList.remove('show', 'active');
+            productsTabBtn.classList.add('active');
+            productsPane.classList.add('show', 'active');
+        }
+    }
+});
 </script>
 
 <script src="{{ url_for('static', filename='js/filters.js') }}"></script>

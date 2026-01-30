@@ -2,21 +2,25 @@
 
 // Category Search
 document.addEventListener('DOMContentLoaded', function() {
-    // Category search functionality
+    // Category search functionality (for rooms_management page)
     const categorySearch = document.getElementById('categorySearch');
     if (categorySearch) {
         categorySearch.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
+            // Use .category-item class for category cards
+            const categoryCards = document.querySelectorAll('.category-item');
             
-            rows.forEach(row => {
-                const categoryName = row.cells[0].textContent.toLowerCase();
-                const categoryDesc = row.cells[1].textContent.toLowerCase();
+            categoryCards.forEach(card => {
+                const categoryName = card.dataset.categoryName || '';
+                const cardTitle = card.querySelector('.card-title');
+                const cardText = card.querySelector('.card-text');
+                const name = cardTitle ? cardTitle.textContent.toLowerCase() : '';
+                const desc = cardText ? cardText.textContent.toLowerCase() : '';
                 
-                if (categoryName.includes(searchTerm) || categoryDesc.includes(searchTerm)) {
-                    row.style.display = '';
+                if (name.includes(searchTerm) || desc.includes(searchTerm) || categoryName.includes(searchTerm)) {
+                    card.style.display = '';
                 } else {
-                    row.style.display = 'none';
+                    card.style.display = 'none';
                 }
             });
         });
@@ -29,17 +33,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (roomSearch || categoryFilter) {
         function filterRooms() {
             const searchTerm = roomSearch ? roomSearch.value.toLowerCase() : '';
-            const selectedCategory = categoryFilter ? categoryFilter.value : '';
-            const roomCards = document.querySelectorAll('.col-md-6.col-lg-4');
+            const selectedCategory = categoryFilter ? categoryFilter.value.toLowerCase() : '';
+            // Use .room-item class for room cards
+            const roomCards = document.querySelectorAll('.room-item');
             
             roomCards.forEach(card => {
-                const roomName = card.querySelector('.card-title').textContent.toLowerCase();
-                const roomCategory = card.querySelector('.badge').textContent;
-                const roomDesc = card.querySelector('.card-text') ? 
-                    card.querySelector('.card-text').textContent.toLowerCase() : '';
+                const roomName = card.dataset.roomName || '';
+                const roomCategory = card.dataset.category || '';
+                const cardText = card.querySelector('.card-text');
+                const roomDesc = cardText ? cardText.textContent.toLowerCase() : '';
                 
                 const matchesSearch = roomName.includes(searchTerm) || roomDesc.includes(searchTerm);
-                const matchesCategory = !selectedCategory || roomCategory === selectedCategory;
+                const matchesCategory = !selectedCategory || roomCategory.includes(selectedCategory.toLowerCase());
                 
                 if (matchesSearch && matchesCategory) {
                     card.style.display = '';
@@ -65,36 +70,26 @@ document.addEventListener('DOMContentLoaded', function() {
         function filterProducts() {
             const searchTerm = productSearch ? productSearch.value.toLowerCase() : '';
             const selectedCategory = productCategoryFilter ? productCategoryFilter.value.toLowerCase() : '';
-            const rows = document.querySelectorAll('tbody tr');
             
-            rows.forEach(row => {
-                if (row.cells && row.cells.length >= 2) {
-                    const productName = row.cells[0].textContent.toLowerCase();
-                    const productCategoryElement = row.cells[1].querySelector('.badge');
-                    const productCategory = productCategoryElement ? productCategoryElement.textContent.toLowerCase() : '';
-                    
-                    const matchesSearch = productName.includes(searchTerm);
-                    
-                    // Category mapping for better matching
-                    let matchesCategory = true;
-                    if (selectedCategory) {
-                        const categoryMap = {
-                            'ichimliklar': ['drinks', 'ichimliklar'],
-                            'gazaklar': ['snacks', 'gazaklar'],
-                            'ovqatlar': ['food', 'ovqatlar'],
-                            'shirinliklar': ['desserts', 'shirinliklar'],
-                            'boshqa': ['other', 'boshqa']
-                        };
-                        
-                        const validCategories = categoryMap[selectedCategory] || [selectedCategory];
-                        matchesCategory = validCategories.some(cat => productCategory.includes(cat));
-                    }
-                    
-                    if (matchesSearch && matchesCategory) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+            // Products are displayed as cards with .product-item class
+            const productCards = document.querySelectorAll('.product-item');
+            
+            productCards.forEach(cardContainer => {
+                const productName = cardContainer.dataset.productName || '';
+                const productCategory = cardContainer.dataset.category || '';
+                
+                const matchesSearch = productName.includes(searchTerm);
+                
+                // Category matching
+                let matchesCategory = true;
+                if (selectedCategory) {
+                    matchesCategory = productCategory.includes(selectedCategory.toLowerCase());
+                }
+                
+                if (matchesSearch && matchesCategory) {
+                    cardContainer.style.display = '';
+                } else {
+                    cardContainer.style.display = 'none';
                 }
             });
         }
