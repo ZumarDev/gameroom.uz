@@ -14,7 +14,12 @@ from datetime import datetime
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+log_level_name = os.environ.get("LOG_LEVEL")
+if not log_level_name:
+    is_debug = os.environ.get("FLASK_DEBUG", "").lower() in {"1", "true", "yes", "on"}
+    log_level_name = "DEBUG" if is_debug else "INFO"
+log_level = getattr(logging, log_level_name.upper(), logging.INFO)
+logging.basicConfig(level=log_level)
 
 # Set timezone to Uzbekistan/Tashkent
 os.environ['TZ'] = 'Asia/Tashkent'
@@ -25,6 +30,17 @@ TASHKENT_TZ = pytz.timezone('Asia/Tashkent')
 def get_tashkent_time():
     """Get current time in Tashkent timezone"""
     return datetime.now(TASHKENT_TZ)
+
+def is_superadmin_user(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+
+    usernames_raw = os.environ.get("SUPERADMIN_USERS", "").strip()
+    if usernames_raw:
+        usernames = {u.strip() for u in usernames_raw.split(",") if u.strip()}
+        return getattr(user, "username", None) in usernames
+
+    return getattr(user, "id", None) == 1
 
 def utc_to_tashkent(utc_time):
     """Convert UTC time to Tashkent time"""
@@ -61,6 +77,7 @@ else:
         "pool_pre_ping": True,
     }
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize extensions
 db.init_app(app)
@@ -102,7 +119,8 @@ def inject_translation_context():
         't': lambda key: get_translation(key, current_lang),
         'csrf_token': generate_csrf,
         'utc_to_tashkent': utc_to_tashkent,
-        'get_tashkent_time': get_tashkent_time
+        'get_tashkent_time': get_tashkent_time,
+        'is_superadmin': is_superadmin_user(current_user),
     }
 
 @app.template_filter('tashkent_time')
