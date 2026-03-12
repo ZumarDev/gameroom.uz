@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-12 text-center">
         <div class="page-header">
-            <h1 class="display-4 fw-bold">
+            <h1 class="display-5 fw-bold">
                 <i class="bi bi-speedometer2"></i> {{ t('dashboard_title') }}
             </h1>
             <p class="lead text-muted">{{ t('dashboard_welcome') }}, {{ current_user.gaming_center_name }}</p>
@@ -15,8 +15,8 @@
 </div>
 
 <!-- Modern Statistics Cards -->
-<div class="row mb-5">
-    <div class="col-md-3 mb-4">
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
         <div class="dashboard-card">
             <i class="bi bi-play-circle fs-1"></i>
             <h3>{{ active_sessions|length }}</h3>
@@ -24,7 +24,7 @@
             <div class="card-pulse"></div>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
+    <div class="col-md-3">
         <div class="dashboard-card">
             <span class="fs-1 fw-bold text-success">UZS</span>
             <h3>{{ "{:,.0f}".format(today_revenue) }}</h3>
@@ -32,14 +32,14 @@
             <small class="text-success">{{ t('currency') }}</small>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
+    <div class="col-md-3">
         <div class="dashboard-card">
             <i class="bi bi-house fs-1"></i>
             <h3>{{ total_rooms }}</h3>
             <p class="mb-0 text-muted">{{ t('dashboard_available_rooms') }}</p>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
+    <div class="col-md-3">
         <div class="dashboard-card">
             <i class="bi bi-cup-straw fs-1"></i>
             <h3>{{ total_products }}</h3>
@@ -49,7 +49,7 @@
 </div>
 
 <!-- Rooms Status Section -->
-<div class="row mb-4">
+<div class="row mb-3">
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -66,10 +66,10 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="row" id="roomsContainer">
+                <div class="row g-3" id="roomsContainer">
                     <!-- Bo'sh xonalar -->
                     {% for room in available_rooms %}
-                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3 room-card" data-category="{{ room.category_id }}" data-status="available">
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 room-card" data-category="{{ room.category_id }}" data-status="available">
                         <div class="card h-100 border-success bg-success bg-opacity-10">
                             <div class="card-body text-center p-2">
                                 <i class="bi bi-door-open fs-2 text-success"></i>
@@ -89,7 +89,7 @@
                     <!-- Band xonalar -->
                     {% for room in busy_rooms %}
                     {% set room_session = active_sessions|selectattr('room_id', 'equalto', room.id)|first %}
-                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-3 room-card" data-category="{{ room.category_id }}" data-status="busy">
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 room-card" data-category="{{ room.category_id }}" data-status="busy">
                         <div class="card h-100 border-danger bg-danger bg-opacity-10">
                             <div class="card-body text-center p-2">
                                 <i class="bi bi-door-closed fs-2 text-danger"></i>
@@ -272,17 +272,17 @@
 {% for session in active_sessions %}
 <div class="modal fade" id="addProductModal{{ session.id }}" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content bg-dark">
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-light">{{ t('sessions_add_product') }} - {{ session.room.name }}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">{{ t('sessions_add_product') }} - {{ session.room.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('add_product_to_session', session_id=session.id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label text-light">{{ t('products_title') }}</label>
-                        <select name="product_id" class="form-select bg-secondary text-light" required>
+                        <label class="form-label">{{ t('products_title') }}</label>
+                        <select name="product_id" class="form-select" required>
                             <option value="">{{ t('products_select') }}</option>
                             {% for product in available_products %}
                                 <option value="{{ product.id }}">{{ product.name }} - {{ "{:,.0f}".format(product.price) }} {{ t('currency') }}</option>
@@ -290,8 +290,8 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-light">{{ t('products_quantity') }}</label>
-                        <input type="number" name="quantity" class="form-control bg-secondary text-light" min="1" value="1" required>
+                        <label class="form-label">{{ t('products_quantity') }}</label>
+                        <input type="number" name="quantity" class="form-control" min="1" value="1" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title"><i class="bi bi-stop-circle"></i> {{ t('sessions_end') }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 
                 <div class="modal-body">

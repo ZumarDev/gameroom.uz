@@ -11,7 +11,7 @@
     {% else %}
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
     {% endif %}
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
@@ -31,33 +31,34 @@
             </a>
             
             {% if current_user.is_authenticated %}
+            {% set current_path = request.path %}
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('sessions') }}">
+                        <a class="nav-link {% if current_path.startswith(url_for('sessions')) %}active{% endif %}" href="{{ url_for('sessions') }}">
                             <i class="bi bi-play-circle"></i> {{ t('nav_sessions') }}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('rooms_management') }}">
+                        <a class="nav-link {% if current_path.startswith(url_for('rooms_management')) %}active{% endif %}" href="{{ url_for('rooms_management') }}">
                             <i class="bi bi-house"></i> {{ t('nav_rooms') }}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('products') }}">
+                        <a class="nav-link {% if current_path.startswith(url_for('products')) %}active{% endif %}" href="{{ url_for('products') }}">
                             <i class="bi bi-shop"></i> {{ t('nav_products') }}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('inventory') }}">
+                        <a class="nav-link {% if current_path.startswith(url_for('inventory')) %}active{% endif %}" href="{{ url_for('inventory') }}">
                             <i class="bi bi-boxes"></i> {{ t('nav_inventory') }}
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analytics') }}">
+                        <a class="nav-link {% if current_path.startswith(url_for('analytics')) %}active{% endif %}" href="{{ url_for('analytics') }}">
                             <i class="bi bi-graph-up"></i> {{ t('nav_analytics') }}
                         </a>
                     </li>
@@ -107,22 +108,24 @@
         </div>
     </nav>
 
-    <main class="container-fluid py-4">
+    <main class="container-xl py-4 app-main">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/filters.js') }}"></script>

@@ -3,64 +3,62 @@
 {% block title %}{{ t('analytics_title') }} - Gameroom{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <div class="page-header">
-                <h1 class="display-4 fw-bold">
-                    <i class="bi bi-graph-up-arrow"></i> {{ t('analytics_title') }}
-                </h1>
-                <p class="lead text-muted">{{ t('analytics_total_revenue') }}</p>
-            </div>
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <div class="page-header">
+            <h1 class="display-5 fw-bold">
+                <i class="bi bi-graph-up-arrow"></i> {{ t('analytics_title') }}
+            </h1>
+            <p class="lead text-muted">{{ t('analytics_total_revenue') }}</p>
         </div>
     </div>
+</div>
 
-    <!-- Date Selection and Report Type -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <label class="form-label fw-bold">{{ t('analytics_period') }}:</label>
-            <select class="form-select" id="reportType" onchange="toggleDateInputs()">
-                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>{{ t('analytics_today') }}</option>
-                <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>{{ t('analytics_week') }}</option>
-                <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>{{ t('analytics_month') }}</option>
-            </select>
-        </div>
-        <div class="col-md-3" id="dailyDateSection" {% if report_type != 'daily' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">{{ t('pdf_date') }}:</label>
-            <input type="date" class="form-control" id="selectedDate" value="{{ current_date }}">
-        </div>
-        <div class="col-md-3" id="weeklyDateSection" {% if report_type != 'weekly' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">{{ t('analytics_week') }}:</label>
-            <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_date }}">
-            <small class="text-muted">{{ t('analytics_custom') }}</small>
-        </div>
-        <div class="col-md-3" id="monthlyDateSection" {% if report_type != 'monthly' %}style="display: none;"{% endif %}>
-            <label class="form-label fw-bold">{{ t('analytics_month') }}:</label>
-            <input type="month" class="form-control" id="selectedMonth" value="{{ current_month }}">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">&nbsp;</label>
-            <div class="d-grid gap-2">
-                <button class="btn btn-primary" onclick="loadReport()">
-                    <i class="bi bi-arrow-clockwise"></i> {{ t('analytics_generate') }}
+<!-- Date Selection and Report Type -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label class="form-label fw-bold">{{ t('analytics_period') }}:</label>
+        <select class="form-select" id="reportType" onchange="toggleDateInputs()">
+            <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>{{ t('analytics_today') }}</option>
+            <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>{{ t('analytics_week') }}</option>
+            <option value="monthly" {% if report_type == 'monthly' %}selected{% endif %}>{{ t('analytics_month') }}</option>
+        </select>
+    </div>
+    <div class="col-md-3" id="dailyDateSection" {% if report_type != 'daily' %}style="display: none;"{% endif %}>
+        <label class="form-label fw-bold">{{ t('pdf_date') }}:</label>
+        <input type="date" class="form-control" id="selectedDate" value="{{ current_date }}">
+    </div>
+    <div class="col-md-3" id="weeklyDateSection" {% if report_type != 'weekly' %}style="display: none;"{% endif %}>
+        <label class="form-label fw-bold">{{ t('analytics_week') }}:</label>
+        <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_date }}">
+        <small class="text-muted">{{ t('analytics_custom') }}</small>
+    </div>
+    <div class="col-md-3" id="monthlyDateSection" {% if report_type != 'monthly' %}style="display: none;"{% endif %}>
+        <label class="form-label fw-bold">{{ t('analytics_month') }}:</label>
+        <input type="month" class="form-control" id="selectedMonth" value="{{ current_month }}">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary" onclick="loadReport()">
+                <i class="bi bi-arrow-clockwise"></i> {{ t('analytics_generate') }}
+            </button>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-danger dropdown-toggle btn-sm" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-pdf"></i> {{ t('analytics_download_pdf') }}
                 </button>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-danger dropdown-toggle btn-sm" data-bs-toggle="dropdown">
-                        <i class="bi bi-file-earmark-pdf"></i> {{ t('analytics_download_pdf') }}
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('daily')">
-                            <i class="bi bi-calendar-day"></i> {{ t('analytics_today') }}
-                        </a></li>
-                        <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('weekly')">
-                            <i class="bi bi-calendar-week"></i> {{ t('analytics_week') }}
-                        </a></li>
-                        <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('monthly')">
-                            <i class="bi bi-calendar-month"></i> {{ t('analytics_month') }}
-                        </a></li>
-                    </ul>
-                </div>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('daily')">
+                        <i class="bi bi-calendar-day"></i> {{ t('analytics_today') }}
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('weekly')">
+                        <i class="bi bi-calendar-week"></i> {{ t('analytics_week') }}
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadPDFReport('monthly')">
+                        <i class="bi bi-calendar-month"></i> {{ t('analytics_month') }}
+                    </a></li>
+                </ul>
             </div>
         </div>
     </div>
