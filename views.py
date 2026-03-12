@@ -103,6 +103,11 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
+
+    # First-run bootstrap: if no admin users exist yet, guide user to create the first account.
+    if AdminUser.query.count() == 0:
+        flash(t('msg_create_first_admin'), 'info')
+        return redirect(url_for('register'))
     
     form = LoginForm()
     if form.validate_on_submit():
@@ -122,7 +127,8 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     allow_public = os.environ.get("ALLOW_PUBLIC_REGISTRATION", "").lower() in {"1", "true", "yes", "on"}
-    if not allow_public:
+    has_any_admin = AdminUser.query.count() > 0
+    if has_any_admin and not allow_public:
         if current_user.is_authenticated and is_superadmin_user(current_user):
             return redirect(url_for('admin_create_user'))
         abort(404)
@@ -131,7 +137,7 @@ def register():
     if form.validate_on_submit():
         # Check secret key
         import os
-        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'gameroom2026')
         if form.secret_key.data != secret_key:
             flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('register.html', form=form)
@@ -276,7 +282,7 @@ def reset_password():
         import secrets
         import string
         
-        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'admin123')
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'gameroom2026')
         if form.secret_key.data != secret_key:
             flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('reset_password.html', form=form)
