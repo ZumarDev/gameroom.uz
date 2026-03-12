@@ -5,6 +5,11 @@ import math
 from sqlalchemy import func
 
 class AdminUser(UserMixin, db.Model):
+    __table_args__ = (
+        db.Index('ix_admin_user_is_active', 'is_admin_active'),
+        db.Index('ix_admin_user_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -22,6 +27,11 @@ class AdminUser(UserMixin, db.Model):
         return '/static/img/default-logo.svg'
 
 class RoomCategory(db.Model):
+    __table_args__ = (
+        db.Index('ix_room_category_admin_active', 'admin_user_id', 'is_active'),
+        db.Index('ix_room_category_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
@@ -35,6 +45,12 @@ class RoomCategory(db.Model):
     rooms = db.relationship('Room', backref='category', lazy=True)
 
 class Room(db.Model):
+    __table_args__ = (
+        db.Index('ix_room_admin_active', 'admin_user_id', 'is_active'),
+        db.Index('ix_room_category_id', 'category_id'),
+        db.Index('ix_room_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
@@ -51,11 +67,15 @@ class Room(db.Model):
         """Get the price per 30 minutes for this room"""
         if self.custom_price_per_30min:
             return self.custom_price_per_30min
-        else:
-            category = RoomCategory.query.get(self.category_id)
-            return category.price_per_30min if category else 15000
+        category = getattr(self, 'category', None)
+        return category.price_per_30min if category else 15000
 
 class ProductCategory(db.Model):
+    __table_args__ = (
+        db.Index('ix_product_category_admin_active', 'admin_user_id', 'is_active'),
+        db.Index('ix_product_category_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
@@ -67,6 +87,13 @@ class ProductCategory(db.Model):
     products = db.relationship('Product', backref='product_category', lazy=True)
 
 class Product(db.Model):
+    __table_args__ = (
+        db.Index('ix_product_admin_active', 'admin_user_id', 'is_active'),
+        db.Index('ix_product_category_id', 'category_id'),
+        db.Index('ix_product_stock_quantity', 'stock_quantity'),
+        db.Index('ix_product_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     admin_user_id = db.Column(db.Integer, db.ForeignKey('admin_user.id'), nullable=False)  # Multi-tenant
     name = db.Column(db.String(100), nullable=False)
@@ -108,6 +135,12 @@ class Product(db.Model):
             return 'success'
 
 class Session(db.Model):
+    __table_args__ = (
+        db.Index('ix_session_room_active', 'room_id', 'is_active'),
+        db.Index('ix_session_room_created_at', 'room_id', 'created_at'),
+        db.Index('ix_session_created_at', 'created_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
     session_type = db.Column(db.String(20), nullable=False)  # 'fixed' or 'vip'
@@ -172,15 +205,13 @@ class Session(db.Model):
     
     def update_total_price(self):
         """Calculate and update total price based on room pricing and actual duration"""
-        # Load room relationship if not already loaded
-        if not hasattr(self, '_room') or self._room is None:
-            self._room = Room.query.get(self.room_id)
-        
+        room = getattr(self, 'room', None) or Room.query.get(self.room_id)
+
         # Get room pricing - use custom price if set, otherwise category price
-        if self._room and self._room.custom_price_per_30min:
-            price_per_30min = self._room.custom_price_per_30min
-        elif self._room and self._room.category:
-            price_per_30min = self._room.category.price_per_30min
+        if room and room.custom_price_per_30min:
+            price_per_30min = room.custom_price_per_30min
+        elif room and getattr(room, 'category', None):
+            price_per_30min = room.category.price_per_30min
         else:
             price_per_30min = 15000  # Default fallback
         
@@ -228,14 +259,19 @@ class Session(db.Model):
             self.session_price = minutes * price_per_minute
         
         # Calculate products total
-        cart_items = CartItem.query.filter_by(session_id=self.id).all()
-        products_total = sum(item.product.price * item.quantity for item in cart_items if item.product)
-        self.products_total = products_total
+        cart_items = getattr(self, 'cart_items', None) or []
+        self.products_total = sum((item.price_at_time or 0) * (item.quantity or 0) for item in cart_items)
         
         # Update total
         self.total_price = self.session_price + self.products_total
 
 class CartItem(db.Model):
+    __table_args__ = (
+        db.Index('ix_cart_item_session_id', 'session_id'),
+        db.Index('ix_cart_item_product_id', 'product_id'),
+        db.Index('ix_cart_item_added_at', 'added_at'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)

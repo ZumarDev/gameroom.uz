@@ -19,7 +19,7 @@
 
 ## 📋 Loyiha Haqida
 
-**GameRoom.uz** - bu o'yinxona (gaming center) egalariga o'z bizneslarini samarali boshqarish imkonini beruvchi web ilova. Tizim ko'p foydalanuvchilik (multi-tenant) arxitekturasi asosida qurilgan bo'lib, har bir o'yinxona egasi o'zining alohida ma'lumotlar bazasi bilan ishlaydi.
+**GameRoom.uz** - bu o'yinxona (gaming center) egalariga o'z bizneslarini samarali boshqarish imkonini beruvchi web ilova. Seanslarni avtomatik hisoblash, xonalar bandligini kuzatish, mahsulot sotuvlari va zaxirani tartibga solish hamda daromad hisobotlarini ko'rish uchun yaratilgan.
 
 ### 🎯 Kimlar Uchun?
 
@@ -126,13 +126,31 @@ chmod +x start.sh
 http://localhost:3000
 ```
 
-### 4. Ro'yxatdan o'tish
+### 4. Kirish (Login)
 
-1. `/register` sahifasiga kiring
-2. Foydalanuvchi nomi va parol kiriting
-3. O'yinxona nomini kiriting
-4. Admin kalitini kiriting (standart: `gameroom2026`)
-5. Tizimga kiring va ishlashni boshlang!
+- Login sahifa: `/login`
+- Login qilgandan keyin admin panel (dashboard) ochiladi: `/dashboard`
+
+### 5. Ro'yxatdan o'tish / foydalanuvchi qo'shish
+
+GameRoom.uz da ro'yxatdan o'tish **default holatda ochiq emas** (login sahifada ham link chiqmaydi). Yangi akkauntlarni faqat admin (superadmin) panel orqali yaratish tavsiya qilinadi.
+
+#### ✅ 4.1 Birinchi superadminni yaratish (bootstrap)
+1. `.env` ga vaqtincha quyidagini qo'shing:
+   - `ALLOW_PUBLIC_REGISTRATION=true`
+2. Brauzerda `/register` sahifasiga kiring
+3. Foydalanuvchi nomi, parol, o'yinxona nomini kiriting
+4. Admin kalitini kiriting (`SECRET_ADMIN_KEY`, standart: `gameroom2026`)
+5. Ro'yxatdan o'tgandan keyin `.env` ni qayta sozlang:
+   - `SUPERADMIN_USERS=<sizning_username>` (masalan: `SUPERADMIN_USERS=admin`)
+   - `ALLOW_PUBLIC_REGISTRATION=false`
+6. Ilovani qayta ishga tushiring
+
+#### ✅ 4.2 Yangi foydalanuvchi qo'shish (faqat admin panel orqali)
+1. Superadmin bo'lib login qiling
+2. Profil menyusidan **"Ro’yxatdan o’tish"** bandini tanlang yoki to'g'ridan-to'g'ri oching:
+   - `/admin/users/new`
+3. Yangi foydalanuvchi ma'lumotlarini kiriting va saqlang
 
 ---
 
@@ -189,6 +207,9 @@ gameroom.uz/
 | `SESSION_SECRET` | Flask session kaliti | Avtomatik yaratiladi |
 | `SECRET_ADMIN_KEY` | Admin ro'yxatdan o'tish kaliti | `gameroom2026` |
 | `DATABASE_URL` | Ma'lumotlar bazasi URL | `sqlite:///gaming_center.db` |
+| `SUPERADMIN_USERS` | Superadmin username'lar (vergul bilan) | *(bo'sh bo'lsa: id=1 superadmin)* |
+| `ALLOW_PUBLIC_REGISTRATION` | `/register` ni vaqtincha yoqish/o'chirish | `false` |
+| `LOG_LEVEL` | Log darajasi (`INFO`, `DEBUG` va h.k.) | `INFO` |
 
 ---
 

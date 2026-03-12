@@ -2,6 +2,7 @@ class SessionTimer {
     constructor() {
         this.timers = new Map();
         this.intervals = new Map();
+        this.fetchIntervalMs = 5000; // reduce server load: fetch at most every 5s per session
         this.init();
     }
 
@@ -12,11 +13,13 @@ class SessionTimer {
             const sessionType = timerEl.dataset.sessionType;
             const duration = timerEl.dataset.duration;
             
-            this.timers.set(sessionId, {
-                element: timerEl,
-                sessionType: sessionType,
-                duration: duration ? parseInt(duration) : null
-            });
+        this.timers.set(sessionId, {
+            element: timerEl,
+            sessionType: sessionType,
+            duration: duration ? parseInt(duration) : null,
+            lastFetchAt: 0,
+            cachedData: null
+        });
             
             this.startTimer(sessionId);
         });
@@ -46,9 +49,31 @@ class SessionTimer {
         const timer = this.timers.get(sessionId);
         if (!timer) return;
 
+        // Skip network work while tab is hidden; timers will catch up on focus
+        if (document.visibilityState === 'hidden') {
+            return;
+        }
+
         try {
-            const response = await fetch(`/api/session_time/${sessionId}`);
-            const data = await response.json();
+            const nowMs = Date.now();
+            const shouldFetch = !timer.cachedData || (nowMs - timer.lastFetchAt) >= this.fetchIntervalMs;
+
+            let data = timer.cachedData;
+            if (shouldFetch) {
+                const response = await fetch(`/api/session_time/${sessionId}`);
+                data = await response.json();
+                timer.cachedData = data;
+                timer.lastFetchAt = nowMs;
+            } else if (data) {
+                const elapsedSinceFetch = Math.floor((nowMs - timer.lastFetchAt) / 1000);
+                data = { ...data };
+                if (typeof data.elapsed_seconds === 'number') {
+                    data.elapsed_seconds = data.elapsed_seconds + elapsedSinceFetch;
+                }
+                if (typeof data.remaining_seconds === 'number' && timer.sessionType === 'fixed') {
+                    data.remaining_seconds = Math.max(0, data.remaining_seconds - elapsedSinceFetch);
+                }
+            }
             
             const timeDisplay = timer.element.querySelector('.time-display');
             

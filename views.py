@@ -1,9 +1,10 @@
-from flask import render_template, request, redirect, url_for, flash, jsonify, send_file, make_response
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_file, make_response, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
-from sqlalchemy import func, extract
+from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 import math
 import os
 import pandas as pd
@@ -28,12 +29,37 @@ except Exception:
     # Fallback to Helvetica if DejaVu fonts are not available
     UNICODE_FONT = 'Helvetica'
     UNICODE_FONT_BOLD = 'Helvetica-Bold'
-from app import app, db
+import pytz
+from app import app, db, TASHKENT_TZ, get_tashkent_time, is_superadmin_user
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
-from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
+from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, AdminCreateUserForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
 from werkzeug.security import generate_password_hash
 from translations import get_translation, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
 from flask import session, g
+
+def _utc_range_for_tashkent_date(local_date):
+    start_local = TASHKENT_TZ.localize(datetime(local_date.year, local_date.month, local_date.day, 0, 0, 0))
+    end_local = start_local + timedelta(days=1)
+    start_utc = start_local.astimezone(pytz.utc).replace(tzinfo=None)
+    end_utc = end_local.astimezone(pytz.utc).replace(tzinfo=None)
+    return start_utc, end_utc
+
+
+def _utc_range_for_tashkent_dates(start_date_inclusive, end_date_inclusive):
+    start_utc, _ = _utc_range_for_tashkent_date(start_date_inclusive)
+    end_utc, _ = _utc_range_for_tashkent_date(end_date_inclusive + timedelta(days=1))
+    return start_utc, end_utc
+
+
+def _utc_range_for_tashkent_month(year, month):
+    start_local = TASHKENT_TZ.localize(datetime(year, month, 1, 0, 0, 0))
+    if month == 12:
+        end_local = TASHKENT_TZ.localize(datetime(year + 1, 1, 1, 0, 0, 0))
+    else:
+        end_local = TASHKENT_TZ.localize(datetime(year, month + 1, 1, 0, 0, 0))
+    start_utc = start_local.astimezone(pytz.utc).replace(tzinfo=None)
+    end_utc = end_local.astimezone(pytz.utc).replace(tzinfo=None)
+    return start_utc, end_utc
 
 @app.before_request
 def before_request():
@@ -95,6 +121,12 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    allow_public = os.environ.get("ALLOW_PUBLIC_REGISTRATION", "").lower() in {"1", "true", "yes", "on"}
+    if not allow_public:
+        if current_user.is_authenticated and is_superadmin_user(current_user):
+            return redirect(url_for('admin_create_user'))
+        abort(404)
+
     form = RegisterForm()
     if form.validate_on_submit():
         # Check secret key
@@ -124,6 +156,31 @@ def register():
         return redirect(url_for('login'))
     
     return render_template('register.html', form=form)
+
+@app.route('/admin/users/new', methods=['GET', 'POST'])
+@login_required
+def admin_create_user():
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    form = AdminCreateUserForm()
+    if form.validate_on_submit():
+        existing_user = AdminUser.query.filter_by(username=form.username.data).first()
+        if existing_user:
+            flash(t('msg_username_taken'), 'danger')
+            return render_template('admin_create_user.html', form=form)
+
+        user = AdminUser()
+        user.username = form.username.data
+        user.gaming_center_name = form.gaming_center_name.data
+        user.password_hash = generate_password_hash(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+
+        flash(t('msg_admin_created'), 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('admin_create_user.html', form=form)
 
 @app.route('/logout')
 @login_required
@@ -245,24 +302,38 @@ def reset_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Multi-tenant: Get active sessions for current user's rooms only
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-    user_room_ids = [room.id for room in user_rooms]
-    active_sessions = Session.query.filter(
-        Session.room_id.in_(user_room_ids),
-        Session.is_active == True
-    ).all()
-    
-    # Get today's statistics for current user only
-    today = datetime.utcnow().date()
-    today_sessions = Session.query.filter(
-        Session.room_id.in_(user_room_ids),
-        func.date(Session.created_at) == today,
-        Session.is_active == False
-    ).all()
-    
-    today_revenue = sum(session.total_price for session in today_sessions)
-    total_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+
+    active_sessions = (
+        Session.query.join(Room)
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+            Session.is_active == True,
+        )
+        .options(selectinload(Session.room))
+        .all()
+    )
+
+    today_local = get_tashkent_time().date()
+    day_start_utc, day_end_utc = _utc_range_for_tashkent_date(today_local)
+    today_count, today_revenue = (
+        db.session.query(
+            func.count(Session.id),
+            func.coalesce(func.sum(Session.total_price), 0.0),
+        )
+        .join(Room, Session.room_id == Room.id)
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+            Session.is_active == False,
+            Session.created_at >= day_start_utc,
+            Session.created_at < day_end_utc,
+        )
+        .one()
+    )
+
+    total_rooms = len(user_rooms)
     # Count only products with stock > 0
     total_products = Product.query.filter(
         Product.admin_user_id == current_user.id,
@@ -271,7 +342,6 @@ def dashboard():
     ).count()
     
     # Get data for modals
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     # Only show products with stock > 0
     available_products = Product.query.filter(
         Product.admin_user_id == current_user.id,
@@ -281,7 +351,7 @@ def dashboard():
     room_categories = RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     
     # Find available rooms (not in active session)
-    active_room_ids = [s.room_id for s in active_sessions]
+    active_room_ids = {s.room_id for s in active_sessions}
     available_rooms = [r for r in user_rooms if r.id not in active_room_ids]
     busy_rooms = [r for r in user_rooms if r.id in active_room_ids]
     
@@ -290,7 +360,7 @@ def dashboard():
                          today_revenue=today_revenue,
                          total_rooms=total_rooms,
                          total_products=total_products,
-                         session_count=len(today_sessions),
+                         session_count=today_count,
                          user_rooms=user_rooms,
                          available_rooms=available_rooms,
                          busy_rooms=busy_rooms,
@@ -614,7 +684,16 @@ def sessions():
     # Multi-tenant: Get sessions for current user's rooms only
     user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     user_room_ids = [room.id for room in user_rooms]
-    active_sessions = Session.query.filter(Session.room_id.in_(user_room_ids), Session.is_active == True).all()
+    active_sessions = (
+        Session.query.join(Room)
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+            Session.is_active == True,
+        )
+        .options(selectinload(Session.room))
+        .all()
+    )
     
     # Get filter parameters
     page = request.args.get('page', 1, type=int)
@@ -675,8 +754,13 @@ def sessions():
     completed_sessions = pagination.items
     
     # Calculate filtered totals
-    filtered_total_sum = sum(s.total_price for s in completed_sessions_query.all())
-    filtered_count = completed_sessions_query.count()
+    filtered_total_sum = (
+        completed_sessions_query.order_by(None)
+        .with_entities(func.coalesce(func.sum(Session.total_price), 0.0))
+        .scalar()
+        or 0.0
+    )
+    filtered_count = completed_sessions_query.order_by(None).count()
     
     # Setup form for new session
     form = SessionForm()
@@ -693,7 +777,7 @@ def sessions():
     room_categories = RoomCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
     
     # Find rooms that are currently available (not in active session)
-    active_room_ids = [s.room_id for s in active_sessions]
+    active_room_ids = {s.room_id for s in active_sessions}
     available_rooms = [r for r in user_rooms if r.id not in active_room_ids]
     
     return render_template('sessions.html', 
@@ -950,7 +1034,7 @@ def get_rooms_by_category(category_id):
         Session.room_id.in_([r.id for r in rooms]),
         Session.is_active == True
     ).all()
-    active_room_ids = [s.room_id for s in active_sessions]
+    active_room_ids = {s.room_id for s in active_sessions}
     
     result = []
     for room in rooms:
@@ -982,7 +1066,7 @@ def get_available_rooms():
         Session.room_id.in_([r.id for r in rooms]),
         Session.is_active == True
     ).all()
-    active_room_ids = [s.room_id for s in active_sessions]
+    active_room_ids = {s.room_id for s in active_sessions}
     
     result = []
     for room in rooms:
@@ -1125,7 +1209,7 @@ def stop_session_confirm(session_id):
     
     # Calculate products total
     cart_items = CartItem.query.filter_by(session_id=session.id).all()
-    products_total = sum(item.product.price * item.quantity for item in cart_items if item.product)
+    products_total = sum((item.price_at_time or 0) * (item.quantity or 0) for item in cart_items)
     session.products_total = products_total
     session.total_price = session.session_price + session.products_total
     
@@ -1263,7 +1347,6 @@ def analytics():
     selected_week_date = request.args.get('week_date')
     selected_month = request.args.get('month')
     
-    from app import get_tashkent_time
     today = get_tashkent_time().date()
     current_date = today.strftime('%Y-%m-%d')
     current_month = today.strftime('%Y-%m')
@@ -1283,14 +1366,22 @@ def analytics():
         else:
             target_date = today
             
-        # Multi-tenant: Get sessions for current user's rooms only
-        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-        user_room_ids = [room.id for room in user_rooms]
-        daily_sessions = Session.query.filter(
-            Session.room_id.in_(user_room_ids),
-            func.date(Session.created_at) == target_date,
-            Session.is_active == False
-        ).all()
+        day_start_utc, day_end_utc = _utc_range_for_tashkent_date(target_date)
+        daily_sessions = (
+            Session.query.join(Room)
+            .filter(
+                Room.admin_user_id == current_user.id,
+                Room.is_active == True,
+                Session.is_active == False,
+                Session.created_at >= day_start_utc,
+                Session.created_at < day_end_utc,
+            )
+            .options(
+                selectinload(Session.room),
+                selectinload(Session.cart_items).selectinload(CartItem.product),
+            )
+            .all()
+        )
         daily_revenue = sum(session.total_price for session in daily_sessions)
         
         # For daily view, show the selected day as "main" data
@@ -1316,15 +1407,22 @@ def analytics():
         week_start = base_date - timedelta(days=base_date.weekday())
         week_end = week_start + timedelta(days=6)
         
-        # Multi-tenant: Get sessions for current user's rooms only
-        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-        user_room_ids = [room.id for room in user_rooms]
-        weekly_sessions_data = Session.query.filter(
-            Session.room_id.in_(user_room_ids),
-            func.date(Session.created_at) >= week_start,
-            func.date(Session.created_at) <= week_end,
-            Session.is_active == False
-        ).all()
+        week_start_utc, week_end_utc = _utc_range_for_tashkent_dates(week_start, week_end)
+        weekly_sessions_data = (
+            Session.query.join(Room)
+            .filter(
+                Room.admin_user_id == current_user.id,
+                Room.is_active == True,
+                Session.is_active == False,
+                Session.created_at >= week_start_utc,
+                Session.created_at < week_end_utc,
+            )
+            .options(
+                selectinload(Session.room),
+                selectinload(Session.cart_items).selectinload(CartItem.product),
+            )
+            .all()
+        )
         weekly_revenue_data = sum(session.total_price for session in weekly_sessions_data)
         
         # For weekly view, show the selected week as "main" data
@@ -1346,15 +1444,22 @@ def analytics():
         else:
             year, month = today.year, today.month
             
-        # Multi-tenant: Get sessions for current user's rooms only
-        user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-        user_room_ids = [room.id for room in user_rooms]
-        monthly_sessions = Session.query.filter(
-            Session.room_id.in_(user_room_ids),
-            extract('month', Session.created_at) == month,
-            extract('year', Session.created_at) == year,
-            Session.is_active == False
-        ).all()
+        month_start_utc, month_end_utc = _utc_range_for_tashkent_month(year, month)
+        monthly_sessions = (
+            Session.query.join(Room)
+            .filter(
+                Room.admin_user_id == current_user.id,
+                Room.is_active == True,
+                Session.is_active == False,
+                Session.created_at >= month_start_utc,
+                Session.created_at < month_end_utc,
+            )
+            .options(
+                selectinload(Session.room),
+                selectinload(Session.cart_items).selectinload(CartItem.product),
+            )
+            .all()
+        )
         monthly_revenue = sum(session.total_price for session in monthly_sessions)
         
         # For monthly view, show the selected month as "main" data
@@ -1369,22 +1474,43 @@ def analytics():
         products_revenue = sum(session.products_total for session in monthly_sessions)
     
     # Always calculate today's data for comparison - Multi-tenant
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-    user_room_ids = [room.id for room in user_rooms]
-    today_sessions = Session.query.filter(
-        Session.room_id.in_(user_room_ids),
-        func.date(Session.created_at) == today,
-        Session.is_active == False
-    ).all()
+    today_start_utc, today_end_utc = _utc_range_for_tashkent_date(today)
+    today_sessions = (
+        Session.query.join(Room)
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+            Session.is_active == False,
+            Session.created_at >= today_start_utc,
+            Session.created_at < today_end_utc,
+        )
+        .options(
+            selectinload(Session.room),
+            selectinload(Session.cart_items).selectinload(CartItem.product),
+        )
+        .all()
+    )
     today_revenue = sum(session.total_price for session in today_sessions)
     
     # Weekly analytics - Multi-tenant
     week_start = today - timedelta(days=today.weekday())
-    weekly_sessions = Session.query.filter(
-        Session.room_id.in_(user_room_ids),
-        Session.created_at >= week_start,
-        Session.is_active == False
-    ).all()
+    week_end = week_start + timedelta(days=6)
+    week_start_utc, week_end_utc = _utc_range_for_tashkent_dates(week_start, week_end)
+    weekly_sessions = (
+        Session.query.join(Room)
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+            Session.is_active == False,
+            Session.created_at >= week_start_utc,
+            Session.created_at < week_end_utc,
+        )
+        .options(
+            selectinload(Session.room),
+            selectinload(Session.cart_items).selectinload(CartItem.product),
+        )
+        .all()
+    )
     weekly_revenue = sum(session.total_price for session in weekly_sessions)
     
     # Get sessions list for the selected period
@@ -1442,39 +1568,68 @@ def analytics():
 @app.route('/api/session_time/<int:session_id>')
 @login_required
 def get_session_time(session_id):
-    # Multi-tenant: Check session belongs to current user's room
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
-    user_room_ids = [room.id for room in user_rooms]
-    session = Session.query.filter(Session.id == session_id, Session.room_id.in_(user_room_ids)).first_or_404()
+    products_total_subq = (
+        db.session.query(
+            CartItem.session_id.label('session_id'),
+            func.sum(CartItem.price_at_time * CartItem.quantity).label('products_total'),
+        )
+        .group_by(CartItem.session_id)
+        .subquery()
+    )
+
+    row = (
+        db.session.query(
+            Session,
+            func.coalesce(Room.custom_price_per_30min, RoomCategory.price_per_30min, 15000).label('price_per_30min'),
+            func.coalesce(products_total_subq.c.products_total, 0.0).label('products_total'),
+        )
+        .join(Room, Session.room_id == Room.id)
+        .outerjoin(RoomCategory, Room.category_id == RoomCategory.id)
+        .outerjoin(products_total_subq, products_total_subq.c.session_id == Session.id)
+        .filter(
+            Session.id == session_id,
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+        )
+        .one_or_none()
+    )
+
+    if not row:
+        return jsonify({'error': 'Session not found'}), 404
+
+    session, price_per_30min, products_total = row
     now = datetime.utcnow()
     
     if session.session_type == 'fixed':
+        if not session.duration_minutes:
+            return jsonify({'error': 'Invalid session duration'}), 400
+
         # Calculate remaining time
         end_time = session.start_time + timedelta(minutes=session.duration_minutes)
         remaining = end_time - now
         elapsed = now - session.start_time
         elapsed_minutes = elapsed.total_seconds() / 60
         
-        # Calculate current cost based on room pricing
-        room = session.room
-        if room and room.custom_price_per_30min:
-            price_per_30min = room.custom_price_per_30min
-        elif room and room.category:
-            price_per_30min = room.category.price_per_30min
-        else:
-            price_per_30min = 15000  # Default fallback
-        
         # Calculate per-minute cost and current total
         price_per_minute = price_per_30min / 30
         current_cost = elapsed_minutes * price_per_minute
+        total_current = (
+            (session.prepaid_amount if session.prepaid_amount and session.prepaid_amount > 0 else current_cost)
+            + products_total
+        )
         
         if remaining.total_seconds() <= 0:
             # Session should be auto-stopped
             if session.is_active:
                 session.end_time = end_time
                 session.is_active = False
-                # Recalculate price for the actual time played (full planned duration)
-                session.update_total_price()
+                # Persist totals without loading cart items/products
+                if session.prepaid_amount and session.prepaid_amount > 0:
+                    session.session_price = session.prepaid_amount
+                else:
+                    session.session_price = (session.duration_minutes or 0) * price_per_minute
+                session.products_total = products_total
+                session.total_price = session.session_price + session.products_total
                 db.session.commit()
             
             return jsonify({
@@ -1484,45 +1639,31 @@ def get_session_time(session_id):
                 'current_cost': current_cost
             })
         
-        # Update session totals including products
-        session.update_total_price()
-        
         return jsonify({
             'expired': False,
             'remaining_seconds': int(remaining.total_seconds()),
             'elapsed_seconds': int(elapsed.total_seconds()),
             'current_cost': current_cost,
-            'products_total': session.products_total,
-            'total_current': session.total_price
+            'products_total': products_total,
+            'total_current': total_current
         })
     
     else:  # VIP session
         elapsed = now - session.start_time
         elapsed_minutes = elapsed.total_seconds() / 60
         
-        # Calculate current cost based on room pricing
-        room = session.room
-        if room and room.custom_price_per_30min:
-            price_per_30min = room.custom_price_per_30min
-        elif room and room.category:
-            price_per_30min = room.category.price_per_30min
-        else:
-            price_per_30min = 15000  # Default fallback
-        
         # Calculate per-minute cost and current total
         price_per_minute = price_per_30min / 30
         current_cost = elapsed_minutes * price_per_minute
-        
-        # Update session totals including products
-        session.update_total_price()
+        total_current = current_cost + products_total
         
         return jsonify({
             'expired': False,
             'remaining_seconds': 0,
             'elapsed_seconds': int(elapsed.total_seconds()),
             'current_cost': current_cost,
-            'products_total': session.products_total,
-            'total_current': session.total_price
+            'products_total': products_total,
+            'total_current': total_current
         })
 
 # Excel Import/Export Routes
@@ -1673,10 +1814,11 @@ def generate_pdf_report(report_type):
     user_room_ids = [room.id for room in Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
     
     # Get sessions data
+    range_start_utc, range_end_utc = _utc_range_for_tashkent_dates(start_date, end_date)
     sessions = Session.query.filter(
         Session.room_id.in_(user_room_ids),
-        func.date(Session.created_at) >= start_date,
-        func.date(Session.created_at) <= end_date,
+        Session.created_at >= range_start_utc,
+        Session.created_at < range_end_utc,
         Session.is_active == False
     ).all()
     
@@ -1806,8 +1948,8 @@ def generate_pdf_report(report_type):
     # Get product sales data for the date range
     cart_items = CartItem.query.join(Session).filter(
         Session.room_id.in_(user_room_ids),
-        func.date(Session.created_at) >= start_date,
-        func.date(Session.created_at) <= end_date,
+        Session.created_at >= range_start_utc,
+        Session.created_at < range_end_utc,
         Session.is_active == False
     ).all()
     

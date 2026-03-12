@@ -13,6 +13,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Python syntax check
+      run: python3 -m py_compile app.py models.py views.py forms.py translations.py
+
     - name: Copy files to server via SSH
       uses: appleboy/scp-action@v0.1.7
       with:

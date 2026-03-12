@@ -83,7 +83,25 @@ MODE=${1:-dev}
 if [ "$MODE" = "prod" ]; then
     echo -e "${GREEN}🏭 Production rejimida ishga tushirilmoqda (Gunicorn)...${NC}"
     pip install -q gunicorn==23.0.0 2>/dev/null
-    gunicorn --bind 0.0.0.0:3000 --workers 4 --threads 2 app:app
+
+    DB_URL="${DATABASE_URL}"
+    if [ -z "$DB_URL" ] && [ -f ".env" ]; then
+        DB_URL="$(grep -E '^DATABASE_URL=' .env | head -n 1 | cut -d= -f2-)"
+    fi
+    if [ -z "$DB_URL" ]; then
+        DB_URL="sqlite:///gaming_center.db"
+    fi
+
+    if [[ "$DB_URL" == sqlite* ]]; then
+        echo -e "${YELLOW}⚠️  DATABASE_URL SQLite bo'lsa, Gunicorn'ni kam worker/thread bilan ishga tushirish tavsiya qilinadi.${NC}"
+        WORKERS="${GUNICORN_WORKERS:-1}"
+        THREADS="${GUNICORN_THREADS:-1}"
+    else
+        WORKERS="${GUNICORN_WORKERS:-4}"
+        THREADS="${GUNICORN_THREADS:-2}"
+    fi
+
+    gunicorn --bind 0.0.0.0:3000 --workers "$WORKERS" --threads "$THREADS" app:app
 else
     echo -e "${YELLOW}🔧 Development rejimida ishga tushirilmoqda...${NC}"
     python3 -c "from app import app; app.run(host='0.0.0.0', port=3000, debug=True)"
