@@ -6,19 +6,19 @@
 <div class="row mb-4">
     <div class="col-12 text-center">
         <div class="page-header">
-            <h1 class="display-4 fw-bold">
+            <h1 class="display-5 fw-bold">
                 <i class="bi bi-play-circle"></i> {{ t('sessions_title') }}
             </h1>
             <p class="lead text-muted">{{ t('nav_sessions') }}</p>
         </div>
         <div class="btn-group mt-3">
-            <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#startSessionModal">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#startSessionModal">
                 <i class="bi bi-plus"></i> {{ t('sessions_new') }}
             </button>
-            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#multipleSessionModal">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#multipleSessionModal">
                 <i class="bi bi-grid-3x3"></i> {{ t('rooms_list') }}
             </button>
-            <button type="button" class="btn btn-info btn-lg" data-bs-toggle="modal" data-bs-target="#roomsStatusModal">
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#roomsStatusModal">
                 <i class="bi bi-house-door"></i> {{ t('dashboard_rooms_status') }}
             </button>
         </div>
@@ -137,23 +137,23 @@
                 
                 <!-- Filters Collapse -->
                 <div class="collapse mt-3" id="sessionFilters">
-                    <form method="GET" action="{{ url_for('sessions') }}" class="row g-2 p-3 bg-dark rounded">
+                    <form method="GET" action="{{ url_for('sessions') }}" class="row g-2 p-3 filter-panel">
                         <!-- Date Range -->
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_filter_date_from') }}</label>
-                            <input type="date" name="date_from" class="form-control form-control-sm bg-secondary text-light" 
+                            <input type="date" name="date_from" class="form-control form-control-sm" 
                                    value="{{ filter_date_from or '' }}">
                         </div>
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_filter_date_to') }}</label>
-                            <input type="date" name="date_to" class="form-control form-control-sm bg-secondary text-light" 
+                            <input type="date" name="date_to" class="form-control form-control-sm" 
                                    value="{{ filter_date_to or '' }}">
                         </div>
                         
                         <!-- Room Filter -->
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_room') }}</label>
-                            <select name="room_id" class="form-select form-select-sm bg-secondary text-light">
+                            <select name="room_id" class="form-select form-select-sm">
                                 <option value="">{{ t('sessions_all_rooms') }}</option>
                                 {% for room in user_rooms %}
                                 <option value="{{ room.id }}" {% if filter_room == room.id %}selected{% endif %}>
@@ -166,7 +166,7 @@
                         <!-- Session Type Filter -->
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_type') }}</label>
-                            <select name="session_type" class="form-select form-select-sm bg-secondary text-light">
+                            <select name="session_type" class="form-select form-select-sm">
                                 <option value="">{{ t('sessions_all_types') }}</option>
                                 <option value="fixed" {% if filter_type == 'fixed' %}selected{% endif %}>{{ t('sessions_fixed') }}</option>
                                 <option value="vip" {% if filter_type == 'vip' %}selected{% endif %}>{{ t('sessions_vip') }}</option>
@@ -176,19 +176,19 @@
                         <!-- Sum Range -->
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_filter_min_sum') }}</label>
-                            <input type="number" name="min_sum" class="form-control form-control-sm bg-secondary text-light" 
+                            <input type="number" name="min_sum" class="form-control form-control-sm" 
                                    placeholder="0" value="{{ filter_min_sum or '' }}">
                         </div>
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_filter_max_sum') }}</label>
-                            <input type="number" name="max_sum" class="form-control form-control-sm bg-secondary text-light" 
+                            <input type="number" name="max_sum" class="form-control form-control-sm" 
                                    placeholder="999999" value="{{ filter_max_sum or '' }}">
                         </div>
                         
                         <!-- Sort -->
                         <div class="col-md-3 col-6">
                             <label class="form-label small text-muted">{{ t('sessions_filter_sort') }}</label>
-                            <select name="sort" class="form-select form-select-sm bg-secondary text-light">
+                            <select name="sort" class="form-select form-select-sm">
                                 <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>{{ t('sessions_sort_date_desc') }}</option>
                                 <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>{{ t('sessions_sort_date_asc') }}</option>
                                 <option value="sum_desc" {% if sort_by == 'sum_desc' %}selected{% endif %}>{{ t('sessions_sort_amount_desc') }}</option>
@@ -422,7 +422,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title"><i class="bi bi-grid-3x3"></i> {{ t('sessions_multiple_start') }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -859,7 +859,7 @@ function submitStopSession() {
                 
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title"><i class="bi bi-stop-circle"></i> {{ t('sessions_end') }}</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 
                 <div class="modal-body">
@@ -971,7 +971,7 @@ function submitStopSession() {
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title"><i class="bi bi-house-door"></i> {{ t('dashboard_rooms_status') }}</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="row">

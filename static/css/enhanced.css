@@ -5,6 +5,26 @@
     transform: translateY(-4px);
 }
 
+/* Subtle hover for all cards (minimal) */
+.card {
+    will-change: transform;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Buttons micro-interaction */
+.btn {
+    will-change: transform;
+}
+
+/* Badges: slightly softer */
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
 /* Stats cards first row colors */
 .dashboard-card:nth-child(1) .fs-1,
 .col-md-3:nth-child(1) .dashboard-card .fs-1,
@@ -19,12 +39,24 @@
 
 .col-md-3:nth-child(3) .dashboard-card .fs-1,
 .col-md-3:nth-child(3) .dashboard-card i {
-    color: #8b5cf6 !important;
+    color: var(--accent) !important;
 }
 
 .col-md-3:nth-child(4) .dashboard-card .fs-1,
 .col-md-3:nth-child(4) .dashboard-card i {
     color: #f59e0b !important;
+}
+
+/* Timer chip */
+.timer .time-display,
+.timer-mini .time-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.08);
+    border: 1px solid rgba(51, 65, 85, 0.9);
 }
 
 /* Table improvements */
