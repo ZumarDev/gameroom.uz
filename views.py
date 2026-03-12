@@ -136,7 +136,6 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         # Check secret key
-        import os
         secret_key = os.environ.get('SECRET_ADMIN_KEY', 'gameroom2026')
         if form.secret_key.data != secret_key:
             flash(t('msg_secret_key_invalid'), 'danger')
@@ -278,7 +277,6 @@ def reset_password():
     form = ResetPasswordForm()
     if form.validate_on_submit():
         # Check admin secret key
-        import os
         import secrets
         import string
         
