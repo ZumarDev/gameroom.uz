@@ -1,6 +1,77 @@
 GameRoom.uz — 10 sahifalik prezentatsiya matni (Gamma.app uchun)
 Til: O‘zbekcha (oddiy, hammaga tushunarli)
+# GameRoom.uz — 10 sahifalik professional taqdimot (matn)
+# Format: Har bir sahifa uchun sarlavha + 4–6 asosiy punkt
 
+=== 1‑SAHIFA: MUQOVA ===
+Sarlavha: GameRoom.uz — O'yinxona biznesini boshqarish va reklama qilish platformasi
+Tagline: Stol tennis, bilyard, karaoke, PlayStation va boshqa xizmatlar uchun yagona yechim
+Subtext: Mijozlar oqimini oshiring, xizmatlarni tez sotuvga aylantiring, hisobotlarni avtomatlashtiring
+Brend: Zamonaviy, ishonchli, ko'p tilli (UZ/RU/EN)
+CTA: Bugun sinab ko'ring
+
+=== 2‑SAHIFA: MUAMMO VA BOZOR ===
+• O'yinxonalar ko'p, lekin raqobat kuchli — mijoz e’tiborini ushlab turish qiyin
+• Xizmatlar ko'rinmaydi: VIP, karaoke, bilyard, stol tennis bo‘yicha aniq takliflar yo‘q
+• Qo‘lda boshqaruv: navbat, seans, mahsulot savdosi va hisobotlar tarqoq
+• Reklama strategiyasi bir maromda emas — natija o‘lchash qiyin
+• GameRoom bularni bitta platformada birlashtiradi
+
+=== 3‑SAHIFA: YECHIM — GAMEROOM PLATFORMASI ===
+• Xizmatlarni boshqarish: seanslar, xonalar, tariflar, VIP/oddiy
+• Sotuvlar: mahsulotlar, ombor, real‑vaqt nazorat
+• Hisobotlar: kunlik/haftalik/oylik
+• Profil va branding: logotip, kontaktlar, valyuta
+• Reklama uchun tayyor ma’lumotlar va ko‘rsatkichlar
+
+=== 4‑SAHIFA: KLIENT UCHUN ASOSIY FOYDA ===
+• Mijoz oqimi oshadi: xizmatlar aniq ko‘rinadi
+• Xodimlar xatosi kamayadi: avtomatik hisob-kitob
+• Moliyaviy nazorat: to‘liq tarix va tahlil
+• Reklama samaradorligi: kampaniya natijasi o‘lchanadi
+• Turli xizmatlar uchun moslashuvchan tariflar
+
+=== 5‑SAHIFA: REKLAMA IMKONIYATLARI (KLIENTLAR UCHUN) ===
+• Telegram va Instagram uchun tayyor kontent paketlari
+• Xizmatlar bo‘yicha alohida takliflar: karaoke kechasi, VIP PS, bilyard turniri
+• “Band/Bo‘sh” real‑vaqt ko‘rinishi — mijozga ishonch beradi
+• Aksiya va chegirmalar bo‘yicha push‑takliflar
+• “Bir soat sovg‘a” yoki “2+1” kabi kampaniyalar
+
+=== 6‑SAHIFA: HOW‑TO — REKLAMANI QANDAY TADBIRQILAMIZ ===
+1) Mijoz segmentini aniqlaymiz (o‘smirlar, oilalar, do‘stlar, e‑sport)
+2) Eng kuchli xizmatni ajratamiz (PS VIP, karaoke, bilyard)
+3) Ofis va tarmoq bannerlari, story maketlar
+4) Targ‘ibot kanallari: Telegram, Instagram, Google Maps
+5) Natijani o‘lchash: seanslar, o‘rtacha chek, qaytish soni
+
+=== 7‑SAHIFA: GAME ROOM BO‘YICHA MISOL KAMPANIYALAR ===
+• “Karaoke Night” — haftaning 1 kuni, cheklangan joy
+• “PlayStation VIP” — oldindan bron qilganlarga bonus
+• “Stol tennis ligasi” — kichik turnirlar
+• “Bilyard soati” — kechki soatlarda 20% chegirma
+• “Family pack” — ota‑ona + bola uchun maxsus narx
+
+=== 8‑SAHIFA: HISOBOTLAR VA NATIJANI KO‘RISH ===
+• Qaysi xizmat ko‘proq daromad olib keldi?
+• Eng ko‘p band bo‘lgan kun va vaqt
+• VIP va oddiy seanslar nisbatini solishtirish
+• Mahsulot savdosi: ichimlik/snack
+• PDF hisobotlar: boshqaruvchiga tayyor
+
+=== 9‑SAHIFA: QADAM‑BAQADAM JORIY QILISH ===
+• 1‑kun: profil, xizmatlar va tariflarni kiritish
+• 2‑kun: xodimlar uchun tezkor o‘qitish
+• 3‑kun: birinchi reklama kampaniyasi (Telegram/IG)
+• 1‑hafta: natijalar tahlili va optimizatsiya
+• Keyingi: takroriy kampaniyalar + barqaror o‘sish
+
+=== 10‑SAHIFA: YAKUNIY CTA ===
+• GameRoom.uz — o'yinxonani professional boshqarish + reklama natijasini ko‘rish
+• Sizning mijozingiz qayerda bo‘lsa, reklama o‘sha yerga chiqadi
+• Biz bilan birga o‘ynang — biznesingiz o‘sadi
+• Aloqa: Telegram / Telefon / Email
+• CTA: Demo so‘rash va ishga tushirish
 ============================================================
 1-SAHIFA — Sarlavha
 ============================================================

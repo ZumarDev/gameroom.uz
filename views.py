@@ -452,12 +452,13 @@ def reset_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id).all()
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
 
     active_sessions = (
         Session.query.join(Room)
         .filter(
             Room.admin_user_id == current_user.id,
+            Room.is_active == True,
             Session.is_active == True,
         )
         .options(selectinload(Session.room))
@@ -1751,6 +1752,29 @@ def analytics():
                          report_sessions=report_sessions,
                          top_products=top_products,
                          top_rooms=top_rooms)
+
+@app.route('/analytics/cleanup-deleted', methods=['POST'])
+@login_required
+def analytics_cleanup_deleted():
+    """Remove sessions tied to inactive rooms (cleanup test data)."""
+    inactive_room_ids = [
+        r.id for r in Room.query.filter_by(admin_user_id=current_user.id, is_active=False).all()
+    ]
+    if not inactive_room_ids:
+        flash(t('analytics_cleanup_none'), 'info')
+        return redirect(url_for('analytics'))
+
+    sessions_to_delete = Session.query.filter(Session.room_id.in_(inactive_room_ids)).all()
+    if not sessions_to_delete:
+        flash(t('analytics_cleanup_none'), 'info')
+        return redirect(url_for('analytics'))
+
+    session_ids = [s.id for s in sessions_to_delete]
+    CartItem.query.filter(CartItem.session_id.in_(session_ids)).delete(synchronize_session=False)
+    Session.query.filter(Session.id.in_(session_ids)).delete(synchronize_session=False)
+    db.session.commit()
+    flash(t('analytics_cleanup_done'), 'success')
+    return redirect(url_for('analytics'))
 
 @app.route('/api/session_time/<int:session_id>')
 @login_required
