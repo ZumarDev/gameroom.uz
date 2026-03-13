@@ -96,7 +96,6 @@ class ResetPasswordForm(FlaskForm):
     secret_key = PasswordField('Admin maxfiy kaliti', validators=[DataRequired()])
 
 class ProfileForm(FlaskForm):
-    username = StringField('Foydalanuvchi nomi', validators=[DataRequired(), Length(min=4, max=20)])
     gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
 
 class QuickAddProductForm(FlaskForm):
