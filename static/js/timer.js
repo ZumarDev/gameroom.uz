@@ -8,7 +8,7 @@ class SessionTimer {
 
     init() {
         // Find all timer elements on the page
-        document.querySelectorAll('.timer').forEach(timerEl => {
+        document.querySelectorAll('.timer, .timer-mini').forEach(timerEl => {
             const sessionId = timerEl.dataset.sessionId;
             const sessionType = timerEl.dataset.sessionType;
             const duration = timerEl.dataset.duration;
@@ -93,8 +93,10 @@ class SessionTimer {
             if (timer.sessionType === 'fixed') {
                 // Show remaining time for fixed sessions (countdown)
                 const remainingTime = this.formatTime(data.remaining_seconds);
-                timeDisplay.innerHTML = `
-                    <div>
+                const isMini = timer.element.classList.contains('timer-mini');
+                timeDisplay.innerHTML = isMini
+                    ? `<span class="fw-semibold">${remainingTime}</span> <span class="text-muted">qoldi</span>`
+                    : `<div>
                         <span class="text-warning d-block fs-4 fw-bold">${remainingTime}</span>
                         <small class="text-muted">qoldi</small>
                     </div>`;
@@ -111,15 +113,17 @@ class SessionTimer {
                 
                 // Add warning classes when time is running low
                 if (data.remaining_seconds <= 300) { // 5 minutes
-                    timeDisplay.innerHTML = `
-                        <div>
+                    timeDisplay.innerHTML = isMini
+                        ? `<span class="text-danger fw-semibold">${remainingTime}</span> <span class="text-danger">qoldi!</span>`
+                        : `<div>
                             <span class="text-danger d-block fs-4 fw-bold">${remainingTime}</span>
                             <small class="text-danger">qoldi!</small>
                         </div>`;
                     timeDisplay.parentElement.classList.add('text-danger');
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
-                    timeDisplay.innerHTML = `
-                        <div>
+                    timeDisplay.innerHTML = isMini
+                        ? `<span class="text-warning fw-semibold">${remainingTime}</span> <span class="text-warning">qoldi</span>`
+                        : `<div>
                             <span class="text-warning d-block fs-4 fw-bold">${remainingTime}</span>
                             <small class="text-warning">qoldi</small>
                         </div>`;
@@ -128,8 +132,10 @@ class SessionTimer {
             } else {
                 // Show elapsed time for VIP sessions (counting up)
                 const elapsedTime = this.formatTime(data.elapsed_seconds);
-                timeDisplay.innerHTML = `
-                    <div>
+                const isMini = timer.element.classList.contains('timer-mini');
+                timeDisplay.innerHTML = isMini
+                    ? `<span class="fw-semibold">${elapsedTime}</span> <span class="text-muted">VIP</span>`
+                    : `<div>
                         <span class="text-info d-block fs-4 fw-bold">${elapsedTime}</span>
                         <small class="text-success">VIP seans</small>
                     </div>`;

@@ -1,12 +1,14 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, flash, redirect, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import selectinload
+from sqlalchemy import inspect, text
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFError
 import pytz
 from datetime import datetime
 
@@ -48,10 +50,7 @@ def utc_to_tashkent(utc_time):
         utc_time = pytz.utc.localize(utc_time)
     return utc_time.astimezone(TASHKENT_TZ)
 
-class Base(DeclarativeBase):
-    pass
-
-db = SQLAlchemy(model_class=Base)
+db = SQLAlchemy()
 
 # Create the app
 app = Flask(__name__)
@@ -79,8 +78,11 @@ else:
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+db = SQLAlchemy(app)
+
+import models  # noqa: F401
+
 # Initialize extensions
-db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -89,16 +91,42 @@ login_manager.login_message = 'Please log in to access this page.'
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 
-@login_manager.user_loader
-def load_user(user_id):
-    from models import AdminUser
-    return AdminUser.query.get(int(user_id))
-
 with app.app_context():
-    import models  # noqa: F401
     db.create_all()
 
+    # Lightweight schema migrations (no Alembic in this project).
+    insp = inspect(db.engine)
+    if insp.has_table("admin_user"):
+        existing_cols = {c["name"] for c in insp.get_columns("admin_user")}
+
+        def _add_col(name, ddl_sqlite, ddl_postgres=None):
+            if name in existing_cols:
+                return
+            dialect = db.engine.dialect.name
+            if dialect == "postgresql" and ddl_postgres:
+                db.session.execute(text(ddl_postgres))
+            else:
+                db.session.execute(text(ddl_sqlite))
+
+        # Subscription / validity tracking
+        _add_col(
+            "subscription_expires_at",
+            "ALTER TABLE admin_user ADD COLUMN subscription_expires_at DATETIME",
+            "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP",
+        )
+        _add_col(
+            "last_expiry_warning_date",
+            "ALTER TABLE admin_user ADD COLUMN last_expiry_warning_date DATE",
+            "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS last_expiry_warning_date DATE",
+        )
+
+        db.session.commit()
+
 import views  # noqa: F401
+
+@login_manager.user_loader
+def load_user(user_id):
+    return models.AdminUser.query.get(int(user_id))
 
 # Import translation helper
 from translations import get_translation, get_current_language
@@ -122,6 +150,12 @@ def inject_translation_context():
         'get_tashkent_time': get_tashkent_time,
         'is_superadmin': is_superadmin_user(current_user),
     }
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    lang = get_current_language()
+    flash(get_translation('msg_csrf_expired', lang), 'warning')
+    return redirect(request.referrer or url_for('login'))
 
 @app.template_filter('tashkent_time')
 def tashkent_time_filter(utc_time, format='%H:%M'):

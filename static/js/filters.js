@@ -2,10 +2,18 @@
 
 // Category Search
 document.addEventListener('DOMContentLoaded', function() {
+    const debounce = (fn, delay = 150) => {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    };
+
     // Category search functionality (for rooms_management page)
     const categorySearch = document.getElementById('categorySearch');
     if (categorySearch) {
-        categorySearch.addEventListener('input', function() {
+        const onCategoryInput = debounce(function() {
             const searchTerm = this.value.toLowerCase();
             // Use .category-item class for category cards
             const categoryCards = document.querySelectorAll('.category-item');
@@ -23,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     card.style.display = 'none';
                 }
             });
-        });
+        }, 120);
+        categorySearch.addEventListener('input', onCategoryInput);
     }
 
     // Room search and filter functionality
@@ -55,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (roomSearch) {
-            roomSearch.addEventListener('input', filterRooms);
+            roomSearch.addEventListener('input', debounce(filterRooms, 120));
         }
         if (categoryFilter) {
             categoryFilter.addEventListener('change', filterRooms);
@@ -95,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (productSearch) {
-            productSearch.addEventListener('input', filterProducts);
+            productSearch.addEventListener('input', debounce(filterProducts, 120));
         }
         if (productCategoryFilter) {
             productCategoryFilter.addEventListener('change', filterProducts);

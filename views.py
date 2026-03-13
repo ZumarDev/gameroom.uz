@@ -37,6 +37,14 @@ from werkzeug.security import generate_password_hash
 from translations import get_translation, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
 from flask import session, g
 
+def _subscription_days_left(user):
+    expires_at = getattr(user, "subscription_expires_at", None)
+    if not expires_at:
+        return None
+    now_utc = datetime.utcnow()
+    seconds_left = (expires_at - now_utc).total_seconds()
+    return int(math.ceil(seconds_left / 86400.0))
+
 def _utc_range_for_tashkent_date(local_date):
     start_local = TASHKENT_TZ.localize(datetime(local_date.year, local_date.month, local_date.day, 0, 0, 0))
     end_local = start_local + timedelta(days=1)
@@ -69,6 +77,39 @@ def before_request():
     g.t = lambda key: get_translation(key, g.lang)
     g.languages = get_languages()
     g.current_language = g.lang
+    
+    # If a user gets deactivated, force logout immediately.
+    if current_user.is_authenticated and not getattr(current_user, "is_admin_active", True):
+        logout_user()
+        flash(t('msg_account_inactive'), 'danger')
+        return redirect(url_for('login'))
+
+    # Subscription checks + daily reminders
+    if current_user.is_authenticated and not is_superadmin_user(current_user):
+        endpoint = request.endpoint or ""
+        allowed_when_expired = {
+            'profile',
+            'remove_logo',
+            'change_password',
+            'logout',
+            'set_language',
+            'static',
+        }
+
+        days_left = _subscription_days_left(current_user)
+        if days_left is not None:
+            today_local = get_tashkent_time().date()
+
+            # Daily reminder when <= 10 days left
+            if 0 < days_left <= 10 and getattr(current_user, "last_expiry_warning_date", None) != today_local:
+                flash(t('msg_subscription_expiring').format(days=days_left), 'warning')
+                current_user.last_expiry_warning_date = today_local
+                db.session.commit()
+
+            # If expired, restrict access to profile only (keep user logged in so they can see expiry info).
+            if days_left <= 0 and endpoint not in allowed_when_expired and not endpoint.startswith('static'):
+                flash(t('msg_subscription_expired'), 'danger')
+                return redirect(url_for('profile'))
 
 
 @app.context_processor
@@ -111,9 +152,13 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = AdminUser.query.filter_by(username=form.username.data).first()
-        password_data = form.password.data
+        username_input = (form.username.data or "").strip()
+        password_data = form.password.data or ""
+        user = AdminUser.query.filter(func.lower(AdminUser.username) == username_input.lower()).first()
         if user and user.password_hash and password_data and check_password_hash(str(user.password_hash), password_data):
+            if not getattr(user, "is_admin_active", True):
+                flash(t('msg_account_inactive'), 'danger')
+                return render_template('login.html', form=form)
             login_user(user)
             if user.is_temp_password:
                 flash(t('msg_temp_password'), 'warning')
@@ -142,15 +187,16 @@ def register():
             return render_template('register.html', form=form)
         
         # Check if username already exists
-        existing_user = AdminUser.query.filter_by(username=form.username.data).first()
+        username = (form.username.data or "").strip()
+        existing_user = AdminUser.query.filter(func.lower(AdminUser.username) == username.lower()).first()
         if existing_user:
             flash(t('msg_username_taken'), 'danger')
             return render_template('register.html', form=form)
         
         # Create new admin user
         user = AdminUser()
-        user.username = form.username.data
-        user.gaming_center_name = form.gaming_center_name.data
+        user.username = username
+        user.gaming_center_name = (form.gaming_center_name.data or "").strip()
         if form.password.data:
             user.password_hash = generate_password_hash(form.password.data)
         
@@ -170,15 +216,18 @@ def admin_create_user():
 
     form = AdminCreateUserForm()
     if form.validate_on_submit():
-        existing_user = AdminUser.query.filter_by(username=form.username.data).first()
+        username = (form.username.data or "").strip()
+        existing_user = AdminUser.query.filter(func.lower(AdminUser.username) == username.lower()).first()
         if existing_user:
             flash(t('msg_username_taken'), 'danger')
             return render_template('admin_create_user.html', form=form)
 
         user = AdminUser()
-        user.username = form.username.data
-        user.gaming_center_name = form.gaming_center_name.data
+        user.username = username
+        user.gaming_center_name = (form.gaming_center_name.data or "").strip()
         user.password_hash = generate_password_hash(form.password.data)
+        if getattr(form, "subscription_days", None) and form.subscription_days.data:
+            user.subscription_expires_at = datetime.utcnow() + timedelta(days=int(form.subscription_days.data))
         db.session.add(user)
         db.session.commit()
 
@@ -186,6 +235,103 @@ def admin_create_user():
         return redirect(url_for('dashboard'))
 
     return render_template('admin_create_user.html', form=form)
+
+@app.route('/admin/users')
+@login_required
+def admin_users():
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    users = AdminUser.query.order_by(AdminUser.created_at.desc()).all()
+    days_left_by_id = {u.id: _subscription_days_left(u) for u in users}
+    return render_template('admin_users.html', users=users, days_left_by_id=days_left_by_id)
+
+
+@app.route('/admin/users/<int:user_id>/toggle-active', methods=['POST'])
+@login_required
+def admin_toggle_user_active(user_id):
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    if user_id == current_user.id:
+        flash(t('msg_cannot_deactivate_self'), 'warning')
+        return redirect(url_for('admin_users'))
+
+    user = AdminUser.query.get_or_404(user_id)
+    user.is_admin_active = not bool(user.is_admin_active)
+    db.session.commit()
+
+    flash(t('msg_updated'), 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/extend-subscription', methods=['POST'])
+@login_required
+def admin_extend_subscription(user_id):
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    days_raw = request.form.get("days", "").strip()
+    try:
+        days = int(days_raw)
+    except ValueError:
+        days = 0
+
+    if days <= 0 or days > 3650:
+        flash(t('msg_invalid_duration_days'), 'warning')
+        return redirect(url_for('admin_users'))
+
+    user = AdminUser.query.get_or_404(user_id)
+    now_utc = datetime.utcnow()
+    base = user.subscription_expires_at if user.subscription_expires_at and user.subscription_expires_at > now_utc else now_utc
+    user.subscription_expires_at = base + timedelta(days=days)
+    user.is_admin_active = True
+    user.last_expiry_warning_date = None
+    db.session.commit()
+
+    flash(t('msg_updated'), 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/<int:user_id>/set-subscription', methods=['POST'])
+@login_required
+def admin_set_subscription(user_id):
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    days_raw = request.form.get("days", "").strip()
+    try:
+        days = int(days_raw)
+    except ValueError:
+        days = 0
+
+    if days <= 0 or days > 3650:
+        flash(t('msg_invalid_duration_days'), 'warning')
+        return redirect(url_for('admin_users'))
+
+    user = AdminUser.query.get_or_404(user_id)
+    user.subscription_expires_at = datetime.utcnow() + timedelta(days=days)
+    user.is_admin_active = True
+    user.last_expiry_warning_date = None
+    db.session.commit()
+
+    flash(t('msg_updated'), 'success')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<int:user_id>/set-unlimited', methods=['POST'])
+@login_required
+def admin_set_unlimited(user_id):
+    if not is_superadmin_user(current_user):
+        abort(403)
+
+    user = AdminUser.query.get_or_404(user_id)
+    user.subscription_expires_at = None
+    user.last_expiry_warning_date = None
+    user.is_admin_active = True
+    db.session.commit()
+
+    flash(t('msg_updated'), 'success')
+    return redirect(url_for('admin_users'))
 
 @app.route('/logout')
 @login_required
@@ -233,7 +379,8 @@ def profile():
     # Pre-fill form with current data
     form.username.data = current_user.username
     form.gaming_center_name.data = current_user.gaming_center_name
-    return render_template('profile.html', form=form)
+    days_left = _subscription_days_left(current_user)
+    return render_template('profile.html', form=form, subscription_days_left=days_left)
 
 @app.route('/profile/remove-logo', methods=['POST'])
 @login_required
@@ -378,11 +525,27 @@ def rooms_management():
     categories = RoomCategory.query.filter_by(
         admin_user_id=current_user.id,
         is_active=True
-    ).all()
-    rooms = Room.query.filter_by(
-        admin_user_id=current_user.id,
-        is_active=True
-    ).all()
+    ).order_by(RoomCategory.created_at.desc()).all()
+
+    rooms = (
+        Room.query.filter_by(
+            admin_user_id=current_user.id,
+            is_active=True
+        )
+        .options(selectinload(Room.category))
+        .order_by(Room.created_at.desc())
+        .all()
+    )
+
+    category_room_counts = dict(
+        db.session.query(Room.category_id, func.count(Room.id))
+        .filter(
+            Room.admin_user_id == current_user.id,
+            Room.is_active == True,
+        )
+        .group_by(Room.category_id)
+        .all()
+    )
     
     category_form = RoomCategoryForm()
     room_form = RoomForm()
@@ -391,6 +554,7 @@ def rooms_management():
     return render_template('rooms_management.html', 
                          categories=categories, 
                          rooms=rooms,
+                         category_room_counts=category_room_counts,
                          category_form=category_form,
                          room_form=room_form)
 

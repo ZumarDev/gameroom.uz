@@ -4,48 +4,48 @@
 /* ===== CSS VARIABLES ===== */
 :root {
     /* Primary Colors - Professional Blue Theme */
-    --primary: #3b82f6;
-    --primary-light: #60a5fa;
-    --primary-dark: #2563eb;
-    --primary-glow: rgba(59, 130, 246, 0.25);
+    --primary: #66a3ff;         /* a bit brighter */
+    --primary-light: #8db8ff;
+    --primary-dark: #4f86e6;
+    --primary-glow: rgba(102, 163, 255, 0.28);
     
     /* Accent - Cyan */
-    --accent: #06b6d4;
-    --accent-light: #22d3ee;
-    --accent-glow: rgba(6, 182, 212, 0.25);
+    --accent: #38e0c6;          /* brighter teal */
+    --accent-light: #6ff0dc;
+    --accent-glow: rgba(56, 224, 198, 0.24);
     
     /* Status Colors */
-    --success: #10b981;
-    --success-light: #34d399;
-    --success-glow: rgba(16, 185, 129, 0.25);
+    --success: #34d399;
+    --success-light: #6ee7b7;
+    --success-glow: rgba(52, 211, 153, 0.22);
     
-    --warning: #f59e0b;
-    --warning-light: #fbbf24;
-    --warning-glow: rgba(245, 158, 11, 0.25);
+    --warning: #fbbf24;
+    --warning-light: #fcd34d;
+    --warning-glow: rgba(251, 191, 36, 0.22);
     
-    --danger: #ef4444;
-    --danger-light: #f87171;
-    --danger-glow: rgba(239, 68, 68, 0.25);
+    --danger: #f87171;
+    --danger-light: #fca5a5;
+    --danger-glow: rgba(248, 113, 113, 0.22);
     
     --info: #06b6d4;
     
-    /* Dark Theme */
-    --bg-dark: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-surface-light: #334155;
-    --bg-surface-hover: #475569;
+    /* Dim/Dark (game vibe, readable) */
+    --bg-dark: #0d1424;         /* page background */
+    --bg-surface: #121f34;      /* cards/surfaces */
+    --bg-surface-light: #192b47;
+    --bg-surface-hover: #1f3556;
     
     /* Border & Text */
-    --border: #334155;
-    --border-light: #475569;
-    --text: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --border: #2a3e62;
+    --border-light: #36507d;
+    --text: #eef4ff;
+    --text-secondary: #c7d3ea;
+    --text-muted: #8ea2c6;
     
     /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.35);
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10);
+    --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.14);
 
     /* Radius / spacing (minimalist) */
     --radius-sm: 0.5rem;
@@ -56,12 +56,62 @@
 
 /* ===== BASE ===== */
 body, .gaming-body {
-    background: radial-gradient(1200px 600px at 20% 0%, rgba(59, 130, 246, 0.10), transparent 55%),
-                radial-gradient(1000px 500px at 80% 10%, rgba(6, 182, 212, 0.08), transparent 50%),
-                var(--bg-dark);
+    background-image:
+        radial-gradient(900px 520px at 18% 8%, rgba(79, 140, 255, 0.18), transparent 55%),
+        radial-gradient(900px 520px at 82% 12%, rgba(45, 212, 191, 0.14), transparent 55%),
+        radial-gradient(700px 420px at 55% 92%, rgba(245, 158, 11, 0.10), transparent 55%),
+        linear-gradient(180deg, rgba(11, 18, 32, 0.96), rgba(11, 18, 32, 0.96));
+    background-size: 140% 140%, 150% 150%, 160% 160%, 100% 100%;
+    background-position: 0% 0%, 100% 0%, 50% 100%, 0 0;
+    animation: bgShift 18s ease-in-out infinite;
+    background-color: var(--bg-dark);
+    background-attachment: fixed;
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
     color: var(--text);
+}
+
+/* Basic modal behavior when Bootstrap JS is unavailable */
+body.modal-open {
+    overflow: hidden;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 1040;
+    pointer-events: none;
+}
+
+/* Modal overrides (align with Bootstrap defaults to avoid lockups when bundle missing) */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+
+.modal.show {
+    display: block;
+}
+
+.modal-dialog {
+    position: relative;
+    width: auto;
+    margin: 1.5rem auto;
+}
+
+@keyframes bgShift {
+    0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
+    50%  { background-position: 100% 20%, 0% 80%, 35% 0%, 0 0; }
+    100% { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
 }
 
 /* Reduce motion */
@@ -96,7 +146,7 @@ body, .gaming-body {
 
 /* ===== NAVBAR ===== */
 .gaming-navbar {
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(16, 26, 43, 0.82);
     border-bottom: 1px solid var(--border);
     padding: 0.5rem 0;
     box-shadow: var(--shadow-md);
@@ -205,7 +255,7 @@ body, .gaming-body {
 
 /* Dashboard Cards */
 .dashboard-card {
-    background: linear-gradient(135deg, var(--bg-surface), var(--bg-surface-light));
+    background: linear-gradient(135deg, rgba(16, 26, 43, 0.92), rgba(21, 34, 58, 0.92));
     border: 1px solid var(--border);
     border-radius: 1rem;
     padding: 1.5rem;
@@ -239,8 +289,8 @@ body, .gaming-body {
 
 /* Alerts (less harsh) */
 .alert {
-    border: 1px solid rgba(51, 65, 85, 0.9);
-    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(36, 53, 85, 0.85);
+    background: rgba(16, 26, 43, 0.72);
     color: var(--text);
     border-radius: var(--radius-md);
     backdrop-filter: blur(10px);
@@ -273,7 +323,7 @@ body, .gaming-body {
 .card.bg-info,
 .card.bg-danger,
 .card.bg-warning {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)) !important;
+    background: linear-gradient(135deg, rgba(16, 26, 43, 0.95), rgba(21, 34, 58, 0.95)) !important;
     border: 1px solid var(--border) !important;
 }
 
@@ -367,7 +417,7 @@ body, .gaming-body {
 .form-control,
 .form-select,
 .input-group-text {
-    background: rgba(30, 41, 59, 0.85);
+    background: rgba(16, 26, 43, 0.86);
     border-color: var(--border);
     color: var(--text);
 }
@@ -382,14 +432,14 @@ body, .gaming-body {
 
 .form-control:focus,
 .form-select:focus {
-    background: rgba(30, 41, 59, 1);
-    border-color: rgba(59, 130, 246, 0.55);
+    background: rgba(16, 26, 43, 1);
+    border-color: rgba(79, 140, 255, 0.65);
     box-shadow: var(--ring);
 }
 
 /* Modals */
 .modal-content {
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+    background: linear-gradient(180deg, rgba(24, 39, 62, 0.98), rgba(16, 28, 46, 0.98));
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
@@ -398,7 +448,7 @@ body, .gaming-body {
 
 .modal-header,
 .modal-footer {
-    border-color: rgba(51, 65, 85, 0.85);
+    border-color: var(--border);
 }
 
 .btn-close {
@@ -437,9 +487,19 @@ body, .gaming-body {
 
 /* Filter panels */
 .filter-panel {
-    background: rgba(30, 41, 59, 0.55);
-    border: 1px solid rgba(51, 65, 85, 0.9);
+    background: rgba(16, 26, 43, 0.55);
+    border: 1px solid rgba(36, 53, 85, 0.9);
     border-radius: var(--radius-md);
+}
+
+/* Tables */
+.table {
+    --bs-table-color: var(--text);
+    --bs-table-bg: transparent;
+}
+
+.table thead th {
+    color: var(--text-secondary);
 }
 
 .btn-primary:hover {

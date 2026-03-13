@@ -18,6 +18,8 @@ class AdminUser(UserMixin, db.Model):
     is_admin_active = db.Column(db.Boolean, default=True)
     preferred_language = db.Column(db.String(5), default='uz')  # Language preference
     is_temp_password = db.Column(db.Boolean, default=False)  # Temporary password flag
+    subscription_expires_at = db.Column(db.DateTime, nullable=True)  # Account validity (UTC naive)
+    last_expiry_warning_date = db.Column(db.Date, nullable=True)  # Local date when last warning was shown
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def get_logo_url(self):
