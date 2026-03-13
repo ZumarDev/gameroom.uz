@@ -377,7 +377,6 @@ def profile():
         return redirect(url_for('profile'))
     
     # Pre-fill form with current data
-    form.username.data = current_user.username
     form.gaming_center_name.data = current_user.gaming_center_name
     days_left = _subscription_days_left(current_user)
     return render_template('profile.html', form=form, subscription_days_left=days_left)
