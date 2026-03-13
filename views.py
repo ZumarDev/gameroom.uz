@@ -452,13 +452,12 @@ def reset_password():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user_rooms = Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    user_rooms = Room.query.filter_by(admin_user_id=current_user.id).all()
 
     active_sessions = (
         Session.query.join(Room)
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
             Session.is_active == True,
         )
         .options(selectinload(Session.room))
@@ -475,7 +474,6 @@ def dashboard():
         .join(Room, Session.room_id == Room.id)
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
             Session.is_active == False,
             Session.created_at >= day_start_utc,
             Session.created_at < day_end_utc,
@@ -540,7 +538,6 @@ def rooms_management():
         db.session.query(Room.category_id, func.count(Room.id))
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
         )
         .group_by(Room.category_id)
         .all()
@@ -636,6 +633,10 @@ def add_room():
 @login_required
 def delete_room(room_id):
     room = Room.query.filter_by(id=room_id, admin_user_id=current_user.id).first_or_404()
+    active_session = Session.query.filter_by(room_id=room.id, is_active=True).first()
+    if active_session:
+        flash(f'Xona "{room.name}" o\'chirilmadi: faol seans mavjud!', 'warning')
+        return redirect(url_for('rooms_management') + '?tab=rooms')
     room.is_active = False
     db.session.commit()
     flash(f'Xona "{room.name}" o\'chirildi!', 'success')
@@ -738,6 +739,17 @@ def edit_product(product_id):
 @login_required
 def delete_product(product_id):
     product = Product.query.filter_by(id=product_id, admin_user_id=current_user.id).first_or_404()
+    active_session_product = (
+        CartItem.query.join(Session)
+        .filter(
+            CartItem.product_id == product.id,
+            Session.is_active == True,
+        )
+        .first()
+    )
+    if active_session_product:
+        flash(f'Mahsulot "{product.name}" o\'chirilmadi: faol seanslarda ishlatilmoqda!', 'warning')
+        return redirect(url_for('products') + '?tab=products')
     product.is_active = False
     db.session.commit()
     flash(f'Mahsulot "{product.name}" o\'chirildi!', 'success')
@@ -785,10 +797,24 @@ def delete_product_category(category_id):
     active_products = Product.query.filter_by(category_id=category_id, is_active=True).count()
     if active_products > 0:
         flash(f'Kategoriya o\'chirilmadi: "{category.name}" kategoriyasida {active_products} ta faol mahsulot bor!', 'danger')
-    else:
-        category.is_active = False
-        db.session.commit()
-        flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
+        return redirect(url_for('products'))
+
+    active_session_items = (
+        CartItem.query.join(Product)
+        .join(Session, CartItem.session_id == Session.id)
+        .filter(
+            Product.category_id == category_id,
+            Session.is_active == True,
+        )
+        .first()
+    )
+    if active_session_items:
+        flash(f'Kategoriya o\'chirilmadi: "{category.name}" kategoriyasi mahsulotlari faol seanslarda ishlatilmoqda!', 'warning')
+        return redirect(url_for('products'))
+
+    category.is_active = False
+    db.session.commit()
+    flash(f'Kategoriya "{category.name}" o\'chirildi!', 'success')
     return redirect(url_for('products'))
 
 # Inventory management routes
@@ -855,7 +881,6 @@ def sessions():
         Session.query.join(Room)
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
             Session.is_active == True,
         )
         .options(selectinload(Session.room))
@@ -1538,7 +1563,6 @@ def analytics():
             Session.query.join(Room)
             .filter(
                 Room.admin_user_id == current_user.id,
-                Room.is_active == True,
                 Session.is_active == False,
                 Session.created_at >= day_start_utc,
                 Session.created_at < day_end_utc,
@@ -1579,7 +1603,6 @@ def analytics():
             Session.query.join(Room)
             .filter(
                 Room.admin_user_id == current_user.id,
-                Room.is_active == True,
                 Session.is_active == False,
                 Session.created_at >= week_start_utc,
                 Session.created_at < week_end_utc,
@@ -1616,7 +1639,6 @@ def analytics():
             Session.query.join(Room)
             .filter(
                 Room.admin_user_id == current_user.id,
-                Room.is_active == True,
                 Session.is_active == False,
                 Session.created_at >= month_start_utc,
                 Session.created_at < month_end_utc,
@@ -1646,7 +1668,6 @@ def analytics():
         Session.query.join(Room)
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
             Session.is_active == False,
             Session.created_at >= today_start_utc,
             Session.created_at < today_end_utc,
@@ -1667,7 +1688,6 @@ def analytics():
         Session.query.join(Room)
         .filter(
             Room.admin_user_id == current_user.id,
-            Room.is_active == True,
             Session.is_active == False,
             Session.created_at >= week_start_utc,
             Session.created_at < week_end_utc,
@@ -1978,7 +1998,7 @@ def generate_pdf_report(report_type):
         return redirect(url_for('analytics'))
     
     # Get user's rooms
-    user_room_ids = [room.id for room in Room.query.filter_by(admin_user_id=current_user.id, is_active=True).all()]
+    user_room_ids = [room.id for room in Room.query.filter_by(admin_user_id=current_user.id).all()]
     
     # Get sessions data
     range_start_utc, range_end_utc = _utc_range_for_tashkent_dates(start_date, end_date)
