@@ -71,6 +71,55 @@ body, .gaming-body {
     color: var(--text);
 }
 
+/* Ambient bubbles (decorative) */
+.gaming-body::before,
+.gaming-body::after,
+.app-main::before {
+    content: "";
+    position: fixed;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(102, 163, 255, 0.35), rgba(102, 163, 255, 0.02) 70%);
+    opacity: 0.6;
+    filter: blur(2px);
+    pointer-events: none;
+    z-index: 0;
+    animation: bubbleFloat 18s ease-in-out infinite;
+}
+
+.gaming-body::before {
+    top: 15%;
+    left: 5%;
+}
+
+.gaming-body::after {
+    top: 60%;
+    right: 8%;
+    width: 260px;
+    height: 260px;
+    animation-duration: 22s;
+}
+
+.app-main::before {
+    bottom: 8%;
+    left: 35%;
+    width: 180px;
+    height: 180px;
+    animation-duration: 20s;
+}
+
+@keyframes bubbleFloat {
+    0%   { transform: translateY(0) translateX(0) scale(1); }
+    50%  { transform: translateY(-20px) translateX(10px) scale(1.05); }
+    100% { transform: translateY(0) translateX(0) scale(1); }
+}
+
+.app-main {
+    position: relative;
+    z-index: 1;
+}
+
 /* Basic modal behavior when Bootstrap JS is unavailable */
 body.modal-open {
     overflow: hidden;
@@ -524,6 +573,17 @@ body.modal-open {
 
 .table thead th {
     color: var(--text-secondary);
+}
+
+.table-light,
+.table-secondary {
+    --bs-table-bg: var(--bg-surface-light) !important;
+    --bs-table-color: var(--text) !important;
+}
+
+.table tfoot td {
+    background: var(--bg-surface-light);
+    color: var(--text);
 }
 
 .btn-primary:hover {
