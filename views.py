@@ -1991,9 +1991,14 @@ def generate_pdf_report(report_type):
     
     # Create PDF
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
     elements = []
+    pdf_primary = colors.HexColor("#4f86e6")
+    pdf_text = colors.HexColor("#1b2b45")
+    pdf_light = colors.HexColor("#f2f6ff")
+    pdf_lighter = colors.HexColor("#e7eefc")
+    pdf_grid = colors.HexColor("#c7d3ea")
     
     # Title style with Unicode font
     title_style = ParagraphStyle(
@@ -2001,7 +2006,7 @@ def generate_pdf_report(report_type):
         parent=styles['Heading1'],
         fontName=UNICODE_FONT_BOLD,
         fontSize=18,
-        textColor=colors.darkblue,
+        textColor=pdf_primary,
         alignment=1,  # Center
         spaceAfter=30
     )
@@ -2011,7 +2016,8 @@ def generate_pdf_report(report_type):
         'CustomNormal',
         parent=styles['Normal'],
         fontName=UNICODE_FONT,
-        fontSize=10
+        fontSize=10,
+        textColor=pdf_text
     )
     
     # Heading2 style with Unicode font
@@ -2019,7 +2025,10 @@ def generate_pdf_report(report_type):
         'CustomHeading2',
         parent=styles['Heading2'],
         fontName=UNICODE_FONT_BOLD,
-        fontSize=14
+        fontSize=13,
+        textColor=pdf_text,
+        spaceBefore=8,
+        spaceAfter=6
     )
     
     report_titles = {
@@ -2050,18 +2059,18 @@ def generate_pdf_report(report_type):
         [t('pdf_avg_session'), f"{total_revenue/total_sessions if total_sessions > 0 else 0:,.0f} {currency}"]
     ]
     
-    stats_table = Table(stats_data, colWidths=[3.5*inch, 2.5*inch])
+    stats_table = Table(stats_data, colWidths=[3.2*inch, 2.8*inch])
     stats_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('BACKGROUND', (0, 0), (-1, -1), pdf_light),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
-        ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
+        ('FONTNAME', (0, 0), (0, -1), UNICODE_FONT_BOLD),
+        ('FONTNAME', (1, 0), (1, -1), UNICODE_FONT),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TEXTCOLOR', (0, 0), (-1, -1), pdf_text),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('LINEBELOW', (0, 0), (-1, -1), 0.5, pdf_grid),
+        ('BOX', (0, 0), (-1, -1), 1, pdf_grid)
     ]))
     
     elements.append(stats_table)
@@ -2090,19 +2099,22 @@ def generate_pdf_report(report_type):
                 f"{session.total_price:,.0f}"
             ])
         
-        session_table = Table(session_data, colWidths=[1.4*inch, 0.9*inch, 0.7*inch, 1.2*inch, 1.2*inch])
+        session_table = Table(session_data, colWidths=[1.6*inch, 0.95*inch, 0.75*inch, 1.25*inch, 1.05*inch])
         session_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_primary),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+            ('ALIGN', (3, 1), (3, -1), 'LEFT'),
+            ('ALIGN', (4, 1), (4, -1), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
             ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
             ('FONTSIZE', (0, 0), (-1, 0), 8),
             ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [pdf_light, colors.white]),
+            ('GRID', (0, 0), (-1, -1), 0.6, pdf_grid)
         ]))
         
         elements.append(session_table)
@@ -2154,29 +2166,44 @@ def generate_pdf_report(report_type):
         # Add total row
         product_data.append([t('pdf_total').upper(), '', '', f"{total_product_revenue:,.0f}"])
         
-        product_table = Table(product_data, colWidths=[2.5*inch, 1*inch, 1.2*inch, 1.2*inch])
+        product_table = Table(product_data, colWidths=[2.4*inch, 1*inch, 1.2*inch, 1.2*inch])
         product_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), pdf_primary),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('ALIGN', (0, 1), (0, -2), 'LEFT'),
+            ('ALIGN', (1, 1), (3, -2), 'RIGHT'),
             ('FONTNAME', (0, 0), (-1, -1), UNICODE_FONT),
             ('FONTNAME', (0, 0), (-1, 0), UNICODE_FONT_BOLD),
             ('FONTSIZE', (0, 0), (-1, 0), 8),
             ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
-            ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [pdf_light, colors.white]),
+            ('BACKGROUND', (0, -1), (-1, -1), pdf_lighter),
             ('FONTNAME', (0, -1), (-1, -1), UNICODE_FONT_BOLD),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('GRID', (0, 0), (-1, -1), 0.6, pdf_grid)
         ]))
         
         elements.append(product_table)
     else:
         elements.append(Paragraph(t('pdf_no_products_sold'), normal_style))
     
+    def draw_header_footer(canvas, doc_obj):
+        canvas.saveState()
+        canvas.setFont(UNICODE_FONT, 9)
+        canvas.setFillColor(pdf_text)
+        header_text = f"{current_user.gaming_center_name} • {report_titles.get(report_type, t('pdf_report_title'))}"
+        canvas.drawString(doc.leftMargin, A4[1] - 24, header_text)
+        canvas.setStrokeColor(pdf_grid)
+        canvas.line(doc.leftMargin, A4[1] - 28, A4[0] - doc.rightMargin, A4[1] - 28)
+        footer_text = f"{t('pdf_date_range')}: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}"
+        canvas.drawString(doc.leftMargin, 18, footer_text)
+        canvas.drawRightString(A4[0] - doc.rightMargin, 18, f"{t('pdf_page')} {doc_obj.page}")
+        canvas.restoreState()
+
     # Build PDF
-    doc.build(elements)
+    doc.build(elements, onFirstPage=draw_header_footer, onLaterPages=draw_header_footer)
     buffer.seek(0)
     
     # Generate filename based on language
