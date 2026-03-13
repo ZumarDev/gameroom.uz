@@ -99,7 +99,7 @@
                                     <span class="badge bg-danger">{{ t('dashboard_busy') }}</span>
                                 </div>
                                 {% if room_session %}
-                                <div class="timer-mini mt-1" data-session-id="{{ room_session.id }}" data-session-type="{{ room_session.session_type }}" 
+                                <div class="timer timer-mini mt-1" data-session-id="{{ room_session.id }}" data-session-type="{{ room_session.session_type }}" 
                                      {% if room_session.session_type == 'fixed' %}data-duration="{{ room_session.duration_minutes }}"{% endif %}>
                                     <small class="text-warning time-display">...</small>
                                 </div>
@@ -138,8 +138,59 @@
             </div>
             <div class="card-body">
                 {% if active_sessions %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
+                    <!-- Mobile / tablet cards -->
+                    <div class="d-lg-none">
+                        <div class="row g-3">
+                            {% for session in active_sessions %}
+                            <div class="col-12 col-sm-6">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start justify-content-between gap-3">
+                                            <div class="min-w-0">
+                                                <div class="fw-semibold text-truncate">{{ session.room.name }}</div>
+                                                <div class="small text-muted">
+                                                    {{ t('sessions_start_time') }}: {{ session.start_time|tashkent_time('%H:%M') }}
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-{% if session.session_type == 'fixed' %}warning{% else %}info{% endif %}">
+                                                {% if session.session_type == 'fixed' %}{{ t('sessions_fixed') }}{% else %}{{ t('sessions_vip') }}{% endif %}
+                                            </span>
+                                        </div>
+
+                                        <div class="mt-3 d-flex align-items-center justify-content-between">
+                                            <div class="timer" data-session-id="{{ session.id }}" data-session-type="{{ session.session_type }}"
+                                                 {% if session.session_type == 'fixed' %}data-duration="{{ session.duration_minutes }}"{% endif %}>
+                                                <span class="time-display">{{ t('msg_loading') }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold">{{ "{:,.0f}".format(session.total_price) }} {{ t('currency') }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-3 d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm flex-fill"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#addProductModal{{ session.id }}">
+                                                <i class="bi bi-plus-circle"></i> {{ t('sessions_add_product') }}
+                                            </button>
+                                            <a href="{{ url_for('session_detail', session_id=session.id) }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                                    onclick="openStopSessionModal({{ session.id }})">
+                                                <i class="bi bi-stop-circle"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Desktop table -->
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-striped align-middle">
                             <thead>
                                 <tr>
                                     <th>{{ t('sessions_room') }}</th>
@@ -428,10 +479,6 @@ function submitStopSession() {
 document.addEventListener('DOMContentLoaded', function() {
     toggleDashboardDurationField();
     
-    // Auto-refresh dashboard every 30 seconds
-    setInterval(function() {
-        location.reload();
-    }, 30000);
 });
 </script>
 
@@ -451,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="modal-body">
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <div class="card bg-dark">
+                            <div class="card">
                                 <div class="card-body">
                                     <h6 class="text-muted mb-3"><i class="bi bi-info-circle"></i> {{ t('billing_session_info') }}</h6>
                                     <table class="table table-sm table-borderless mb-0">

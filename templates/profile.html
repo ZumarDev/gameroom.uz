@@ -15,6 +15,35 @@
     </div>
 </div>
 
+{% if current_user.subscription_expires_at %}
+<div class="row justify-content-center mb-3">
+    <div class="col-md-8 col-lg-5">
+        {% if subscription_days_left is not none and subscription_days_left <= 0 %}
+            <div class="alert alert-danger mb-0" role="alert">
+                <div class="fw-semibold">{{ t('profile_subscription_expired_title') }}</div>
+                <div class="small">
+                    {{ t('profile_subscription_expires') }}: {{ current_user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}.
+                    {{ t('profile_subscription_extend') }}
+                    <a href="https://t.me/gameroom_uz" target="_blank" rel="noopener noreferrer">https://t.me/gameroom_uz</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0" role="alert">
+                <div class="fw-semibold">{{ t('profile_subscription_title') }}</div>
+                <div class="small">
+                    {{ t('profile_subscription_expires') }}: {{ current_user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}.
+                    {% if subscription_days_left is not none %}
+                        {{ t('profile_subscription_days_left').format(days=subscription_days_left) }}
+                    {% endif %}
+                    {{ t('profile_subscription_extend') }}
+                    <a href="https://t.me/gameroom_uz" target="_blank" rel="noopener noreferrer">https://t.me/gameroom_uz</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-5">
         <div class="card">

@@ -866,7 +866,7 @@ function submitStopSession() {
                     <!-- Seans ma'lumotlari -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <div class="card bg-dark">
+                            <div class="card">
                                 <div class="card-body">
                                     <h6 class="text-muted mb-3"><i class="bi bi-info-circle"></i> {{ t('billing_session_info') }}</h6>
                                     <table class="table table-sm table-borderless mb-0">
@@ -986,7 +986,7 @@ function submitStopSession() {
                                     <div class="row">
                                         {% for room in available_rooms %}
                                         <div class="col-6 mb-2">
-                                            <div class="card bg-dark border-success">
+                                            <div class="card border-success">
                                                 <div class="card-body py-2 px-3">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <div>
@@ -1019,7 +1019,7 @@ function submitStopSession() {
                             <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                                 {% if active_sessions %}
                                     {% for session in active_sessions %}
-                                    <div class="card bg-dark border-danger mb-2">
+                                    <div class="card border-danger mb-2">
                                         <div class="card-body py-2 px-3">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div>
@@ -1060,19 +1060,19 @@ function submitStopSession() {
                 <!-- Statistika -->
                 <div class="row mt-3">
                     <div class="col-md-4">
-                        <div class="text-center p-3 bg-dark rounded">
+                        <div class="text-center p-3 bg-body-tertiary rounded">
                             <h2 class="text-success mb-0">{{ available_rooms|length }}</h2>
                             <small class="text-muted">{{ t('dashboard_available') }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="text-center p-3 bg-dark rounded">
+                        <div class="text-center p-3 bg-body-tertiary rounded">
                             <h2 class="text-danger mb-0">{{ active_sessions|length }}</h2>
                             <small class="text-muted">{{ t('dashboard_busy') }}</small>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="text-center p-3 bg-dark rounded">
+                        <div class="text-center p-3 bg-body-tertiary rounded">
                             <h2 class="text-info mb-0">{{ user_rooms|length }}</h2>
                             <small class="text-muted">{{ t('rooms_total') }}</small>
                         </div>

@@ -29,8 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-hide alerts after 5 seconds
     setTimeout(function() {
         document.querySelectorAll('.alert').forEach(function(alert) {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
+            if (window.bootstrap && bootstrap.Alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            } else {
+                alert.remove();
+            }
         });
     }, 5000);
 

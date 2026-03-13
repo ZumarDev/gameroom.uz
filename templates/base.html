@@ -82,25 +82,23 @@
                             {% endfor %}
                         </ul>
                     </li>
-                    <!-- Profil -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    {% if is_superadmin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if current_path.startswith('/admin') %}active{% endif %}" href="{{ url_for('admin_users') }}">
+                            <i class="bi bi-shield-lock"></i> {{ t('nav_admin') }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    <!-- Profil (dropdown emas: Bootstrap JS bo'lmasa ham ishlaydi) -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if current_path.startswith(url_for('profile')) %}active{% endif %}" href="{{ url_for('profile') }}">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">
-                                <i class="bi bi-person-gear"></i> {{ t('nav_profile') }}
-                            </a></li>
-                            {% if is_superadmin %}
-                            <li><a class="dropdown-item" href="{{ url_for('admin_create_user') }}">
-                                <i class="bi bi-person-plus"></i> {{ t('auth_register') }}
-                            </a></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> {{ t('nav_logout') }}
-                            </a></li>
-                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> {{ t('nav_logout') }}
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -126,6 +124,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-fallback.js') }}"></script>
     <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
