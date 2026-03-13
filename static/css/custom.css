@@ -112,6 +112,26 @@ body.modal-open {
     transform: translateY(0);
 }
 
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.75rem;
+        max-width: 100%;
+    }
+    .modal-content {
+        border-radius: 0.75rem;
+    }
+    .modal-body {
+        padding: 1rem;
+    }
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
 @keyframes bgShift {
     0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
     50%  { background-position: 100% 20%, 0% 80%, 35% 0%, 0 0; }

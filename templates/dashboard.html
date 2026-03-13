@@ -405,14 +405,14 @@ function toggleDashboardInputType() {
 // ========== SEANS YAKUNLASH MODALI ==========
 // Tarjimalar
 const dashboardTranslations = {
-    error: '{{ t("msg_error") }}',
-    fixed_time: '{{ t("sessions_fixed") }}',
-    vip: '{{ t("sessions_vip") }}',
-    minute: '{{ t("time_minutes") }}',
-    no_diff: '{{ t("billing_no_diff") }}',
-    diff: '{{ t("billing_diff") }}',
-    data_error: '{{ t("msg_data_error") }}',
-    currency: '{{ t("currency") }}'
+    error: {{ t("msg_error")|tojson }},
+    fixed_time: {{ t("sessions_fixed")|tojson }},
+    vip: {{ t("sessions_vip")|tojson }},
+    minute: {{ t("time_minutes")|tojson }},
+    no_diff: {{ t("billing_no_diff")|tojson }},
+    diff: {{ t("billing_diff")|tojson }},
+    data_error: {{ t("msg_data_error")|tojson }},
+    currency: {{ t("currency")|tojson }}
 };
 
 function openStopSessionModal(sessionId) {
