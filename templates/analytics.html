@@ -44,12 +44,6 @@
             <button class="btn btn-primary" onclick="loadReport()">
                 <i class="bi bi-arrow-clockwise"></i> {{ t('analytics_generate') }}
             </button>
-            <form method="POST" action="{{ url_for('analytics_cleanup_deleted') }}" onsubmit="return confirm('{{ t('analytics_cleanup_confirm') }}')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-outline-warning btn-sm">
-                    <i class="bi bi-broom"></i> {{ t('analytics_cleanup') }}
-                </button>
-            </form>
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-danger dropdown-toggle btn-sm" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-pdf"></i> {{ t('analytics_download_pdf') }}
@@ -65,6 +59,26 @@
                         <i class="bi bi-calendar-month"></i> {{ t('analytics_month') }}
                     </a></li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cleanup section (bottom, safer UX) -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+                <div>
+                    <div class="fw-semibold">{{ t('analytics_cleanup_title') }}</div>
+                    <div class="text-muted small">{{ t('analytics_cleanup_desc') }}</div>
+                </div>
+                <form method="POST" action="{{ url_for('analytics_cleanup_deleted') }}" onsubmit="return confirm('{{ t('analytics_cleanup_confirm') }}')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-broom"></i> {{ t('analytics_cleanup') }}
+                    </button>
+                </form>
             </div>
         </div>
     </div>
