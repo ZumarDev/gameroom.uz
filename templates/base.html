@@ -39,27 +39,27 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('sessions')) %}active{% endif %}" href="{{ url_for('sessions') }}">
-                            <i class="bi bi-play-circle"></i> {{ t('nav_sessions') }}
+                            <i class="bi bi-play-circle"></i> <span class="nav-text">{{ t('nav_sessions') }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('rooms_management')) %}active{% endif %}" href="{{ url_for('rooms_management') }}">
-                            <i class="bi bi-house"></i> {{ t('nav_rooms') }}
+                            <i class="bi bi-house"></i> <span class="nav-text">{{ t('nav_rooms') }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('products')) %}active{% endif %}" href="{{ url_for('products') }}">
-                            <i class="bi bi-shop"></i> {{ t('nav_products') }}
+                            <i class="bi bi-shop"></i> <span class="nav-text">{{ t('nav_products') }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('inventory')) %}active{% endif %}" href="{{ url_for('inventory') }}">
-                            <i class="bi bi-boxes"></i> {{ t('nav_inventory') }}
+                            <i class="bi bi-boxes"></i> <span class="nav-text">{{ t('nav_inventory') }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('analytics')) %}active{% endif %}" href="{{ url_for('analytics') }}">
-                            <i class="bi bi-graph-up"></i> {{ t('nav_analytics') }}
+                            <i class="bi bi-graph-up"></i> <span class="nav-text">{{ t('nav_analytics') }}</span>
                         </a>
                     </li>
                 </ul>
@@ -92,12 +92,12 @@
                     <!-- Profil (dropdown emas: Bootstrap JS bo'lmasa ham ishlaydi) -->
                     <li class="nav-item">
                         <a class="nav-link {% if current_path.startswith(url_for('profile')) %}active{% endif %}" href="{{ url_for('profile') }}">
-                            <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                            <i class="bi bi-person-circle"></i> <span class="nav-text">{{ current_user.username }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right"></i> {{ t('nav_logout') }}
+                            <i class="bi bi-box-arrow-right"></i> <span class="nav-text">{{ t('nav_logout') }}</span>
                         </a>
                     </li>
                 </ul>
