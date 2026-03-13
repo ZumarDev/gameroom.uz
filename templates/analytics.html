@@ -44,6 +44,12 @@
             <button class="btn btn-primary" onclick="loadReport()">
                 <i class="bi bi-arrow-clockwise"></i> {{ t('analytics_generate') }}
             </button>
+            <form method="POST" action="{{ url_for('analytics_cleanup_deleted') }}" onsubmit="return confirm('{{ t('analytics_cleanup_confirm') }}')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-warning btn-sm">
+                    <i class="bi bi-broom"></i> {{ t('analytics_cleanup') }}
+                </button>
+            </form>
             <div class="btn-group" role="group">
                 <button type="button" class="btn btn-danger dropdown-toggle btn-sm" data-bs-toggle="dropdown">
                     <i class="bi bi-file-earmark-pdf"></i> {{ t('analytics_download_pdf') }}
