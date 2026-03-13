@@ -278,12 +278,67 @@ body.modal-open {
     text-overflow: ellipsis;
 }
 
+.navbar-toggler {
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.6rem;
+    background: var(--bg-surface);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.15rem rgba(110, 141, 255, 0.35);
+}
+
+.navbar-toggler-icon {
+    width: 1.3rem;
+    height: 1.3rem;
+    background-image: none;
+    position: relative;
+}
+
+.navbar-toggler-icon::before,
+.navbar-toggler-icon::after,
+.navbar-toggler-icon span {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    opacity: 0.9;
+}
+
+.navbar-toggler-icon::before {
+    top: 2px;
+}
+
+.navbar-toggler-icon span {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.navbar-toggler-icon::after {
+    bottom: 2px;
+}
+
 @media (max-width: 768px) {
     .nav-text {
         display: none;
     }
     .brand-text {
         max-width: 160px;
+    }
+    .navbar-collapse {
+        margin-top: 0.75rem;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 0.5rem;
+        box-shadow: var(--shadow-md);
+    }
+    .navbar-nav .nav-link {
+        padding: 0.6rem 0.75rem !important;
     }
 }
 
