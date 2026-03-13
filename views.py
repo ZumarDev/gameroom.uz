@@ -1263,7 +1263,7 @@ def get_session_billing(session_id):
     # Calculate actual time
     now = datetime.utcnow()
     actual_seconds = (now - session.start_time).total_seconds()
-    actual_minutes = actual_seconds / 60
+    actual_minutes = max(1, math.ceil(actual_seconds / 60))
     
     # Get room pricing
     room = session.room
@@ -1298,8 +1298,8 @@ def get_session_billing(session_id):
         'room_name': room.name if room else 'Noma\'lum',
         'session_type': session.session_type,
         'start_time': session.start_time.strftime('%H:%M'),
-        'actual_minutes': round(actual_minutes, 1),
-        'planned_minutes': round(planned_minutes, 1),
+        'actual_minutes': int(round(actual_minutes)),
+        'planned_minutes': int(round(planned_minutes)),
         'actual_price': round(actual_price),
         'full_price': round(full_price),
         'products_total': round(products_total),
@@ -1328,9 +1328,9 @@ def stop_session(session_id):
     session.update_total_price()
     
     db.session.commit()
-    actual_duration = (session.end_time - session.start_time).total_seconds() / 60
+    actual_duration = max(1, math.ceil((session.end_time - session.start_time).total_seconds() / 60))
     session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"
-    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans - {actual_duration:.1f} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
+    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans - {actual_duration} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/stop/<int:session_id>/confirm', methods=['POST'])
@@ -1349,7 +1349,7 @@ def stop_session_confirm(session_id):
     
     # Calculate actual time played
     actual_seconds = (session.end_time - session.start_time).total_seconds()
-    actual_minutes = actual_seconds / 60
+    actual_minutes = max(1, math.ceil(actual_seconds / 60))
     
     # Get room pricing
     room = session.room
@@ -1384,7 +1384,7 @@ def stop_session_confirm(session_id):
     
     billing_text = "To'liq summa" if billing_type == 'full' else "Haqiqiy vaqt bo'yicha"
     session_type_text = "Belgilangan vaqt" if session.session_type == 'fixed' else "VIP"
-    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans ({billing_text}) - {actual_minutes:.1f} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
+    flash(f'🎮 O\'yin yakunlandi! {session_type_text} seans ({billing_text}) - {actual_minutes} daqiqa o\'ynaldi. Jami: {session.total_price:,.0f} som', 'success')
     return redirect(url_for('sessions'))
 
 @app.route('/sessions/<int:session_id>')

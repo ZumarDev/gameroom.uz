@@ -57,6 +57,11 @@
     modal.setAttribute('role', 'dialog');
     modal.classList.add('show');
     body.classList.add('modal-open');
+    // Reset scroll position and ensure modal is at top
+    modal.scrollTop = 0;
+    requestAnimationFrame(() => {
+      modal.scrollTop = 0;
+    });
   }
 
   function hideModal(modal) {
