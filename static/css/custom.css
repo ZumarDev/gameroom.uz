@@ -108,6 +108,10 @@ body.modal-open {
     margin: 1.5rem auto;
 }
 
+.modal.show .modal-dialog {
+    transform: translateY(0);
+}
+
 @keyframes bgShift {
     0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
     50%  { background-position: 100% 20%, 0% 80%, 35% 0%, 0 0; }
