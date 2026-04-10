@@ -2,142 +2,205 @@
 
 {% block title %}{{ t('admin_users_title') }}{% endblock %}
 
-{% block content %}
-<div class="row mb-4">
-  <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <div>
-      <h1 class="display-6 fw-bold mb-1">{{ t('admin_users_title') }}</h1>
-      <div class="text-muted">{{ t('admin_users_subtitle') }}</div>
+{% macro password_field(user) -%}
+  {% if user.password_plain %}
+  <div class="input-group input-group-sm admin-password-group">
+    <input
+      type="password"
+      class="form-control admin-password-field"
+      value="{{ user.password_plain }}"
+      readonly
+      data-visible-label="{{ t('admin_users_hide_password') }}"
+      data-hidden-label="{{ t('admin_users_show_password') }}"
+      aria-label="{{ t('auth_password') }}">
+    <button
+      type="button"
+      class="btn btn-outline-secondary admin-password-toggle"
+      aria-label="{{ t('admin_users_show_password') }}"
+      title="{{ t('admin_users_show_password') }}">
+      <i class="bi bi-eye"></i>
+    </button>
+  </div>
+  {% else %}
+  <span class="text-muted small">{{ t('admin_users_password_unavailable') }}</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro user_actions(user, days_left) -%}
+  <div class="dropdown">
+    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-sliders2"></i> {{ t('admin_users_actions') }}
+    </button>
+    <div class="dropdown-menu dropdown-menu-end p-3 shadow admin-user-actions-menu">
+      <form method="POST" action="{{ url_for('admin_set_subscription', user_id=user.id) }}" class="mb-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="form-label small text-muted mb-1">{{ t('admin_users_validity_days') }}</label>
+        <div class="input-group input-group-sm">
+          <input name="days" type="number" class="form-control" min="1" max="3650" value="{{ (days_left if days_left is not none and days_left > 0 else 30) }}">
+          <button type="submit" class="btn btn-outline-primary" title="{{ t('admin_users_set_help') }}">
+            {{ t('admin_users_set') }}
+          </button>
+        </div>
+      </form>
+      <form method="POST" action="{{ url_for('admin_extend_subscription', user_id=user.id) }}" class="d-grid mb-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="days" value="30">
+        <button type="submit" class="btn btn-outline-primary btn-sm" title="{{ t('admin_users_extend_help') }}">
+          <i class="bi bi-calendar-plus"></i> +30 {{ t('admin_users_days') }}
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_set_unlimited', user_id=user.id) }}" class="d-grid mb-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-info btn-sm">
+          <i class="bi bi-infinity"></i> {{ t('admin_users_set_unlimited') }}
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_toggle_user_active', user_id=user.id) }}" class="d-grid">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if user.is_admin_active %}
+          <button type="submit" class="btn btn-outline-warning btn-sm" {% if user.id == current_user.id %}disabled{% endif %}>
+            <i class="bi bi-pause-circle"></i> {{ t('admin_users_deactivate') }}
+          </button>
+        {% else %}
+          <button type="submit" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-play-circle"></i> {{ t('admin_users_activate') }}
+          </button>
+        {% endif %}
+      </form>
     </div>
-    <div class="d-flex gap-2">
-      <a class="btn btn-primary" href="{{ url_for('admin_create_user') }}">
-        <i class="bi bi-person-plus"></i> {{ t('admin_users_create') }}
-      </a>
-      <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">
-        <i class="bi bi-arrow-left"></i> {{ t('nav_dashboard') }}
-      </a>
+  </div>
+{%- endmacro %}
+
+{% block content %}
+{% set active_users = users|selectattr('is_admin_active')|list|length %}
+{% set inactive_users = users|length - active_users %}
+{% set unlimited_users = users|rejectattr('subscription_expires_at')|list|length %}
+
+<div class="row mb-4">
+  <div class="col-12">
+    <section class="admin-users-hero">
+      <div>
+        <div class="admin-users-kicker">Control Center</div>
+        <h1 class="display-6 fw-bold mb-2">{{ t('admin_users_title') }}</h1>
+        <div class="text-muted">{{ t('admin_users_subtitle') }}</div>
+        <div class="admin-users-hero-meta">
+          <span><i class="bi bi-people"></i> {{ users|length }} ta akkaunt</span>
+          <span><i class="bi bi-shield-check"></i> {{ active_users }} ta active</span>
+          <span><i class="bi bi-infinity"></i> {{ unlimited_users }} ta cheklanmagan</span>
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary" href="{{ url_for('admin_create_user') }}">
+          <i class="bi bi-person-plus"></i> {{ t('admin_users_create') }}
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-arrow-left"></i> {{ t('nav_dashboard') }}
+        </a>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="admin-users-stat-card">
+      <div class="admin-users-stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="admin-users-stat-value">{{ users|length }}</div>
+        <div class="admin-users-stat-label">Jami foydalanuvchilar</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="admin-users-stat-card">
+      <div class="admin-users-stat-icon success"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <div class="admin-users-stat-value">{{ active_users }}</div>
+        <div class="admin-users-stat-label">Faol akkauntlar</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="admin-users-stat-card">
+      <div class="admin-users-stat-icon warning"><i class="bi bi-person-slash"></i></div>
+      <div>
+        <div class="admin-users-stat-value">{{ inactive_users }}</div>
+        <div class="admin-users-stat-label">Inactive akkauntlar</div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
-        <thead>
-          <tr>
-            <th class="ps-3">#</th>
-            <th>{{ t('auth_username') }}</th>
-            <th>{{ t('auth_password') }}</th>
-            <th>{{ t('profile_company') }}</th>
-            <th>{{ t('admin_users_validity') }}</th>
-            <th>{{ t('admin_users_status') }}</th>
-            <th class="text-end pe-3">{{ t('admin_users_actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td class="ps-3">{{ user.id }}</td>
-            <td>
-              <div class="fw-semibold">{{ user.username }}</div>
-              {% if user.id == current_user.id %}
-                <div class="small text-muted">{{ t('admin_users_you') }}</div>
-              {% endif %}
-            </td>
-            <td>
-              {% if user.password_plain %}
-              <div class="input-group input-group-sm" style="min-width: 12rem;">
-                <input
-                  type="password"
-                  class="form-control admin-password-field"
-                  value="{{ user.password_plain }}"
-                  readonly
-                  data-visible-label="{{ t('admin_users_hide_password') }}"
-                  data-hidden-label="{{ t('admin_users_show_password') }}"
-                  aria-label="{{ t('auth_password') }}">
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary admin-password-toggle"
-                  aria-label="{{ t('admin_users_show_password') }}"
-                  title="{{ t('admin_users_show_password') }}">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-              {% else %}
-              <span class="text-muted small">{{ t('admin_users_password_unavailable') }}</span>
-              {% endif %}
-            </td>
-            <td>{{ user.gaming_center_name }}</td>
-            <td>
-              {% set days_left = days_left_by_id.get(user.id) %}
-              {% if user.subscription_expires_at %}
-                <div class="fw-semibold">{{ user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}</div>
-                {% if days_left is not none %}
-                  {% if days_left > 0 %}
-                    <div class="small text-muted">{{ t('admin_users_days_left').format(days=days_left) }}</div>
-                  {% else %}
-                    <div class="small text-danger">{{ t('admin_users_expired') }}</div>
-                  {% endif %}
-                {% endif %}
-              {% else %}
-                <span class="badge bg-info">{{ t('admin_users_unlimited') }}</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if user.is_admin_active %}
-                <span class="badge bg-success">{{ t('admin_users_active') }}</span>
-              {% else %}
-                <span class="badge bg-danger">{{ t('admin_users_inactive') }}</span>
-              {% endif %}
-            </td>
-            <td class="text-end pe-3">
-              {% set days_left = days_left_by_id.get(user.id) %}
-              <form method="POST" action="{{ url_for('admin_set_subscription', user_id=user.id) }}" class="d-inline-flex align-items-center gap-2 me-2">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input name="days" type="number" class="form-control form-control-sm" style="width: 6.5rem;" min="1" max="3650" value="{{ (days_left if days_left is not none and days_left > 0 else 30) }}">
-                <button type="submit" class="btn btn-outline-primary btn-sm" title="{{ t('admin_users_set_help') }}">
-                  <i class="bi bi-check2-circle"></i> {{ t('admin_users_set') }}
-                </button>
-              </form>
-              <form method="POST" action="{{ url_for('admin_extend_subscription', user_id=user.id) }}" class="d-inline me-2">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="days" value="30">
-                <button type="submit" class="btn btn-outline-primary btn-sm" title="{{ t('admin_users_extend_help') }}">
-                  <i class="bi bi-calendar-plus"></i> +30 {{ t('admin_users_days') }}
-                </button>
-              </form>
-              <form method="POST" action="{{ url_for('admin_set_unlimited', user_id=user.id) }}" class="d-inline me-2">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-outline-info btn-sm">
-                  <i class="bi bi-infinity"></i> {{ t('admin_users_set_unlimited') }}
-                </button>
-              </form>
-              <form method="POST" action="{{ url_for('admin_toggle_user_active', user_id=user.id) }}" class="d-inline">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                {% if user.is_admin_active %}
-                  <button type="submit" class="btn btn-outline-warning btn-sm" {% if user.id == current_user.id %}disabled{% endif %}>
-                    <i class="bi bi-pause-circle"></i> {{ t('admin_users_deactivate') }}
-                  </button>
-                {% else %}
-                  <button type="submit" class="btn btn-outline-success btn-sm">
-                    <i class="bi bi-play-circle"></i> {{ t('admin_users_activate') }}
-                  </button>
-                {% endif %}
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-          {% if users|length == 0 %}
-          <tr>
-            <td colspan="7" class="text-center text-muted py-4">{{ t('admin_users_empty') }}</td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
+{% if users %}
+<section class="admin-users-grid">
+  {% for user in users %}
+  {% set days_left = days_left_by_id.get(user.id) %}
+  <article class="admin-user-card">
+    <div class="admin-user-card-top">
+      <div class="admin-user-card-title-wrap">
+        <div class="admin-user-avatar">{{ user.username[:1]|upper }}</div>
+        <div>
+          <div class="admin-user-title-row">
+            <h3 class="admin-user-title">{{ user.username }}</h3>
+            {% if user.id == current_user.id %}
+              <span class="badge rounded-pill text-bg-secondary">{{ t('admin_users_you') }}</span>
+            {% endif %}
+          </div>
+          <div class="admin-user-company">{{ user.gaming_center_name }}</div>
+        </div>
+      </div>
+      {{ user_actions(user, days_left) }}
     </div>
-  </div>
+
+    <div class="admin-user-chip-row">
+      {% if user.is_admin_active %}
+        <span class="admin-soft-badge success">{{ t('admin_users_active') }}</span>
+      {% else %}
+        <span class="admin-soft-badge danger">{{ t('admin_users_inactive') }}</span>
+      {% endif %}
+
+      {% if user.subscription_expires_at %}
+        <span class="admin-soft-badge primary">{{ user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}</span>
+      {% else %}
+        <span class="admin-soft-badge info">{{ t('admin_users_unlimited') }}</span>
+      {% endif %}
+    </div>
+
+    <div class="admin-user-meta-grid">
+      <div class="admin-user-meta-block">
+        <div class="admin-user-meta-label">{{ t('auth_password') }}</div>
+        {{ password_field(user) }}
+      </div>
+
+      <div class="admin-user-meta-block">
+        <div class="admin-user-meta-label">{{ t('admin_users_validity') }}</div>
+        {% if user.subscription_expires_at %}
+          <div class="admin-user-validity">
+            <strong>{{ user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}</strong>
+            {% if days_left is not none %}
+              {% if days_left > 0 %}
+                <span class="text-muted">{{ t('admin_users_days_left').format(days=days_left) }}</span>
+              {% else %}
+                <span class="text-danger">{{ t('admin_users_expired') }}</span>
+              {% endif %}
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="admin-user-validity">
+            <strong>{{ t('admin_users_unlimited') }}</strong>
+            <span class="text-muted">Subscription cheklanmagan</span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</section>
+{% else %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">{{ t('admin_users_empty') }}</div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

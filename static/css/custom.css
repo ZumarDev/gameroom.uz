@@ -1161,3 +1161,276 @@ h1.text-primary {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== ADMIN USERS ===== */
+.admin-users-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(102, 163, 255, 0.16);
+    border-radius: 1.25rem;
+    background:
+        linear-gradient(135deg, rgba(102, 163, 255, 0.18), rgba(56, 224, 198, 0.08)),
+        rgba(18, 31, 52, 0.88);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+}
+
+.admin-users-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -40px -60px auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 224, 198, 0.28), transparent 68%);
+    pointer-events: none;
+}
+
+.admin-users-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(141, 184, 255, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.76rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.admin-users-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+}
+
+.admin-users-hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.admin-users-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+    background: rgba(18, 31, 52, 0.82);
+    box-shadow: var(--shadow-md);
+}
+
+.admin-users-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.9rem;
+    background: rgba(102, 163, 255, 0.16);
+    color: var(--primary-light);
+    font-size: 1.25rem;
+}
+
+.admin-users-stat-icon.success {
+    background: rgba(52, 211, 153, 0.14);
+    color: var(--success-light);
+}
+
+.admin-users-stat-icon.warning {
+    background: rgba(251, 191, 36, 0.14);
+    color: var(--warning-light);
+}
+
+.admin-users-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+}
+
+.admin-users-stat-label {
+    margin-top: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.admin-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.admin-user-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1.1rem;
+    background:
+        linear-gradient(180deg, rgba(26, 43, 71, 0.92), rgba(18, 31, 52, 0.94));
+    box-shadow: var(--shadow-md);
+}
+
+.admin-user-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-user-card-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    min-width: 0;
+}
+
+.admin-user-avatar {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(102, 163, 255, 0.3), rgba(56, 224, 198, 0.2));
+    border: 1px solid rgba(141, 184, 255, 0.22);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.admin-user-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.admin-user-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.admin-user-company {
+    margin-top: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.93rem;
+}
+
+.admin-user-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.admin-soft-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.admin-soft-badge.success {
+    color: var(--success-light);
+    background: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.2);
+}
+
+.admin-soft-badge.danger {
+    color: var(--danger-light);
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.2);
+}
+
+.admin-soft-badge.primary {
+    color: var(--primary-light);
+    background: rgba(102, 163, 255, 0.12);
+    border-color: rgba(102, 163, 255, 0.22);
+}
+
+.admin-soft-badge.info {
+    color: #7dd3fc;
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+.admin-user-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.admin-user-meta-block {
+    padding: 0.95rem;
+    border-radius: 0.95rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-user-meta-label {
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.admin-user-validity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.admin-password-group {
+    min-width: 12rem;
+}
+
+.admin-user-actions-menu {
+    min-width: 18rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(18, 31, 52, 0.98);
+    backdrop-filter: blur(12px);
+}
+
+@media (max-width: 768px) {
+    .admin-users-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-users-stat-card {
+        padding: 1rem 1.05rem;
+    }
+
+    .admin-user-card-top {
+        flex-direction: column;
+    }
+
+    .admin-user-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-user-actions-menu {
+        min-width: min(18rem, calc(100vw - 2rem));
+    }
+}
