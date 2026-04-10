@@ -37,6 +37,14 @@ from werkzeug.security import generate_password_hash
 from translations import get_translation, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
 from flask import session, g
 
+def _set_user_password(user, raw_password, *, is_temp_password=False):
+    password = (raw_password or "").strip()
+    if not password:
+        return
+    user.password_hash = generate_password_hash(password)
+    user.password_plain = password
+    user.is_temp_password = is_temp_password
+
 def _subscription_days_left(user):
     expires_at = getattr(user, "subscription_expires_at", None)
     if not expires_at:
@@ -197,8 +205,7 @@ def register():
         user = AdminUser()
         user.username = username
         user.gaming_center_name = (form.gaming_center_name.data or "").strip()
-        if form.password.data:
-            user.password_hash = generate_password_hash(form.password.data)
+        _set_user_password(user, form.password.data)
         
         db.session.add(user)
         db.session.commit()
@@ -225,7 +232,7 @@ def admin_create_user():
         user = AdminUser()
         user.username = username
         user.gaming_center_name = (form.gaming_center_name.data or "").strip()
-        user.password_hash = generate_password_hash(form.password.data)
+        _set_user_password(user, form.password.data)
         if getattr(form, "subscription_days", None) and form.subscription_days.data:
             user.subscription_expires_at = datetime.utcnow() + timedelta(days=int(form.subscription_days.data))
         db.session.add(user)
@@ -410,8 +417,7 @@ def change_password():
         
         # Update password
         if form.new_password.data:
-            current_user.password_hash = generate_password_hash(form.new_password.data)
-        current_user.is_temp_password = False
+            _set_user_password(current_user, form.new_password.data)
         db.session.commit()
         flash(t('msg_password_changed'), 'success')
         return redirect(url_for('dashboard'))
@@ -439,8 +445,7 @@ def reset_password():
         
         # Generate temporary password
         temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
-        user.password_hash = generate_password_hash(temp_password)
-        user.is_temp_password = True
+        _set_user_password(user, temp_password, is_temp_password=True)
         db.session.commit()
         
         flash(f"{t('msg_temp_password_created')}: {temp_password}", 'success')

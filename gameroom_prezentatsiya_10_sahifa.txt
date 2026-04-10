@@ -1,213 +1,71 @@
-GameRoom.uz — 10 sahifalik prezentatsiya matni (Gamma.app uchun)
+GameRoom.uz — 10 sahifalik prezentatsiya matni (ichki CRM)
 Til: O‘zbekcha (oddiy, hammaga tushunarli)
-# GameRoom.uz — 10 sahifalik professional taqdimot (matn)
-# Format: Har bir sahifa uchun sarlavha + 4–6 asosiy punkt
+Format: Har bir sahifa uchun sarlavha + 4–6 asosiy punkt
 
 === 1‑SAHIFA: MUQOVA ===
-Sarlavha: GameRoom.uz — O'yinxona biznesini boshqarish va reklama qilish platformasi
-Tagline: Stol tennis, bilyard, karaoke, PlayStation va boshqa xizmatlar uchun yagona yechim
-Subtext: Mijozlar oqimini oshiring, xizmatlarni tez sotuvga aylantiring, hisobotlarni avtomatlashtiring
-Brend: Zamonaviy, ishonchli, ko'p tilli (UZ/RU/EN)
-CTA: Bugun sinab ko'ring
+Sarlavha: GameRoom.uz — o‘yinxona uchun ichki CRM
+Tagline: Kichik bizneslar uchun sodda, tez va ishonchli boshqaruv
+Subtext: Seans, xonalar, mahsulotlar va hisobotlar — barchasi bir joyda
+Brend: Zamonaviy, ishonchli, ko‘p tilli (UZ/RU/EN)
+CTA: Bugun sinab ko‘ring
 
-=== 2‑SAHIFA: MUAMMO VA BOZOR ===
-• O'yinxonalar ko'p, lekin raqobat kuchli — mijoz e’tiborini ushlab turish qiyin
-• Xizmatlar ko'rinmaydi: VIP, karaoke, bilyard, stol tennis bo‘yicha aniq takliflar yo‘q
-• Qo‘lda boshqaruv: navbat, seans, mahsulot savdosi va hisobotlar tarqoq
-• Reklama strategiyasi bir maromda emas — natija o‘lchash qiyin
-• GameRoom bularni bitta platformada birlashtiradi
+=== 2‑SAHIFA: MUAMMO ===
+• Kichik o‘yinxonada ham jarayonlar tez chalkashadi
+• Seans va narxlar qo‘lda hisoblanganda xatolar ko‘payadi
+• Xona bandligi doim so‘rab yuriladi
+• Mahsulot savdosi va ombor nazorati noaniq bo‘ladi
+• Hisobotlar kechikadi yoki yo‘qoladi
 
-=== 3‑SAHIFA: YECHIM — GAMEROOM PLATFORMASI ===
-• Xizmatlarni boshqarish: seanslar, xonalar, tariflar, VIP/oddiy
-• Sotuvlar: mahsulotlar, ombor, real‑vaqt nazorat
-• Hisobotlar: kunlik/haftalik/oylik
-• Profil va branding: logotip, kontaktlar, valyuta
-• Reklama uchun tayyor ma’lumotlar va ko‘rsatkichlar
+=== 3‑SAHIFA: YECHIM — ICHKI CRM ===
+• Seanslar: ochish, yuritish, yopish — avtomatik hisob-kitob
+• Xonalar: band/bo‘sh holat real vaqtda
+• Mahsulotlar: sotuv va ombor bir tizimda
+• Hisobotlar: kunlik/haftalik/oylik, PDF ko‘rinishida
+• Profil/Brend: logo, kontakt, valyuta sozlamalari
 
-=== 4‑SAHIFA: KLIENT UCHUN ASOSIY FOYDA ===
-• Mijoz oqimi oshadi: xizmatlar aniq ko‘rinadi
-• Xodimlar xatosi kamayadi: avtomatik hisob-kitob
-• Moliyaviy nazorat: to‘liq tarix va tahlil
-• Reklama samaradorligi: kampaniya natijasi o‘lchanadi
-• Turli xizmatlar uchun moslashuvchan tariflar
+=== 4‑SAHIFA: KIM UCHUN ===
+• O‘yinxona egasi (nazorat va raqamlar)
+• Operator/kassir (tez va sodda ish jarayoni)
+• Kichik va o‘rta bizneslar (tejamkor CRM)
+• Bir yoki bir nechta xizmatli o‘yinxonalar
 
-=== 5‑SAHIFA: REKLAMA IMKONIYATLARI (KLIENTLAR UCHUN) ===
-• Telegram va Instagram uchun tayyor kontent paketlari
-• Xizmatlar bo‘yicha alohida takliflar: karaoke kechasi, VIP PS, bilyard turniri
-• “Band/Bo‘sh” real‑vaqt ko‘rinishi — mijozga ishonch beradi
-• Aksiya va chegirmalar bo‘yicha push‑takliflar
-• “Bir soat sovg‘a” yoki “2+1” kabi kampaniyalar
+=== 5‑SAHIFA: ASOSIY MODULLAR ===
+• Seanslar boshqaruvi (oddiy/VIP)
+• Xonalar va kategoriyalar (narx, tavsif)
+• Mahsulotlar va ombor (stock, minimal qoldiq)
+• Hisobotlar va analitika (daromad, faol seanslar)
+• Foydalanuvchilar (admin va xodimlar)
 
-=== 6‑SAHIFA: HOW‑TO — REKLAMANI QANDAY TADBIRQILAMIZ ===
-1) Mijoz segmentini aniqlaymiz (o‘smirlar, oilalar, do‘stlar, e‑sport)
-2) Eng kuchli xizmatni ajratamiz (PS VIP, karaoke, bilyard)
-3) Ofis va tarmoq bannerlari, story maketlar
-4) Targ‘ibot kanallari: Telegram, Instagram, Google Maps
-5) Natijani o‘lchash: seanslar, o‘rtacha chek, qaytish soni
-
-=== 7‑SAHIFA: GAME ROOM BO‘YICHA MISOL KAMPANIYALAR ===
-• “Karaoke Night” — haftaning 1 kuni, cheklangan joy
-• “PlayStation VIP” — oldindan bron qilganlarga bonus
-• “Stol tennis ligasi” — kichik turnirlar
-• “Bilyard soati” — kechki soatlarda 20% chegirma
-• “Family pack” — ota‑ona + bola uchun maxsus narx
-
-=== 8‑SAHIFA: HISOBOTLAR VA NATIJANI KO‘RISH ===
-• Qaysi xizmat ko‘proq daromad olib keldi?
-• Eng ko‘p band bo‘lgan kun va vaqt
-• VIP va oddiy seanslar nisbatini solishtirish
-• Mahsulot savdosi: ichimlik/snack
-• PDF hisobotlar: boshqaruvchiga tayyor
-
-=== 9‑SAHIFA: QADAM‑BAQADAM JORIY QILISH ===
-• 1‑kun: profil, xizmatlar va tariflarni kiritish
-• 2‑kun: xodimlar uchun tezkor o‘qitish
-• 3‑kun: birinchi reklama kampaniyasi (Telegram/IG)
-• 1‑hafta: natijalar tahlili va optimizatsiya
-• Keyingi: takroriy kampaniyalar + barqaror o‘sish
-
-=== 10‑SAHIFA: YAKUNIY CTA ===
-• GameRoom.uz — o'yinxonani professional boshqarish + reklama natijasini ko‘rish
-• Sizning mijozingiz qayerda bo‘lsa, reklama o‘sha yerga chiqadi
-• Biz bilan birga o‘ynang — biznesingiz o‘sadi
-• Aloqa: Telegram / Telefon / Email
-• CTA: Demo so‘rash va ishga tushirish
-============================================================
-1-SAHIFA — Sarlavha
-============================================================
-GameRoom.uz — O‘yinxona boshqaruv tizimi
-
-Qisqa ta’rif:
-- O‘yinxonangizni tartibga soladigan, hisob-kitobni yengillashtiradigan platforma
-- Seans, xona bandligi, mahsulot sotuvlari va daromad — barchasi bir joyda
-- 3 tilda qulay interfeys: UZ / RU / EN
-
-Kim uchun:
-- O‘yinxona egasi va menejerlari
-- Operator/kassirlar
-- Kichik va o‘rta biznes
-
-
-============================================================
-2-SAHIFA — Muammo va yechim
-============================================================
-Muammolar:
-- Seansni “qo‘lbola” yuritish: vaqt/soat adashadi, pul noto‘g‘ri chiqadi
-- Qaysi xona bo‘sh, qaysi xona band — doim so‘rab yurishga to‘g‘ri keladi
-- Mahsulot savdosi aralashib ketadi: kim nima oldi, qancha qoldi — noaniq
-- Kun oxirida daromadni hisoblash ko‘p vaqt oladi
-
-Yechim:
-- GameRoom.uz seansni avtomatik hisoblaydi: taymer va narx ko‘rinib turadi
-- Xonalar bandligi bir qarashda (bo‘sh/band)
-- Mahsulotlar seansga qo‘shiladi, sotuv tartibli bo‘ladi
-- Daromad va statistikalar tayyor: kunlik/haftalik/oylik
-
-
-============================================================
-3-SAHIFA — Imkoniyatlar (asosiy)
-============================================================
-Nimalarni qiladi:
-- Xonalar va narxlarni boshqarish (kategoriya, alohida narx)
-- Seansni ochish/yuritish/yopish (oddiy yoki VIP)
-- Seans davomida mahsulot qo‘shish (ichimlik/snack va h.k.)
-- Zaxirani nazorat qilish (kam qolsa ogohlantiradi)
-- Daromad va hisobotlar (ko‘rib chiqish, saqlab olish)
-- Profil va logo (o‘yinxona brendingi)
-
-
-============================================================
-4-SAHIFA — Qanday ishlaydi? (1 daqiqada tushuncha)
-============================================================
-Oddiy ishlash ssenariysi:
+=== 6‑SAHIFA: QANDAY ISHLAYDI ===
 1) Operator login qiladi
-2) Dashboard’da bo‘sh xonani tanlaydi
-3) Seans ochadi:
-   - Fixed (vaqt/summa) yoki VIP
-4) Timer ishlaydi, narx real vaqtda yangilanadi
-5) Seans davomida mahsulot qo‘shiladi (ichimlik/snack)
-6) Seans to‘xtatiladi:
-   - “To‘liq summa” yoki “Haqiqiy vaqt” bo‘yicha yopish
-7) Natija: umumiy summa + mahsulotlar + tarix
+2) Bo‘sh xonani tanlaydi
+3) Seans turini belgilaydi (oddiy/VIP)
+4) Taymer ishlaydi, narx avtomatik hisoblanadi
+5) Seans davomida mahsulot qo‘shiladi
+6) Seans yopiladi — to‘liq yoki haqiqiy vaqt bo‘yicha
 
-Biznes foyda:
-- Xatolar kamayadi, operator tez ishlaydi, hisob-kitob shaffof bo‘ladi
+=== 7‑SAHIFA: BIZNES FOYDA ===
+• Xodim xatolari kamayadi
+• Hisob-kitob aniq va tez bo‘ladi
+• Xonalar yuklanishi ko‘rinadi
+• Daromad nazorati soddalashadi
+• Tarix saqlanadi — tahlil qilish oson
 
+=== 8‑SAHIFA: HISOBOTLAR ===
+• Kunlik, haftalik, oylik daromad
+• Qaysi xonalar ko‘proq ishlagan
+• Mahsulotlar savdosi statistikasi
+• Sana oralig‘ida filtrlash
+• PDF hisobot — boshqaruv uchun tayyor
 
-============================================================
-5-SAHIFA — Egaga foyda (Owner uchun)
-============================================================
-Egaga eng muhim narsa — nazorat va tartib:
-- Kunlik daromadni tez ko‘rasiz
-- Qaysi xona ko‘proq ishlayapti, qaysi mahsulot ko‘p sotilyapti — tushunarli bo‘ladi
-- Operatorlar ishini tartibga soladi: “kim nima qildi?” savollari kamayadi
-- Hisobotlarni chiqarib, saqlab qo‘yish oson
+=== 9‑SAHIFA: XAVFSIZLIK VA TARTIB ===
+• Har bir xodim uchun alohida login/parol
+• Admin orqali yangi foydalanuvchi yaratish
+• Aktiv/noaktiv holatini boshqarish
+• Tizimda barcha harakatlar tarixda qoladi
 
-
-============================================================
-6-SAHIFA — Operator uchun qulaylik
-============================================================
-Operator ishini yengillashtiradi:
-- Bo‘sh/band xonalar ko‘rinib turadi
-- Seans ochish juda tez (bir necha bosish)
-- Taymer va narx ko‘rinib turadi
-- Mahsulot qo‘shish oson, “hisob” aralashmaydi
-- Kam qolgan zaxira oldindan bilinadi
-
-
-============================================================
-7-SAHIFA — Ishonch va tartib
-============================================================
-Tizim tartibni ushlab turadi:
-- Har kim o‘z login/paroli bilan kiradi
-- Parolni tiklash/almashtirish imkoniyati bor
-- Ro‘yxatdan o‘tish tartibga solinadi: yangi akkauntlar faqat admin orqali ochiladi
-
-Natija:
-- “Tashqaridan kirib ketish” yoki “tasodifiy ro‘yxatdan o‘tish” muammolari kamayadi
-
-
-============================================================
-8-SAHIFA — Hisobotlar va analitika
-============================================================
-Ko‘rsatkichlar sizga aniq ko‘rinadi:
-- Kunlik, haftalik, oylik daromad
-- Eng ko‘p daromad keltirayotgan xonalar
-- Eng ko‘p sotilayotgan mahsulotlar
-- Tanlangan sana oralig‘ida tahlil
-
-Hisobot:
-- PDF formatida chiqarish (bosmaga tayyor)
-- Excel formatida olib chiqish/kiritish (qulay)
-
-
-============================================================
-9-SAHIFA — Brending va moslashuvchanlik
-============================================================
-O‘yinxonangizga moslashadi:
-- O‘z logoingizni qo‘yasiz
-- Xonalar kategoriyasi va narxlarni o‘zingiz belgilaysiz
-- Mahsulotlar ro‘yxatini o‘zingiz yuritasiz
-- 3 tilda ishlash (UZ/RU/EN) — jamoa va mijozlarga qulay
-
-Kundalik ish uchun:
-- Oddiy va tez ishlaydigan interfeys
-- O‘rganish oson: operatorlar tez moslashadi
-
-
-============================================================
-10-SAHIFA — Yakuniy xulosa + CTA (chaqiriq)
-============================================================
-Kutiladigan natija:
-- Ish tezlashadi, xatolar kamayadi
-- Daromad va sotuvlar aniq ko‘rinadi
-- Operatorlar uchun tartib, egaga nazorat
-- Mijoz bilan hisob-kitob shaffof va tez
-
-Yakuni:
-- GameRoom.uz — o‘yinxona biznesi uchun amaliy, qulay va foydali boshqaruv platformasi
-
-Chaqiriq (CTA) uchun variantlar:
-- “Demo qilib ko‘ramizmi? 5 daqiqada ish jarayonini ko‘rsatib beramiz.”
-- “Bir haftalik sinov: o‘yinxonangizda real ishlatib ko‘ring.”
-- “Savollaringiz bo‘lsa: narx, o‘rnatish, moslash — hammasini tushuntirib beramiz.”
+=== 10‑SAHIFA: YAKUN + CTA ===
+• GameRoom.uz — o‘yinxona uchun ichki CRM
+• Kichik biznesga mos: sodda, tez, tushunarli
+• Nazorat, tartib va hisobotlar bir tizimda
+• CTA: Demo so‘rash va ishga tushirish

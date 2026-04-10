@@ -28,6 +28,7 @@
           <tr>
             <th class="ps-3">#</th>
             <th>{{ t('auth_username') }}</th>
+            <th>{{ t('auth_password') }}</th>
             <th>{{ t('profile_company') }}</th>
             <th>{{ t('admin_users_validity') }}</th>
             <th>{{ t('admin_users_status') }}</th>
@@ -42,6 +43,29 @@
               <div class="fw-semibold">{{ user.username }}</div>
               {% if user.id == current_user.id %}
                 <div class="small text-muted">{{ t('admin_users_you') }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.password_plain %}
+              <div class="input-group input-group-sm" style="min-width: 12rem;">
+                <input
+                  type="password"
+                  class="form-control admin-password-field"
+                  value="{{ user.password_plain }}"
+                  readonly
+                  data-visible-label="{{ t('admin_users_hide_password') }}"
+                  data-hidden-label="{{ t('admin_users_show_password') }}"
+                  aria-label="{{ t('auth_password') }}">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary admin-password-toggle"
+                  aria-label="{{ t('admin_users_show_password') }}"
+                  title="{{ t('admin_users_show_password') }}">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              {% else %}
+              <span class="text-muted small">{{ t('admin_users_password_unavailable') }}</span>
               {% endif %}
             </td>
             <td>{{ user.gaming_center_name }}</td>
@@ -106,7 +130,7 @@
           {% endfor %}
           {% if users|length == 0 %}
           <tr>
-            <td colspan="6" class="text-center text-muted py-4">{{ t('admin_users_empty') }}</td>
+            <td colspan="7" class="text-center text-muted py-4">{{ t('admin_users_empty') }}</td>
           </tr>
           {% endif %}
         </tbody>
@@ -114,4 +138,26 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.admin-password-toggle');
+    if (!button) return;
+
+    const wrapper = button.closest('.input-group');
+    const input = wrapper ? wrapper.querySelector('.admin-password-field') : null;
+    const icon = button.querySelector('i');
+    if (!input || !icon) return;
+
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    icon.className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
+
+    const nextLabel = hidden ? input.dataset.visibleLabel : input.dataset.hiddenLabel;
+    button.setAttribute('aria-label', nextLabel);
+    button.setAttribute('title', nextLabel);
+  });
+</script>
 {% endblock %}
