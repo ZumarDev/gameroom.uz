@@ -13,6 +13,7 @@ class AdminUser(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    password_plain = db.Column(db.String(255), nullable=True)
     gaming_center_name = db.Column(db.String(100), nullable=False, default="O'yinxona")
     logo_filename = db.Column(db.String(255), nullable=True)  # Custom logo
     is_admin_active = db.Column(db.Boolean, default=True)

@@ -119,6 +119,11 @@ with app.app_context():
             "ALTER TABLE admin_user ADD COLUMN last_expiry_warning_date DATE",
             "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS last_expiry_warning_date DATE",
         )
+        _add_col(
+            "password_plain",
+            "ALTER TABLE admin_user ADD COLUMN password_plain VARCHAR(255)",
+            "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS password_plain VARCHAR(255)",
+        )
 
         db.session.commit()
 

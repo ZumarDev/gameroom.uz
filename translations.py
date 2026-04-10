@@ -510,6 +510,9 @@ TRANSLATIONS = {
         'admin_users_set_unlimited': 'Cheklanmagan',
         'admin_users_you': 'Siz',
         'admin_users_empty': 'Foydalanuvchilar topilmadi',
+        'admin_users_show_password': 'Parolni ko\'rsatish',
+        'admin_users_hide_password': 'Parolni yashirish',
+        'admin_users_password_unavailable': 'Mavjud emas',
 
         # Profile / Subscription
         'profile_subscription_title': 'Foydalanish muddati',
@@ -1091,6 +1094,9 @@ TRANSLATIONS = {
         'admin_users_set_unlimited': 'Безлимит',
         'admin_users_you': 'Вы',
         'admin_users_empty': 'Пользователи не найдены',
+        'admin_users_show_password': 'Показать пароль',
+        'admin_users_hide_password': 'Скрыть пароль',
+        'admin_users_password_unavailable': 'Недоступно',
 
         # Profile / Subscription
         'profile_subscription_title': 'Срок использования',
@@ -1672,6 +1678,9 @@ TRANSLATIONS = {
         'admin_users_set_unlimited': 'Unlimited',
         'admin_users_you': 'You',
         'admin_users_empty': 'No users found',
+        'admin_users_show_password': 'Show password',
+        'admin_users_hide_password': 'Hide password',
+        'admin_users_password_unavailable': 'Unavailable',
 
         # Profile / Subscription
         'profile_subscription_title': 'Subscription',
