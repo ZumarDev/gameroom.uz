@@ -439,6 +439,10 @@ def inventory():
     }
 
     inventory_form = InventoryForm()
+    inventory_form.category_id.choices = [
+        (category.id, category.name)
+        for category in inventory_categories
+    ]
     inventory_form.product_id.choices = [
         (p.id, f"{p.name} ({p.stock_quantity} {p.unit})")
         for p in products_list
@@ -458,10 +462,15 @@ def inventory():
 def update_inventory():
     """Update product stock levels"""
     form = InventoryForm()
+    categories_list = ProductCategory.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).order_by(ProductCategory.name.asc()).all()
     products_list = Product.query.filter_by(
         admin_user_id=current_user.id,
         is_active=True
-    ).all()
+    ).order_by(Product.name.asc()).all()
+    form.category_id.choices = [(category.id, category.name) for category in categories_list]
     form.product_id.choices = [(p.id, f"{p.name} ({p.stock_quantity} {p.unit})") 
                              for p in products_list]
     

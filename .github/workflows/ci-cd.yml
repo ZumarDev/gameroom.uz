@@ -1,0 +1,90 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - muslim
+  pull_request:
+    branches:
+      - main
+      - muslim
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify imports
+        env:
+          SESSION_SECRET: test-secret
+          SECRET_ADMIN_KEY: test-admin-key
+          DATABASE_URL: sqlite:///test.db
+        run: python -c "from app import app; print(app.url_map)"
+
+      - name: Compile project
+        run: python -m compileall .
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: ${{ github.ref_name }}
+    steps:
+      - name: Resolve deploy target
+        shell: bash
+        run: |
+          if [ "${TARGET_BRANCH}" = "main" ]; then
+            echo "DEPLOY_HOST=${{ secrets.PROD_SSH_HOST }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_PORT=${{ secrets.PROD_SSH_PORT }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_USER=${{ secrets.PROD_SSH_USER }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_KEY<<EOF" >> "$GITHUB_ENV"
+            echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
+            echo "DEPLOY_APP_DIR=${{ secrets.PROD_APP_DIR }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_SERVICE_NAME=${{ secrets.PROD_SERVICE_NAME }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_HEALTHCHECK_URL=${{ secrets.PROD_HEALTHCHECK_URL }}" >> "$GITHUB_ENV"
+          else
+            echo "DEPLOY_HOST=${{ secrets.STAGING_SSH_HOST }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_PORT=${{ secrets.STAGING_SSH_PORT }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_USER=${{ secrets.STAGING_SSH_USER }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_KEY<<EOF" >> "$GITHUB_ENV"
+            echo "${{ secrets.STAGING_SSH_PRIVATE_KEY }}" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
+            echo "DEPLOY_APP_DIR=${{ secrets.STAGING_APP_DIR }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_SERVICE_NAME=${{ secrets.STAGING_SERVICE_NAME }}" >> "$GITHUB_ENV"
+            echo "DEPLOY_HEALTHCHECK_URL=${{ secrets.STAGING_HEALTHCHECK_URL }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${DEPLOY_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${DEPLOY_PORT:-22}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy on server
+        shell: bash
+        run: |
+          ssh -p "${DEPLOY_PORT:-22}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "export TARGET_BRANCH='${TARGET_BRANCH}' SERVER_APP_DIR='${DEPLOY_APP_DIR}' SERVICE_NAME='${DEPLOY_SERVICE_NAME}'; bash -lc 'cd \"\$SERVER_APP_DIR\" && git fetch origin && git checkout \"\$TARGET_BRANCH\" && git pull origin \"\$TARGET_BRANCH\" && chmod +x scripts/deploy.sh && ./scripts/deploy.sh \"\$TARGET_BRANCH\" \"\$SERVICE_NAME\"'"
+
+      - name: Health check
+        shell: bash
+        run: |
+          curl --fail --silent --show-error "${DEPLOY_HEALTHCHECK_URL}"

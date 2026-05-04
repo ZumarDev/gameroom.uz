@@ -14,7 +14,7 @@ class RoomCategoryForm(FlaskForm):
 class RoomForm(FlaskForm):
     name = StringField('Xona nomi', validators=[DataRequired(), Length(min=1, max=100)])
     description = TextAreaField('Tavsif', validators=[Optional()])
-    category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
+    category_id = SelectField('Kategoriya', coerce=int, choices=[], validators=[DataRequired()])
     custom_price_per_30min = FloatField('Maxsus narx (30 daqiqa)', validators=[Optional(), NumberRange(min=0)])
 
 class RegisterForm(FlaskForm):
@@ -42,7 +42,7 @@ class ProductCategoryForm(FlaskForm):
 
 class ProductForm(FlaskForm):
     name = StringField('Mahsulot nomi', validators=[DataRequired(), Length(min=1, max=100)])
-    category_id = SelectField('Kategoriya', coerce=int, validators=[DataRequired()])
+    category_id = SelectField('Kategoriya', coerce=int, choices=[], validators=[DataRequired()])
     price = FloatField('Narx', validators=[DataRequired(), NumberRange(min=0)])
     unit = StringField('O\'lchov birligi', validators=[Length(max=20)], default='dona')
     stock_quantity = IntegerField('Zaxira miqdori', validators=[DataRequired(), NumberRange(min=0)], default=0)
@@ -57,8 +57,8 @@ class StockUpdateForm(FlaskForm):
     note = TextAreaField('Izoh')
 
 class InventoryForm(FlaskForm):
-    category_id = SelectField('Kategoriya', coerce=int, validators=[Optional()])
-    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    category_id = SelectField('Kategoriya', coerce=int, choices=[], validators=[Optional()])
+    product_id = SelectField('Mahsulot', coerce=int, choices=[], validators=[DataRequired()])
     quantity = IntegerField('Miqdor', validators=[DataRequired(), NumberRange(min=1)])
     action = SelectField('Amal', choices=[
         ('add', 'Qo\'shish'),
@@ -67,7 +67,7 @@ class InventoryForm(FlaskForm):
     note = TextAreaField('Izoh')
 
 class SessionForm(FlaskForm):
-    room_id = SelectField('Xona', coerce=int, validators=[DataRequired()])
+    room_id = SelectField('Xona', coerce=int, choices=[], validators=[DataRequired()])
     session_type = SelectField('Seans turi', choices=[
         ('fixed', 'Belgilangan vaqt'),
         ('vip', 'VIP')
@@ -81,7 +81,7 @@ class SessionForm(FlaskForm):
     amount_input = FloatField('Summa', validators=[Optional(), NumberRange(min=0)])
 
 class AddProductToSessionForm(FlaskForm):
-    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    product_id = SelectField('Mahsulot', coerce=int, choices=[], validators=[DataRequired()])
     quantity = IntegerField('Miqdori', validators=[DataRequired(), NumberRange(min=1)], default=1)
     session_id = HiddenField()
 
@@ -104,7 +104,7 @@ class ProfileForm(FlaskForm):
     gaming_center_name = StringField("O'yinxona nomi", validators=[DataRequired(), Length(min=2, max=100)])
 
 class QuickAddProductForm(FlaskForm):
-    product_id = SelectField('Mahsulot', coerce=int, validators=[DataRequired()])
+    product_id = SelectField('Mahsulot', coerce=int, choices=[], validators=[DataRequired()])
     quantity = IntegerField('Miqdori', validators=[DataRequired(), NumberRange(min=1)], default=1)
 
 class ExcelImportForm(FlaskForm):

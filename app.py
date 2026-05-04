@@ -173,6 +173,10 @@ def handle_csrf_error(e):
     flash(get_translation('msg_csrf_expired', lang), 'warning')
     return redirect(request.referrer or url_for('login'))
 
+@app.get('/healthz')
+def healthcheck():
+    return {'status': 'ok'}, 200
+
 @app.template_filter('tashkent_time')
 def tashkent_time_filter(utc_time, format='%H:%M'):
     """Convert UTC time to Tashkent time and format it"""
