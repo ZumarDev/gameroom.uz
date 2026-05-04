@@ -174,7 +174,17 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
-                                                <button class="dropdown-item" type="button" onclick="editProduct({{ product.id }}, {{ product.name|tojson }}, {{ product.category_id }}, {{ product.price }}, {{ product.unit|tojson }}, {{ product.stock_quantity }}, {{ product.min_stock_alert }})">
+                                                <button
+                                                    class="dropdown-item js-edit-product"
+                                                    type="button"
+                                                    data-product-id="{{ product.id }}"
+                                                    data-product-name="{{ product.name }}"
+                                                    data-category-id="{{ product.category_id }}"
+                                                    data-price="{{ product.price }}"
+                                                    data-unit="{{ product.unit }}"
+                                                    data-stock-quantity="{{ product.stock_quantity }}"
+                                                    data-min-stock-alert="{{ product.min_stock_alert }}"
+                                                >
                                                     <i class="bi bi-pencil"></i> {{ t('action_edit') }}
                                                 </button>
                                             </li>
@@ -562,6 +572,20 @@ document.addEventListener('DOMContentLoaded', function() {
         dropdown.addEventListener('hide.bs.dropdown', function() {
             const card = this.closest('.product-card');
             if (card) card.classList.remove('dropdown-open');
+        });
+    });
+
+    document.querySelectorAll('.js-edit-product').forEach((button) => {
+        button.addEventListener('click', function() {
+            editProduct(
+                this.dataset.productId,
+                this.dataset.productName,
+                this.dataset.categoryId,
+                this.dataset.price,
+                this.dataset.unit,
+                this.dataset.stockQuantity,
+                this.dataset.minStockAlert
+            );
         });
     });
 });
