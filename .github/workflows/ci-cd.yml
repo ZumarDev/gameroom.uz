@@ -103,12 +103,15 @@ jobs:
         run: |
           set -euo pipefail
           SSH_DIR="${HOME}/.ssh"
+          echo "Preparing SSH directory at ${SSH_DIR}"
           mkdir -p "${SSH_DIR}"
           chmod 700 "${SSH_DIR}"
           printf '%s\n' "${DEPLOY_KEY}" > "${SSH_DIR}/id_ed25519"
           chmod 600 "${SSH_DIR}/id_ed25519"
           touch "${SSH_DIR}/known_hosts"
+          echo "Scanning SSH host key for ${DEPLOY_HOST}:${DEPLOY_PORT}"
           ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> "${SSH_DIR}/known_hosts"
+          echo "SSH configuration completed"
 
       - name: Deploy on server
         shell: bash
@@ -120,7 +123,8 @@ jobs:
           DEPLOY_SERVICE_NAME: ${{ steps.target.outputs.deploy_service_name }}
         run: |
           set -euo pipefail
-          ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
+          echo "Connecting to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PORT}"
+          ssh -o BatchMode=yes -o ConnectTimeout=15 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "export TARGET_BRANCH='${TARGET_BRANCH}' SERVER_APP_DIR='${DEPLOY_APP_DIR}' SERVICE_NAME='${DEPLOY_SERVICE_NAME}'; bash -lc 'cd \"\$SERVER_APP_DIR\" && git fetch origin && git checkout \"\$TARGET_BRANCH\" && git pull origin \"\$TARGET_BRANCH\" && chmod +x scripts/deploy.sh && ./scripts/deploy.sh \"\$TARGET_BRANCH\" \"\$SERVICE_NAME\"'"
 
       - name: Health check
