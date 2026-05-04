@@ -159,6 +159,8 @@
         <span class="admin-soft-badge danger">{{ t('admin_users_inactive') }}</span>
       {% endif %}
 
+      <span class="admin-soft-badge secondary text-capitalize">{{ user.subscription_plan or 'basic' }}</span>
+
       {% if user.subscription_expires_at %}
         <span class="admin-soft-badge primary">{{ user.subscription_expires_at|tashkent_date('%d.%m.%Y') }}</span>
       {% else %}

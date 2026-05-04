@@ -32,6 +32,38 @@ import views_admin  # noqa: F401
 import views_dashboard  # noqa: F401
 import views_reports  # noqa: F401
 
+
+def get_plan_config(user):
+    plan = (getattr(user, 'subscription_plan', None) or 'basic').lower()
+    definitions = {
+        'basic': {
+            'plan': 'basic',
+            'label': 'Basic',
+            'max_products': 25,
+            'max_categories': 5,
+            'ai_enabled': False,
+            'description': 'Bosh rejadagi imkoniyatlar: kichik inventar va cheklangan tahlil.'
+        },
+        'standard': {
+            'plan': 'standard',
+            'label': 'Standard',
+            'max_products': 75,
+            'max_categories': 12,
+            'ai_enabled': True,
+            'description': 'Standard rejada AI insightlar va kengroq hisobotlar mavjud.'
+        },
+        'premium': {
+            'plan': 'premium',
+            'label': 'Premium',
+            'max_products': None,
+            'max_categories': None,
+            'ai_enabled': True,
+            'description': 'Premium rejada cheksiz inventar va to‘liq tahlil taqdim etiladi.'
+        }
+    }
+    return definitions.get(plan, definitions['basic'])
+
+
 @app.route('/rooms-management')
 @login_required
 def rooms_management():
@@ -183,25 +215,30 @@ def edit_room(room_id):
 @login_required
 def products():
     # Multi-tenant: Only show products and categories for current user's gaming center
-    products_list = Product.query.filter_by(
-        admin_user_id=current_user.id,
-        is_active=True
-    ).all()
+    products_list = (
+        Product.query
+        .options(selectinload(Product.product_category))
+        .filter_by(admin_user_id=current_user.id, is_active=True)
+        .order_by(Product.created_at.desc())
+        .all()
+    )
     categories_list = ProductCategory.query.filter_by(
         admin_user_id=current_user.id,
         is_active=True
-    ).all()
+    ).order_by(ProductCategory.name).all()
     
     # Setup forms
     form = ProductForm()
     form.category_id.choices = [(c.id, c.name) for c in categories_list]
     category_form = ProductCategoryForm()
     
+    plan_details = get_plan_config(current_user)
     return render_template('products.html', 
                          products=products_list, 
                          categories=categories_list,
                          form=form,
-                         category_form=category_form)
+                         category_form=category_form,
+                         plan_details=plan_details)
 
 @app.route('/products/add', methods=['POST'])
 @login_required
@@ -210,6 +247,12 @@ def add_product():
         admin_user_id=current_user.id,
         is_active=True
     ).all()
+    plan_details = get_plan_config(current_user)
+    current_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    if plan_details['max_products'] is not None and current_products >= plan_details['max_products']:
+        flash(f'Bu tarifda faqat {plan_details["max_products"]} ta mahsulot qo‘shishga ruxsat bor. Tarifni yangilang.', 'warning')
+        return redirect(url_for('products') + '?tab=products')
+
     form = ProductForm()
     form.category_id.choices = [(c.id, c.name) for c in categories_list]
     
@@ -276,6 +319,12 @@ def delete_product(product_id):
 @login_required
 def add_product_category():
     form = ProductCategoryForm()
+    plan_details = get_plan_config(current_user)
+    current_categories = ProductCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    if plan_details['max_categories'] is not None and current_categories >= plan_details['max_categories']:
+        flash(f'Bu tarifda faqat {plan_details["max_categories"]} ta kategoriya yaratishga ruxsat bor. Tarifni yangilang.', 'warning')
+        return redirect(url_for('products'))
+
     if form.validate_on_submit():
         category = ProductCategory()
         category.admin_user_id = current_user.id  # Multi-tenant
@@ -339,19 +388,70 @@ def delete_product_category(category_id):
 @login_required
 def inventory():
     """Display inventory management page with stock levels"""
-    products_list = Product.query.filter_by(
-        admin_user_id=current_user.id,
-        is_active=True
-    ).all()
-    
-    # Create inventory form
+    products_list = (
+        Product.query
+        .options(selectinload(Product.product_category))
+        .filter_by(admin_user_id=current_user.id, is_active=True)
+        .order_by(Product.name)
+        .all()
+    )
+
+    plan_details = get_plan_config(current_user)
+    current_plan = plan_details['plan']
+
+    low_stock_items = [
+        p for p in products_list
+        if p.stock_quantity is not None and p.stock_quantity <= p.min_stock_alert and p.stock_quantity > 0
+    ]
+    out_of_stock_items = [
+        p for p in products_list
+        if p.stock_quantity is None or p.stock_quantity <= 0
+    ]
+    available_items = [
+        p for p in products_list
+        if p.stock_quantity is not None and p.stock_quantity > p.min_stock_alert
+    ]
+
+    top_reorder = sorted(
+        low_stock_items + out_of_stock_items,
+        key=lambda p: (p.stock_quantity if p.stock_quantity is not None else -1, p.min_stock_alert)
+    )[:5]
+
+    insight_summary = []
+    if out_of_stock_items:
+        insight_summary.append(f"{len(out_of_stock_items)} ta mahsulot zaxirada yo'q.")
+    if low_stock_items:
+        insight_summary.append(f"{len(low_stock_items)} ta mahsulot minimal chegaraga yaqin.")
+    if not insight_summary:
+        insight_summary.append('Hozircha inventar yaxshi holatda.')
+
+    inventory_categories = sorted(
+        {p.product_category.id: p.product_category for p in products_list if p.product_category}.values(),
+        key=lambda category: category.name
+    )
+
+    stock_stats = {
+        'total_products': len(products_list),
+        'available_count': len(available_items),
+        'low_stock_count': len(low_stock_items),
+        'out_of_stock_count': len(out_of_stock_items),
+        'recommendations': top_reorder,
+    }
+
     inventory_form = InventoryForm()
-    inventory_form.product_id.choices = [(p.id, f"{p.name} ({p.stock_quantity} {p.unit})") 
-                                       for p in products_list]
+    inventory_form.product_id.choices = [
+        (p.id, f"{p.name} ({p.stock_quantity} {p.unit})")
+        for p in products_list
+    ]
     
     return render_template('inventory.html', 
                          products=products_list, 
-                         form=inventory_form)
+                         form=inventory_form,
+                         plan_details=plan_details,
+                         current_plan=current_plan,
+                         stock_stats=stock_stats,
+                         insight_summary=insight_summary,
+                         inventory_categories=inventory_categories)
 
 @app.route('/inventory/update', methods=['POST'])
 @login_required

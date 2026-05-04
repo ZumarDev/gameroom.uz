@@ -30,6 +30,11 @@ class AdminCreateUserForm(FlaskForm):
     password = PasswordField('Parol', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Parolni tasdiqlash', validators=[DataRequired(), EqualTo('password', message='Parollar mos emas')])
     subscription_days = IntegerField('Faol kunlar', validators=[DataRequired(), NumberRange(min=1, max=3650)], default=30)
+    subscription_plan = SelectField('Tarif rejasi', choices=[
+        ('basic', 'Basic'),
+        ('standard', 'Standard'),
+        ('premium', 'Premium')
+    ], validators=[DataRequired()], default='basic')
 
 class ProductCategoryForm(FlaskForm):
     name = StringField('Kategoriya nomi', validators=[DataRequired(), Length(min=1, max=100)])

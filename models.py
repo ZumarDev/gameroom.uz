@@ -20,6 +20,7 @@ class AdminUser(UserMixin, db.Model):
     preferred_language = db.Column(db.String(5), default='uz')  # Language preference
     is_temp_password = db.Column(db.Boolean, default=False)  # Temporary password flag
     subscription_expires_at = db.Column(db.DateTime, nullable=True)  # Account validity (UTC naive)
+    subscription_plan = db.Column(db.String(20), nullable=False, default='basic')
     last_expiry_warning_date = db.Column(db.Date, nullable=True)  # Local date when last warning was shown
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

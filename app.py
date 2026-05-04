@@ -124,6 +124,17 @@ with app.app_context():
             "ALTER TABLE admin_user ADD COLUMN password_plain VARCHAR(255)",
             "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS password_plain VARCHAR(255)",
         )
+        _add_col(
+            "subscription_plan",
+            "ALTER TABLE admin_user ADD COLUMN subscription_plan VARCHAR(20)",
+            "ALTER TABLE admin_user ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(20)",
+        )
+
+        # Ensure existing rows have a plan value, fallback to basic for compatibility
+        if db.engine.dialect.name == 'sqlite':
+            db.session.execute(text("UPDATE admin_user SET subscription_plan = 'basic' WHERE subscription_plan IS NULL"))
+        else:
+            db.session.execute(text("UPDATE admin_user SET subscription_plan = 'basic' WHERE subscription_plan IS NULL"))
 
         db.session.commit()
 
