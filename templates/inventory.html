@@ -11,28 +11,13 @@
 
 <!-- Stock Overview Cards -->
 <div class="row g-3 mb-4">
-        {% set total_products = products|length %}
-        {% set available_products = [] %}
-        {% set low_stock_products = [] %}
-        {% set out_of_stock_products = [] %}
-        
-        {% for product in products %}
-            {% if not product.stock_quantity or product.stock_quantity <= 0 %}
-                {% if out_of_stock_products.append(product) %}{% endif %}
-            {% elif product.min_stock_alert and product.stock_quantity <= product.min_stock_alert %}
-                {% if low_stock_products.append(product) %}{% endif %}
-            {% else %}
-                {% if available_products.append(product) %}{% endif %}
-            {% endif %}
-        {% endfor %}
-        
         <div class="col-md-3">
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">{{ t('dashboard_total_products') }}</h5>
-                            <h2 class="mb-0">{{ total_products }}</h2>
+                            <h2 class="mb-0">{{ stock_stats.total_products }}</h2>
                         </div>
                         <i class="bi bi-box-seam fs-1"></i>
                     </div>
@@ -46,7 +31,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">{{ t('dashboard_available') }}</h5>
-                            <h2 class="mb-0">{{ available_products|length }}</h2>
+                            <h2 class="mb-0">{{ stock_stats.available_count }}</h2>
                         </div>
                         <i class="bi bi-check-circle fs-1"></i>
                     </div>
@@ -60,7 +45,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">{{ t('products_low_stock') }}</h5>
-                            <h2 class="mb-0">{{ low_stock_products|length }}</h2>
+                            <h2 class="mb-0">{{ stock_stats.low_stock_count }}</h2>
                         </div>
                         <i class="bi bi-exclamation-triangle fs-1"></i>
                     </div>
@@ -74,7 +59,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title">{{ t('products_out_of_stock') }}</h5>
-                            <h2 class="mb-0">{{ out_of_stock_products|length }}</h2>
+                            <h2 class="mb-0">{{ stock_stats.out_of_stock_count }}</h2>
                         </div>
                         <i class="bi bi-x-circle fs-1"></i>
                     </div>
@@ -98,12 +83,8 @@
                             <label class="form-label">{{ t('products_category') }}</label>
                             <select class="form-select" id="inventoryCategoryFilter">
                                 <option value="">{{ t('inventory_all_categories') }}</option>
-                                {% set categories_seen = [] %}
-                                {% for product in products %}
-                                    {% if product.product_category and product.product_category.name not in categories_seen %}
-                                        {% if categories_seen.append(product.product_category.name) %}{% endif %}
-                                        <option value="{{ product.product_category.id }}">{{ product.product_category.name }}</option>
-                                    {% endif %}
+                                {% for category in inventory_categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -141,8 +122,63 @@
             </div>
         </div>
 
-        <!-- Stock List -->
-        <div class="col-md-8">
+        <div class="col-12 mb-4">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Smart Inventar Tahlili</h5>
+                    <span class="badge bg-info text-dark text-capitalize">{{ plan_details.label }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-light border">
+                                <h6 class="mb-2">Jami mahsulotlar</h6>
+                                <div class="fs-4 fw-bold">{{ stock_stats.total_products }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-warning bg-opacity-10 border border-warning">
+                                <h6 class="mb-2">Kam zaxira</h6>
+                                <div class="fs-4 fw-bold text-warning">{{ stock_stats.low_stock_count }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded bg-danger bg-opacity-10 border border-danger">
+                                <h6 class="mb-2">Tugagan</h6>
+                                <div class="fs-4 fw-bold text-danger">{{ stock_stats.out_of_stock_count }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <p class="mb-1"><strong>Reja tavsifi:</strong> {{ plan_details.description }}</p>
+                        <p class="mb-0 text-muted">{{ insight_summary|join(' ') }}</p>
+                    </div>
+                    <div class="mt-3">
+                        <div class="badge bg-{{ 'success' if plan_details.ai_enabled else 'secondary' }} mb-2">
+                            {{ 'AI hisobotlari mavjud' if plan_details.ai_enabled else 'AI analiz yo‘q' }}
+                        </div>
+                        {% if stock_stats.recommendations %}
+                        <div>
+                            <h6 class="mb-2">Reorder tavsiyalari</h6>
+                            <ul class="list-group list-group-flush small">
+                                {% for product in stock_stats.recommendations[:3] %}
+                                <li class="list-group-item p-2">
+                                    <strong>{{ product.name }}</strong> — {{ product.stock_quantity or 0 }} {{ product.unit }}
+                                    {% if product.stock_quantity is not none and product.stock_quantity <= product.min_stock_alert %}
+                                        <span class="badge bg-warning text-dark ms-2">Kam</span>
+                                    {% else %}
+                                        <span class="badge bg-danger ms-2">Tugagan</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock List -->
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul"></i> {{ t('inventory_list') }}</h5>
@@ -198,6 +234,67 @@
             </div>
         </div>
     </div>
+
+    <audio id="inventory-alert-sound"></audio>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryFilter = document.getElementById('inventoryCategoryFilter');
+        const productSelect = document.getElementById('product_id');
+        const alertSound = document.getElementById('inventory-alert-sound');
+        const lowStockCount = {{ stock_stats.low_stock_count if stock_stats else 0 }};
+        const outOfStockCount = {{ stock_stats.out_of_stock_count if stock_stats else 0 }};
+
+        const playNotification = () => {
+            if ('speechSynthesis' in window) {
+                const message = new SpeechSynthesisUtterance('Diqqat! Inventarizatsiyada kam zaxira yoki tugagan mahsulotlar mavjud.');
+                message.lang = 'uz-UZ';
+                speechSynthesis.speak(message);
+            }
+            if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 660;
+                gainNode.gain.value = 0.15;
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                    audioContext.close();
+                }, 250);
+            }
+        };
+
+        if (lowStockCount > 0 || outOfStockCount > 0) {
+            playNotification();
+        }
+
+        if (categoryFilter && productSelect) {
+            const allOptions = Array.from(productSelect.querySelectorAll('option'));
+            const selectText = '{{ t("inventory_select") }}';
+            categoryFilter.addEventListener('change', function() {
+                const selectedCategoryId = this.value;
+                productSelect.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = selectText;
+                productSelect.appendChild(defaultOption);
+                allOptions.forEach(option => {
+                    if (option.value === '') return;
+                    const categoryId = option.dataset.categoryId;
+                    if (!selectedCategoryId || categoryId === selectedCategoryId) {
+                        productSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+            });
+        }
+    });
+    </script>
+
 </div>
 
 <script>

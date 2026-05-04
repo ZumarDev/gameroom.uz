@@ -38,6 +38,7 @@ def admin_create_user():
         user.username = username
         user.gaming_center_name = (form.gaming_center_name.data or "").strip()
         set_user_password(user, form.password.data)
+        user.subscription_plan = form.subscription_plan.data or 'basic'
         if getattr(form, "subscription_days", None) and form.subscription_days.data:
             user.subscription_expires_at = datetime.utcnow() + timedelta(days=int(form.subscription_days.data))
         db.session.add(user)

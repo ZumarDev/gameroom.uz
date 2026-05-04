@@ -40,6 +40,16 @@
               {% endif %}
             </div>
 
+            <div class="mb-4">
+              <label class="form-label">Tarif rejasi</label>
+              {{ form.subscription_plan(class="form-select") }}
+              {% if form.subscription_plan.errors %}
+                <div class="text-danger small mt-1">
+                  {% for error in form.subscription_plan.errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
             <div class="mb-3">
               <label class="form-label">{{ t('auth_password') }}</label>
               {{ form.password(class="form-control", placeholder=t('auth_password')) }}

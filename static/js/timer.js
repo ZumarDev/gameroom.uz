@@ -18,7 +18,8 @@ class SessionTimer {
             sessionType: sessionType,
             duration: duration ? parseInt(duration) : null,
             lastFetchAt: 0,
-            cachedData: null
+            cachedData: null,
+            alertedLow: false
         });
             
             this.startTimer(sessionId);
@@ -120,6 +121,10 @@ class SessionTimer {
                             <small class="text-danger">qoldi!</small>
                         </div>`;
                     timeDisplay.parentElement.classList.add('text-danger');
+                    if (!timer.alertedLow) {
+                        this.playTimerAlert();
+                        timer.alertedLow = true;
+                    }
                 } else if (data.remaining_seconds <= 600) { // 10 minutes
                     timeDisplay.innerHTML = isMini
                         ? `<span class="text-warning fw-semibold">${remainingTime}</span> <span class="text-warning">qoldi</span>`
@@ -169,7 +174,30 @@ class SessionTimer {
             return `${minutes}:${secs.toString().padStart(2, '0')}`;
         }
     }
+    playTimerAlert() {
+        if ('speechSynthesis' in window) {
+            const message = new SpeechSynthesisUtterance('Seansga 5 daqiqa qoldi.');
+            message.lang = 'uz-UZ';
+            speechSynthesis.speak(message);
+        }
 
+        if ('AudioContext' in window || 'webkitAudioContext' in window) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioContext = new AudioContext();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.type = 'triangle';
+            oscillator.frequency.value = 720;
+            gainNode.gain.value = 0.12;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            setTimeout(() => {
+                oscillator.stop();
+                audioContext.close();
+            }, 300);
+        }
+    }
     stopTimer(sessionId) {
         if (this.intervals.has(sessionId)) {
             clearInterval(this.intervals.get(sessionId));
