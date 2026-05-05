@@ -10,8 +10,8 @@ from werkzeug.security import check_password_hash
 
 from app import app, db, is_superadmin_user
 from forms import ChangePasswordForm, LoginForm, ProfileForm, RegisterForm, ResetPasswordForm
-from models import AdminUser
-from route_helpers import set_user_password, subscription_days_left
+from models import AdminUser, Product, ProductCategory
+from route_helpers import build_plan_usage, get_plan_catalog, get_plan_config, set_user_password, subscription_days_left
 from translations import t
 
 
@@ -121,7 +121,18 @@ def profile():
 
     form.gaming_center_name.data = current_user.gaming_center_name
     days_left = subscription_days_left(current_user)
-    return render_template('profile.html', form=form, subscription_days_left=days_left)
+    total_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    total_categories = ProductCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
+    plan_details = get_plan_config(current_user)
+    plan_usage = build_plan_usage(plan_details, total_products, total_categories)
+    return render_template(
+        'profile.html',
+        form=form,
+        subscription_days_left=days_left,
+        plan_details=plan_details,
+        plan_catalog=get_plan_catalog(),
+        plan_usage=plan_usage,
+    )
 
 
 @app.route('/profile/remove-logo', methods=['POST'])

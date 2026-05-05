@@ -1,0 +1,49 @@
+<div class="modal fade" id="planComparisonModal" tabindex="-1" aria-labelledby="planComparisonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content plan-modal">
+            <div class="modal-header border-0">
+                <div>
+                    <h5 class="modal-title" id="planComparisonModalLabel">Tariflar taqqoslanishi</h5>
+                    <p class="text-muted mb-0">Qaysi rejada qanday limit va imkoniyat borligi shu yerda ko'rinadi.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    {% for plan in plan_catalog %}
+                    <div class="col-lg-4">
+                        <div class="card h-100 plan-tier-card {% if plan.plan == plan_details.plan %}is-current{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3 gap-3">
+                                    <div>
+                                        <h4 class="mb-1">{{ plan.label }}</h4>
+                                        <p class="text-muted mb-0">{{ plan.description }}</p>
+                                    </div>
+                                    {% if plan.plan == plan_details.plan %}
+                                    <span class="badge bg-success">Joriy reja</span>
+                                    {% endif %}
+                                </div>
+                                <div class="plan-feature-list">
+                                    {% for feature in plan.feature_points %}
+                                    <div class="plan-feature-item">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        <span>{{ feature }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if plan_usage and plan_usage.warnings %}
+                <div class="alert alert-warning mt-4 mb-0" role="alert">
+                    {% for warning in plan_usage.warnings %}
+                    <div>{{ warning }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
