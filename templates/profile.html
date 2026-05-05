@@ -44,6 +44,69 @@
 </div>
 {% endif %}
 
+{% if plan_details and plan_usage %}
+<div class="row justify-content-center mb-3">
+    <div class="col-md-10 col-lg-8">
+        <div class="card plan-summary-card">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                    <div>
+                        <div class="small text-uppercase text-muted mb-1">Joriy tarif</div>
+                        <h4 class="mb-1">{{ plan_details.label }}</h4>
+                        <p class="text-muted mb-0">{{ plan_details.description }}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-{{ 'success' if plan_details.ai_enabled else 'secondary' }}">{{ 'AI tahlil yoqilgan' if plan_details.ai_enabled else 'AI tahlil yopiq' }}</span>
+                        <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#planComparisonModal">
+                            Tariflarni ko'rish
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="usage-card">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Mahsulotlar</span>
+                                <strong>{{ plan_usage.products.label }}</strong>
+                            </div>
+                            {% if plan_usage.products.percent is not none %}
+                            <div class="progress usage-progress">
+                                <div class="progress-bar bg-info" style="width: {{ plan_usage.products.percent }}%"></div>
+                            </div>
+                            {% else %}
+                            <div class="text-muted small">Cheksiz mahsulot limiti</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="usage-card">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Kategoriyalar</span>
+                                <strong>{{ plan_usage.categories.label }}</strong>
+                            </div>
+                            {% if plan_usage.categories.percent is not none %}
+                            <div class="progress usage-progress">
+                                <div class="progress-bar bg-warning" style="width: {{ plan_usage.categories.percent }}%"></div>
+                            </div>
+                            {% else %}
+                            <div class="text-muted small">Cheksiz kategoriya limiti</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% if plan_usage.warnings %}
+                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                    {% for warning in plan_usage.warnings %}
+                    <div>{{ warning }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-5">
         <div class="card">
@@ -146,4 +209,5 @@ function confirmRemoveLogo() {
     }
 }
 </script>
+{% include 'partials/plan_comparison_modal.html' %}
 {% endblock %}

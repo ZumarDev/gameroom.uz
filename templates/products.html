@@ -13,8 +13,22 @@
             </h1>
             <p class="lead text-muted">{{ t('nav_products') }}</p>
             {% if plan_details %}
-            <div class="alert alert-info py-2 mt-3 products-plan-alert" role="alert">
-                <strong>{{ plan_details.label }} tarif:</strong> {{ plan_details.description }}
+            <div class="alert alert-info py-3 mt-3 products-plan-alert" role="alert">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div>
+                        <strong>{{ plan_details.label }} tarif:</strong> {{ plan_details.description }}
+                        {% if plan_usage %}
+                        <div class="small mt-2">
+                            Mahsulotlar: {{ plan_usage.products.label }}.
+                            Kategoriyalar: {{ plan_usage.categories.label }}.
+                            {{ 'AI tahlil mavjud.' if plan_details.ai_enabled else 'AI tahlil Standard va Premium da mavjud.' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#planComparisonModal">
+                        Tarif tafsilotlari
+                    </button>
+                </div>
             </div>
             {% endif %}
         </div>
@@ -218,6 +232,7 @@
         </div>
     </div>
 </div>
+{% include 'partials/plan_comparison_modal.html' %}
 <!-- Add Product Modal -->
 <div class="modal fade products-modal" id="addProductModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">

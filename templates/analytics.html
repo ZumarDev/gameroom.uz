@@ -15,6 +15,30 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card plan-summary-card">
+            <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div>
+                    <div class="small text-uppercase text-muted mb-1">Tarif va AI holati</div>
+                    <h4 class="mb-1">{{ plan_details.label }}</h4>
+                    <p class="text-muted mb-0">{{ plan_details.description }}</p>
+                </div>
+                <div class="d-flex flex-column flex-sm-row gap-2 align-items-sm-center">
+                    <span class="badge bg-{{ 'success' if plan_details.ai_enabled else 'secondary' }}">
+                        {{ 'AI maslahatlar yoqilgan' if plan_details.ai_enabled else 'AI maslahatlar yopiq' }}
+                    </span>
+                    <span class="badge bg-info text-dark">Mahsulot: {{ plan_usage.products.label }}</span>
+                    <span class="badge bg-warning text-dark">Kategoriya: {{ plan_usage.categories.label }}</span>
+                    <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#planComparisonModal">
+                        Tariflarni solishtirish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Date Selection and Report Type -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -31,7 +55,7 @@
     </div>
     <div class="col-md-3" id="weeklyDateSection" {% if report_type != 'weekly' %}style="display: none;"{% endif %}>
         <label class="form-label fw-bold">{{ t('analytics_week') }}:</label>
-        <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_date }}">
+        <input type="date" class="form-control" id="selectedWeekDate" value="{{ current_week_date }}">
         <small class="text-muted">{{ t('analytics_custom') }}</small>
     </div>
     <div class="col-md-3" id="monthlyDateSection" {% if report_type != 'monthly' %}style="display: none;"{% endif %}>
@@ -59,6 +83,40 @@
                         <i class="bi bi-calendar-month"></i> {{ t('analytics_month') }}
                     </a></li>
                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card ai-insights-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-stars"></i> AI tavsiyalar</h5>
+                <span class="badge bg-{{ 'success' if plan_details.ai_enabled else 'secondary' }}">{{ plan_details.label }}</span>
+            </div>
+            <div class="card-body">
+                {% if plan_details.ai_enabled and ai_insights %}
+                <div class="row g-3">
+                    {% for insight in ai_insights %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="ai-insight-item tone-{{ insight.tone }}">
+                            <div class="ai-insight-icon">
+                                <i class="bi {{ insight.icon }}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ insight.title }}</h6>
+                                <p class="mb-0 text-muted">{{ insight.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-secondary mb-0" role="alert">
+                    Standard yoki Premium tarifida hisobotdan kelib chiqadigan AI maslahatlar shu yerda avtomatik ko'rsatiladi.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -127,11 +185,6 @@
                             <h4 class="text-primary">{{ "{:,.0f}".format(session_revenue) }}</h4>
                             <p class="text-muted">{{ t('analytics_game_sessions') }}</p>
                             <div class="progress mb-2">
-                                {% if monthly_revenue > 0 %}
-                                    {% set session_percent = (session_revenue / monthly_revenue) * 100 %}
-                                {% else %}
-                                    {% set session_percent = 0 %}
-                                {% endif %}
                                 <div class="progress-bar bg-primary" style="width: {{ "%.1f"|format(session_percent) }}%"></div>
                             </div>
                             <small>{{ t('analytics_total') }} {{ "{:.1f}".format(session_percent) }}%</small>
@@ -142,11 +195,6 @@
                             <h4 class="text-success">{{ "{:,.0f}".format(products_revenue) }}</h4>
                             <p class="text-muted">{{ t('analytics_sold_products') }}</p>
                             <div class="progress mb-2">
-                                {% if monthly_revenue > 0 %}
-                                    {% set products_percent = (products_revenue / monthly_revenue) * 100 %}
-                                {% else %}
-                                    {% set products_percent = 0 %}
-                                {% endif %}
                                 <div class="progress-bar bg-success" style="width: {{ "%.1f"|format(products_percent) }}%"></div>
                             </div>
                             <small>{{ t('analytics_total') }} {{ "{:.1f}".format(products_percent) }}%</small>
@@ -166,40 +214,28 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <span>{{ t('analytics_avg_session_value') }}</span>
-                        <strong>
-                            {% if monthly_sessions > 0 %}
-                                {{ "{:,.0f}".format(monthly_revenue / monthly_sessions) }} {{ t('currency') }}
-                            {% else %}
-                                0 {{ t('currency') }}
-                            {% endif %}
-                        </strong>
+                        <strong>{{ "{:,.0f}".format(avg_session_value) }} {{ t('currency') }}</strong>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <span>{{ t('analytics_avg_product_per_session') }}</span>
-                        <strong>
-                            {% if monthly_sessions > 0 %}
-                                {{ "{:.1f}".format(products_revenue / session_revenue * 100) if session_revenue > 0 else 0 }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        </strong>
+                        <strong>{{ "{:.1f}".format(products_percent) }}%</strong>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <span>{{ t('analytics_daily_average') }}</span>
-                        <strong>{{ "{:,.0f}".format(monthly_revenue / 30) }} {{ t('currency') }}</strong>
+                        <strong>{{ "{:,.0f}".format(daily_average_revenue) }} {{ t('currency') }}</strong>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between">
                         <span>{{ t('analytics_sessions_per_day') }}</span>
-                        <strong>{{ "{:.1f}".format(monthly_sessions / 30) }}</strong>
+                        <strong>{{ "{:.1f}".format(sessions_per_day) }}</strong>
                     </div>
                 </div>
             </div>
@@ -225,8 +261,8 @@
                         <p class="text-muted">{{ t('analytics_this_week_sessions') }}</p>
                     </div>
                     <div class="col-md-3">
-                        <h4 class="text-info">{{ monthly_sessions }}</h4>
-                        <p class="text-muted">{{ t('analytics_this_month_sessions') }}</p>
+                        <h4 class="text-info">{{ main_sessions }}</h4>
+                        <p class="text-muted">Tanlangan davr seanslari</p>
                     </div>
                     <div class="col-md-3">
                         <h4 class="text-warning">
@@ -403,6 +439,7 @@
         </div>
     </div>
 </div>
+{% include 'partials/plan_comparison_modal.html' %}
 
 <!-- Cleanup Section (bottom) -->
 <div class="row mt-4">
@@ -438,7 +475,8 @@ function downloadPDFReport(reportType) {
             new Date(document.getElementById('selectedWeekDate').value) : 
             new Date();
         const weekStart = new Date(baseDate);
-        weekStart.setDate(baseDate.getDate() - baseDate.getDay());
+        const offset = (baseDate.getDay() + 6) % 7;
+        weekStart.setDate(baseDate.getDate() - offset);
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
         startDate = weekStart.toISOString().split('T')[0];

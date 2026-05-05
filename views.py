@@ -24,6 +24,7 @@ from app import app, db, TASHKENT_TZ, get_tashkent_time, is_superadmin_user
 from models import AdminUser, Room, RoomCategory, ProductCategory, Product, Session, CartItem, FIXED_SESSION_PRICES
 from forms import LoginForm, RoomForm, RoomCategoryForm, ProductCategoryForm, ProductForm, SessionForm, AddProductToSessionForm, RegisterForm, AdminCreateUserForm, StockUpdateForm, InventoryForm, ChangePasswordForm, ResetPasswordForm, ProfileForm, QuickAddProductForm, ExcelImportForm, ReportForm
 from werkzeug.security import generate_password_hash
+from route_helpers import build_plan_usage, get_plan_catalog, get_plan_config
 from translations import get_translation, get_all_translations, get_languages, t, DEFAULT_LANGUAGE
 from flask import session, g
 import views_core  # noqa: F401
@@ -31,37 +32,6 @@ import views_auth  # noqa: F401
 import views_admin  # noqa: F401
 import views_dashboard  # noqa: F401
 import views_reports  # noqa: F401
-
-
-def get_plan_config(user):
-    plan = (getattr(user, 'subscription_plan', None) or 'basic').lower()
-    definitions = {
-        'basic': {
-            'plan': 'basic',
-            'label': 'Basic',
-            'max_products': 25,
-            'max_categories': 5,
-            'ai_enabled': False,
-            'description': 'Bosh rejadagi imkoniyatlar: kichik inventar va cheklangan tahlil.'
-        },
-        'standard': {
-            'plan': 'standard',
-            'label': 'Standard',
-            'max_products': 75,
-            'max_categories': 12,
-            'ai_enabled': True,
-            'description': 'Standard rejada AI insightlar va kengroq hisobotlar mavjud.'
-        },
-        'premium': {
-            'plan': 'premium',
-            'label': 'Premium',
-            'max_products': None,
-            'max_categories': None,
-            'ai_enabled': True,
-            'description': 'Premium rejada cheksiz inventar va to‘liq tahlil taqdim etiladi.'
-        }
-    }
-    return definitions.get(plan, definitions['basic'])
 
 
 @app.route('/rooms-management')
@@ -233,12 +203,15 @@ def products():
     category_form = ProductCategoryForm()
     
     plan_details = get_plan_config(current_user)
+    plan_usage = build_plan_usage(plan_details, len(products_list), len(categories_list))
     return render_template('products.html', 
                          products=products_list, 
                          categories=categories_list,
                          form=form,
                          category_form=category_form,
-                         plan_details=plan_details)
+                         plan_details=plan_details,
+                         plan_catalog=get_plan_catalog(),
+                         plan_usage=plan_usage)
 
 @app.route('/products/add', methods=['POST'])
 @login_required
@@ -398,6 +371,11 @@ def inventory():
 
     plan_details = get_plan_config(current_user)
     current_plan = plan_details['plan']
+    inventory_category_count = ProductCategory.query.filter_by(
+        admin_user_id=current_user.id,
+        is_active=True
+    ).count()
+    plan_usage = build_plan_usage(plan_details, len(products_list), inventory_category_count)
 
     low_stock_items = [
         p for p in products_list
@@ -452,6 +430,8 @@ def inventory():
                          products=products_list, 
                          form=inventory_form,
                          plan_details=plan_details,
+                         plan_catalog=get_plan_catalog(),
+                         plan_usage=plan_usage,
                          current_plan=current_plan,
                          stock_stats=stock_stats,
                          insight_summary=insight_summary,
