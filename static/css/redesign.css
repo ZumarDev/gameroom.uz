@@ -444,3 +444,79 @@ body.gaming-body, body.guest-body { color: #1d2939; background: #f5f7fa; }
     .sidebar-scrim { background: rgba(31,41,55,.38); }
     .mobile-nav-toggle { color: #475467; background: #fff; border-color: #e1e5ec; }
 }
+
+/* Keep legacy status cards and modal variants readable in the light theme. */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-danger,
+.card.bg-warning,
+.card.bg-gradient-primary {
+    color: #344054 !important;
+    background-image: none !important;
+    border-color: #e1e5ec !important;
+}
+.card.bg-primary, .card.bg-gradient-primary { background-color: #f1f1ff !important; }
+.card.bg-success { background-color: #edf7f0 !important; }
+.card.bg-info { background-color: #edf7fa !important; }
+.card.bg-warning { background-color: #fff7e5 !important; }
+.card.bg-danger { background-color: #fff1ef !important; }
+.card.bg-primary.text-white, .card.bg-success.text-white, .card.bg-info.text-white,
+.card.bg-danger.text-white, .card.bg-warning.text-white, .card.bg-gradient-primary.text-white,
+.card.bg-primary.text-white *, .card.bg-success.text-white *, .card.bg-info.text-white *,
+.card.bg-danger.text-white *, .card.bg-warning.text-white *, .card.bg-gradient-primary.text-white * {
+    color: #344054 !important;
+}
+.card.bg-success.bg-opacity-10 { color: #28573a !important; background: #f0f8f2 !important; border-color: #cfe6d5 !important; }
+.card.bg-danger.bg-opacity-10 { color: #7d3430 !important; background: #fff4f2 !important; border-color: #efd2ce !important; }
+.card-header.bg-primary, .card-header.bg-success, .card-header.bg-info,
+.card-header.bg-danger, .card-header.bg-warning {
+    color: #344054 !important;
+    background-color: #f5f6f8 !important;
+    border-bottom-color: #e4e8ef !important;
+}
+.card-header.bg-primary *, .card-header.bg-success *, .card-header.bg-info *,
+.card-header.bg-danger *, .card-header.bg-warning * { color: #344054 !important; }
+.modal-header.bg-primary, .modal-header.bg-success, .modal-header.bg-info,
+.modal-header.bg-danger, .modal-header.bg-warning {
+    color: #344054 !important;
+    background-color: #f5f6f8 !important;
+    border-bottom-color: #e4e8ef !important;
+}
+.modal-header.bg-primary *, .modal-header.bg-success *, .modal-header.bg-info *,
+.modal-header.bg-danger *, .modal-header.bg-warning * { color: #344054 !important; }
+.products-modal .modal-content { color: #344054; background: #fff !important; border-color: #e4e8ef; }
+.products-modal .modal-header, .products-modal .modal-body { color: #344054; background: #fff; }
+.products-modal .modal-header { border-bottom: 1px solid #eaedf2; }
+.plan-modal { color: #344054; background: #fff !important; border-color: #e4e8ef; }
+.plan-modal *, .products-modal .modal-content * { --bs-body-color: #344054; }
+.plan-summary-card, .ai-insights-card, .plan-tier-card, .usage-card {
+    color: #344054;
+    background: #fff;
+    border: 1px solid #e4e8ef;
+    box-shadow: var(--shadow-card);
+}
+.usage-card { background: #f8f9fb; }
+.usage-progress { background: #edf0f5; }
+.plan-tier-card.is-current { border-color: #aaa5ff; box-shadow: 0 0 0 1px rgba(99,91,255,.12), var(--shadow-card); }
+.products-plan-alert { color: #475467; background: #f3f4ff; border: 1px solid #e4e3ff; }
+.product-card { color: #344054; background: #fff; border: 1px solid #e4e8ef; box-shadow: var(--shadow-card); }
+.product-card .product-price, .product-card .product-meta { color: #475467; }
+.product-card .product-category-badge { color: #3551a4; background: #eaf0ff !important; }
+.empty-state-card { color: #475467; background: #fff; border-color: #d8dee8; }
+.admin-users-hero::after { display: none; }
+.admin-users-stat-card, .admin-user-card { color: #344054; background: #fff; border: 1px solid #e4e8ef; box-shadow: var(--shadow-card); }
+.admin-users-stat-icon { color: #5147db; background: #f0efff; }
+.admin-users-stat-icon.success { color: #16834b; background: #e8f5ed; }
+.admin-users-stat-icon.warning { color: #8a5700; background: #fff4d6; }
+.admin-users-stat-value { color: #1d2939; }
+.admin-users-stat-label { color: #667085; }
+.admin-user-avatar { color: #5147db; background: #efeeff; border-color: #dedcff; }
+.admin-user-title { color: #1d2939; }
+.admin-user-company, .admin-user-meta-label { color: #667085; }
+.admin-user-meta-block { color: #344054; background: #f8f9fb; border-color: #e4e8ef; }
+.admin-user-validity strong { color: #344054; }
+.admin-soft-badge.success { color: #146c43; background: #e8f5ed; border-color: #cce8d6; }
+.admin-soft-badge.danger { color: #b42318; background: #fcebea; border-color: #f0d0cd; }
+.admin-soft-badge.primary { color: #5147db; background: #efeeff; border-color: #dedcff; }
+.admin-soft-badge.info { color: #17647c; background: #e4f4f8; border-color: #c7e8ef; }
