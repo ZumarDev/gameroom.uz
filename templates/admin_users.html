@@ -5,25 +5,15 @@
 {% macro password_field(user) -%}
   {% if user.password_plain %}
   <div class="input-group input-group-sm admin-password-group">
-    <input
-      type="password"
-      class="form-control admin-password-field"
-      value="{{ user.password_plain }}"
-      readonly
-      data-visible-label="{{ t('admin_users_hide_password') }}"
-      data-hidden-label="{{ t('admin_users_show_password') }}"
+    <input type="password" class="form-control admin-password-field" value="{{ user.password_plain }}" readonly
+      data-visible-label="{{ t('admin_users_hide_password') }}" data-hidden-label="{{ t('admin_users_show_password') }}"
       aria-label="{{ t('auth_password') }}">
-    <button
-      type="button"
-      class="btn btn-outline-secondary admin-password-toggle"
-      aria-label="{{ t('admin_users_show_password') }}"
-      title="{{ t('admin_users_show_password') }}">
+    <button type="button" class="btn btn-outline-secondary admin-password-toggle"
+      aria-label="{{ t('admin_users_show_password') }}" title="{{ t('admin_users_show_password') }}">
       <i class="bi bi-eye"></i>
     </button>
   </div>
-  {% else %}
-  <span class="text-muted small">{{ t('admin_users_password_unavailable') }}</span>
-  {% endif %}
+  {% else %}<span class="text-muted small">{{ t('admin_users_password_unavailable') }}</span>{% endif %}
 {%- endmacro %}
 
 {% macro user_actions(user, days_left) -%}
@@ -173,7 +163,6 @@
         <div class="admin-user-meta-label">{{ t('auth_password') }}</div>
         {{ password_field(user) }}
       </div>
-
       <div class="admin-user-meta-block">
         <div class="admin-user-meta-label">{{ t('admin_users_validity') }}</div>
         {% if user.subscription_expires_at %}
@@ -210,19 +199,15 @@
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.admin-password-toggle');
     if (!button) return;
-
-    const wrapper = button.closest('.input-group');
-    const input = wrapper ? wrapper.querySelector('.admin-password-field') : null;
+    const input = button.closest('.input-group')?.querySelector('.admin-password-field');
     const icon = button.querySelector('i');
     if (!input || !icon) return;
-
-    const hidden = input.type === 'password';
-    input.type = hidden ? 'text' : 'password';
-    icon.className = hidden ? 'bi bi-eye-slash' : 'bi bi-eye';
-
-    const nextLabel = hidden ? input.dataset.visibleLabel : input.dataset.hiddenLabel;
-    button.setAttribute('aria-label', nextLabel);
-    button.setAttribute('title', nextLabel);
+    const reveal = input.type === 'password';
+    input.type = reveal ? 'text' : 'password';
+    icon.className = reveal ? 'bi bi-eye-slash' : 'bi bi-eye';
+    const label = reveal ? input.dataset.visibleLabel : input.dataset.hiddenLabel;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
   });
 </script>
 {% endblock %}

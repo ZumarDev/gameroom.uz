@@ -27,7 +27,7 @@ echo -e "${YELLOW}📁 Loyiha papkasi: ${PROJECT_DIR}${NC}"
 if [ ! -f .env ]; then
     echo -e "${YELLOW}⚙️  .env fayli yaratilmoqda...${NC}"
     echo "SESSION_SECRET=$(openssl rand -hex 32)" > .env
-    echo "SECRET_ADMIN_KEY=gameroom2026" >> .env
+    echo "SECRET_ADMIN_KEY=$(openssl rand -hex 32)" >> .env
     echo -e "${GREEN}✅ .env fayli yaratildi${NC}"
 else
     echo -e "${GREEN}✅ .env fayli mavjud${NC}"

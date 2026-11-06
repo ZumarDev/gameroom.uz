@@ -3,26 +3,29 @@
 {% block title %}{{ t('sessions_title') }} - Gameroom{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 text-center">
-        <div class="page-header">
-            <h1 class="display-5 fw-bold">
-                <i class="bi bi-play-circle"></i> {{ t('sessions_title') }}
-            </h1>
-            <p class="lead text-muted">{{ t('nav_sessions') }}</p>
-        </div>
-        <div class="btn-group mt-3">
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#startSessionModal">
-                <i class="bi bi-plus"></i> {{ t('sessions_new') }}
-            </button>
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#multipleSessionModal">
-                <i class="bi bi-grid-3x3"></i> {{ t('rooms_list') }}
-            </button>
-            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#roomsStatusModal">
-                <i class="bi bi-house-door"></i> {{ t('dashboard_rooms_status') }}
-            </button>
-        </div>
+<section class="page-heading-row">
+    <div class="page-header">
+        <h1><i class="bi bi-stopwatch-fill"></i> {{ t('sessions_title') }}</h1>
+        <p>{{ t('nav_sessions') }}</p>
     </div>
+    <div class="page-actions">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#multipleSessionModal">
+            <i class="bi bi-grid-3x3 me-1"></i> {{ t('rooms_list') }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#roomsStatusModal">
+            <i class="bi bi-display me-1"></i> {{ t('dashboard_rooms_status') }}
+        </button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#startSessionModal">
+            <i class="bi bi-plus-lg me-1"></i> {{ t('sessions_new') }}
+        </button>
+    </div>
+</section>
+
+<div class="row g-3 ops-overview mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="ops-overview-card"><span class="ops-icon is-live"><i class="bi bi-activity"></i></span><div><small>{{ t('sessions_active') }}</small><strong>{{ active_sessions|length }}</strong></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="ops-overview-card"><span class="ops-icon"><i class="bi bi-display"></i></span><div><small>{{ t('dashboard_available_rooms') }}</small><strong>{{ available_rooms|length }}</strong></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="ops-overview-card"><span class="ops-icon"><i class="bi bi-receipt"></i></span><div><small>{{ t('sessions_completed') }}</small><strong>{{ filtered_count }}</strong></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="ops-overview-card"><span class="ops-icon is-revenue"><i class="bi bi-wallet2"></i></span><div><small>{{ t('analytics_session_revenue') }}</small><strong class="ops-currency">{{ "{:,.0f}".format(filtered_total_sum) }} <small>{{ t('currency') }}</small></strong></div></div></div>
 </div>
 
 <!-- Active Sessions -->

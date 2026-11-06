@@ -140,7 +140,7 @@ GameRoom.uz da ro'yxatdan o'tish **default holatda ochiq emas** (login sahifada 
    - `ALLOW_PUBLIC_REGISTRATION=true`
 2. Brauzerda `/register` sahifasiga kiring
 3. Foydalanuvchi nomi, parol, o'yinxona nomini kiriting
-4. Admin kalitini kiriting (`SECRET_ADMIN_KEY`, standart: `gameroom2026`)
+4. `.env` dagi kuchli `SECRET_ADMIN_KEY` qiymatini kiriting. Uni `openssl rand -hex 32` bilan yaratish mumkin.
 5. Ro'yxatdan o'tgandan keyin `.env` ni qayta sozlang:
    - `SUPERADMIN_USERS=<sizning_username>` (masalan: `SUPERADMIN_USERS=admin`)
    - `ALLOW_PUBLIC_REGISTRATION=false`
@@ -204,8 +204,8 @@ gameroom.uz/
 
 | O'zgaruvchi | Tavsif | Standart |
 |-------------|--------|----------|
-| `SESSION_SECRET` | Flask session kaliti | Avtomatik yaratiladi |
-| `SECRET_ADMIN_KEY` | Admin ro'yxatdan o'tish kaliti | `gameroom2026` |
+| `SESSION_SECRET` | Flask session kaliti | `start.sh` birinchi ishga tushganda yaratadi |
+| `SECRET_ADMIN_KEY` | Admin ro'yxatdan o'tish va parolni tiklash kaliti | `start.sh` birinchi ishga tushganda yaratadi |
 | `DATABASE_URL` | Ma'lumotlar bazasi URL | `sqlite:///gaming_center.db` |
 | `SUPERADMIN_USERS` | Superadmin username'lar (vergul bilan) | *(bo'sh bo'lsa: id=1 superadmin)* |
 | `ALLOW_PUBLIC_REGISTRATION` | `/register` ni vaqtincha yoqish/o'chirish | `false` |

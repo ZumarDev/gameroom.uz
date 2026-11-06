@@ -55,8 +55,8 @@ def register():
 
     form = RegisterForm()
     if form.validate_on_submit():
-        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'gameroom2026')
-        if form.secret_key.data != secret_key:
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', '').strip()
+        if not secret_key or not secrets.compare_digest(form.secret_key.data or '', secret_key):
             flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('register.html', form=form)
 
@@ -173,8 +173,8 @@ def change_password():
 def reset_password():
     form = ResetPasswordForm()
     if form.validate_on_submit():
-        secret_key = os.environ.get('SECRET_ADMIN_KEY', 'gameroom2026')
-        if form.secret_key.data != secret_key:
+        secret_key = os.environ.get('SECRET_ADMIN_KEY', '').strip()
+        if not secret_key or not secrets.compare_digest(form.secret_key.data or '', secret_key):
             flash(t('msg_secret_key_invalid'), 'danger')
             return render_template('reset_password.html', form=form)
 
