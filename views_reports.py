@@ -1,4 +1,3 @@
-from collections import Counter
 from datetime import datetime, timedelta
 from io import BytesIO
 
@@ -12,7 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from sqlalchemy import func
+from sqlalchemy import case, func
 from sqlalchemy.orm import selectinload
 
 from app import app, db, get_tashkent_time, utc_to_tashkent
@@ -41,20 +40,84 @@ except Exception:
 @app.route('/analytics')
 @login_required
 def analytics():
-    def load_sessions(start_utc, end_utc):
+    def period_filters(start_utc, end_utc):
         return (
-            Session.query.join(Room)
-            .filter(
-                Room.admin_user_id == current_user.id,
-                Session.is_active == False,
-                Session.created_at >= start_utc,
-                Session.created_at < end_utc,
+            Room.admin_user_id == current_user.id,
+            Session.is_active.is_(False),
+            Session.created_at >= start_utc,
+            Session.created_at < end_utc,
+        )
+
+    def load_period_report(start_utc, end_utc):
+        filters = period_filters(start_utc, end_utc)
+        total_sessions, total_revenue, session_revenue, products_revenue, sessions_with_sales = (
+            db.session.query(
+                func.count(Session.id),
+                func.coalesce(func.sum(Session.total_price), 0.0),
+                func.coalesce(func.sum(Session.session_price), 0.0),
+                func.coalesce(func.sum(Session.products_total), 0.0),
+                func.coalesce(func.sum(case((Session.products_total > 0, 1), else_=0)), 0),
             )
-            .options(
-                selectinload(Session.room),
-                selectinload(Session.cart_items).selectinload(CartItem.product),
-            )
+            .join(Room, Session.room_id == Room.id)
+            .filter(*filters)
+            .one()
+        )
+
+        top_products = (
+            db.session.query(Product.name, func.sum(CartItem.quantity))
+            .join(CartItem, CartItem.product_id == Product.id)
+            .join(Session, CartItem.session_id == Session.id)
+            .join(Room, Session.room_id == Room.id)
+            .filter(*filters)
+            .group_by(Product.name)
+            .order_by(func.sum(CartItem.quantity).desc())
+            .limit(10)
             .all()
+        )
+        top_rooms = [
+            (room_name, {"count": count, "revenue": revenue})
+            for room_name, count, revenue in (
+                db.session.query(
+                    Room.name,
+                    func.count(Session.id),
+                    func.sum(Session.total_price),
+                )
+                .join(Session, Session.room_id == Room.id)
+                .filter(*filters)
+                .group_by(Room.name)
+                .order_by(func.sum(Session.total_price).desc())
+                .limit(10)
+                .all()
+            )
+        ]
+        sessions = (
+            Session.query.join(Room, Session.room_id == Room.id)
+            .filter(*filters)
+            .options(selectinload(Session.room))
+            .order_by(Session.created_at.desc())
+            .limit(50)
+            .all()
+        )
+        return (
+            total_sessions,
+            total_revenue,
+            session_revenue,
+            products_revenue,
+            sessions_with_sales,
+            top_products,
+            top_rooms,
+            sessions,
+        )
+
+    def load_period_totals(start_utc, end_utc):
+        return (
+            db.session.query(
+                func.count(Session.id),
+                func.coalesce(func.sum(Session.total_price), 0.0),
+            )
+            .join(Room, Session.room_id == Room.id)
+            .filter(*period_filters(start_utc, end_utc))
+            .one()
         )
 
     report_type = request.args.get('type', 'monthly')
@@ -69,7 +132,6 @@ def analytics():
 
     selected_period_days = 30
     period_label = "Tanlangan davr"
-    report_sessions_source = []
 
     if report_type == 'daily':
         if selected_date:
@@ -81,12 +143,17 @@ def analytics():
             target_date = today
 
         day_start_utc, day_end_utc = utc_range_for_tashkent_date(target_date)
-        report_sessions_source = load_sessions(day_start_utc, day_end_utc)
-        main_revenue = sum(session.total_price for session in report_sessions_source)
-        main_sessions = len(report_sessions_source)
+        (
+            main_sessions,
+            main_revenue,
+            session_revenue,
+            products_revenue,
+            sessions_with_sales,
+            top_products,
+            top_rooms,
+            report_sessions,
+        ) = load_period_report(day_start_utc, day_end_utc)
         main_title = f"Kunlik Hisobot - {target_date.strftime('%d.%m.%Y')}"
-        session_revenue = sum(session.session_price for session in report_sessions_source)
-        products_revenue = sum(session.products_total for session in report_sessions_source)
         selected_period_days = 1
         period_label = target_date.strftime('%d.%m.%Y')
         current_date = target_date.strftime('%Y-%m-%d')
@@ -102,12 +169,17 @@ def analytics():
         week_start = base_date - timedelta(days=base_date.weekday())
         week_end = week_start + timedelta(days=6)
         week_start_utc, week_end_utc = utc_range_for_tashkent_dates(week_start, week_end)
-        report_sessions_source = load_sessions(week_start_utc, week_end_utc)
-        main_revenue = sum(session.total_price for session in report_sessions_source)
-        main_sessions = len(report_sessions_source)
+        (
+            main_sessions,
+            main_revenue,
+            session_revenue,
+            products_revenue,
+            sessions_with_sales,
+            top_products,
+            top_rooms,
+            report_sessions,
+        ) = load_period_report(week_start_utc, week_end_utc)
         main_title = f"Haftalik Hisobot - {week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m.%Y')}"
-        session_revenue = sum(session.session_price for session in report_sessions_source)
-        products_revenue = sum(session.products_total for session in report_sessions_source)
         selected_period_days = 7
         period_label = f"{week_start.strftime('%d.%m')} - {week_end.strftime('%d.%m.%Y')}"
         current_week_date = base_date.strftime('%Y-%m-%d')
@@ -121,54 +193,44 @@ def analytics():
             year, month = today.year, today.month
 
         month_start_utc, month_end_utc = utc_range_for_tashkent_month(year, month)
-        report_sessions_source = load_sessions(month_start_utc, month_end_utc)
-        main_revenue = sum(session.total_price for session in report_sessions_source)
-        main_sessions = len(report_sessions_source)
+        (
+            main_sessions,
+            main_revenue,
+            session_revenue,
+            products_revenue,
+            sessions_with_sales,
+            top_products,
+            top_rooms,
+            report_sessions,
+        ) = load_period_report(month_start_utc, month_end_utc)
         month_names = ['', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
         main_title = f"Oylik Hisobot - {month_names[month]} {year}"
-        session_revenue = sum(session.session_price for session in report_sessions_source)
-        products_revenue = sum(session.products_total for session in report_sessions_source)
         selected_period_days = max((month_end_utc - month_start_utc).days, 1)
         period_label = f"{month_names[month]} {year}"
         current_month = f"{year:04d}-{month:02d}"
 
     today_start_utc, today_end_utc = utc_range_for_tashkent_date(today)
-    today_sessions = load_sessions(today_start_utc, today_end_utc)
-    today_revenue = sum(session.total_price for session in today_sessions)
+    today_count, today_revenue = load_period_totals(today_start_utc, today_end_utc)
 
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
     week_start_utc, week_end_utc = utc_range_for_tashkent_dates(week_start, week_end)
-    weekly_sessions = load_sessions(week_start_utc, week_end_utc)
-    weekly_revenue = sum(session.total_price for session in weekly_sessions)
-
-    report_sessions = sorted(report_sessions_source, key=lambda x: x.created_at, reverse=True)[:50]
-    sales_source = report_sessions_source
-
-    product_sales = Counter()
-    for sess in sales_source:
-        for item in sess.cart_items:
-            if item.product:
-                product_sales[item.product.name] += item.quantity
-    top_products = product_sales.most_common(10)
-
-    room_stats = {}
-    for sess in sales_source:
-        room_name = sess.room.name if sess.room else 'Noma\'lum'
-        if room_name not in room_stats:
-            room_stats[room_name] = {'count': 0, 'revenue': 0}
-        room_stats[room_name]['count'] += 1
-        room_stats[room_name]['revenue'] += sess.total_price
-    top_rooms = sorted(room_stats.items(), key=lambda x: x[1]['revenue'], reverse=True)[:10]
+    weekly_count, weekly_revenue = load_period_totals(week_start_utc, week_end_utc)
 
     plan_details = get_plan_config(current_user)
     total_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
     total_categories = ProductCategory.query.filter_by(admin_user_id=current_user.id, is_active=True).count()
-    inventory_products = Product.query.filter_by(admin_user_id=current_user.id, is_active=True).all()
+    inventory_products = Product.query.filter(
+        Product.admin_user_id == current_user.id,
+        Product.is_active.is_(True),
+        (Product.stock_quantity.is_(None)) | (Product.stock_quantity <= Product.min_stock_alert),
+    ).all()
     plan_usage = build_plan_usage(plan_details, total_products, total_categories)
     ai_insights = generate_ai_report_insights(
         plan_details=plan_details,
-        report_sessions=sales_source,
+        report_sessions=report_sessions,
+        total_sessions_count=main_sessions,
+        sessions_with_product_sales_count=sessions_with_sales,
         total_revenue=main_revenue,
         session_revenue=session_revenue,
         products_revenue=products_revenue,
@@ -195,9 +257,9 @@ def analytics():
         main_sessions=main_sessions,
         main_title=main_title,
         daily_revenue=today_revenue,
-        daily_sessions=len(today_sessions),
+        daily_sessions=today_count,
         weekly_revenue=weekly_revenue,
-        weekly_sessions=len(weekly_sessions),
+        weekly_sessions=weekly_count,
         session_revenue=session_revenue,
         products_revenue=products_revenue,
         session_percent=session_percent,

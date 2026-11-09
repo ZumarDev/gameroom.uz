@@ -3,17 +3,8 @@
 {% block title %}{{ t('analytics_title') }} - Gameroom{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="row mb-4">
-    <div class="col-12 text-center">
-        <div class="page-header">
-            <h1 class="display-5 fw-bold">
-                <i class="bi bi-graph-up-arrow"></i> {{ t('analytics_title') }}
-            </h1>
-            <p class="lead text-muted">{{ t('analytics_total_revenue') }}</p>
-        </div>
-    </div>
-</div>
+{% from "partials/page_header.html" import page_header %}
+{{ page_header(t('analytics_title'), t('analytics_total_revenue'), 'bi-graph-up-arrow') }}
 
 <div class="row mb-4">
     <div class="col-12">

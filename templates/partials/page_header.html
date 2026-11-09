@@ -1,0 +1,12 @@
+{% macro page_header(title, subtitle='', icon='') -%}
+<section class="page-heading-row">
+    <div class="page-header">
+        {% if icon %}<span class="page-heading-icon"><i class="bi {{ icon }}"></i></span>{% endif %}
+        <div class="page-heading-copy">
+            <h1>{{ title }}</h1>
+            {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+        </div>
+    </div>
+    {% if caller is defined %}<div class="page-actions">{{ caller() }}</div>{% endif %}
+</section>
+{%- endmacro %}

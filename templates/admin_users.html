@@ -66,30 +66,15 @@
 {% set inactive_users = users|length - active_users %}
 {% set unlimited_users = users|rejectattr('subscription_expires_at')|list|length %}
 
-<div class="row mb-4">
-  <div class="col-12">
-    <section class="admin-users-hero">
-      <div>
-        <div class="admin-users-kicker">Control Center</div>
-        <h1 class="display-6 fw-bold mb-2">{{ t('admin_users_title') }}</h1>
-        <div class="text-muted">{{ t('admin_users_subtitle') }}</div>
-        <div class="admin-users-hero-meta">
-          <span><i class="bi bi-people"></i> {{ users|length }} ta akkaunt</span>
-          <span><i class="bi bi-shield-check"></i> {{ active_users }} ta active</span>
-          <span><i class="bi bi-infinity"></i> {{ unlimited_users }} ta cheklanmagan</span>
-        </div>
-      </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" href="{{ url_for('admin_create_user') }}">
-          <i class="bi bi-person-plus"></i> {{ t('admin_users_create') }}
-        </a>
-        <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">
-          <i class="bi bi-arrow-left"></i> {{ t('nav_dashboard') }}
-        </a>
-      </div>
-    </section>
-  </div>
-</div>
+{% from "partials/page_header.html" import page_header %}
+{% call page_header(t('admin_users_title'), t('admin_users_subtitle'), 'bi-people') %}
+  <a class="btn btn-primary" href="{{ url_for('admin_create_user') }}">
+    <i class="bi bi-person-plus"></i> {{ t('admin_users_create') }}
+  </a>
+  <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">
+    <i class="bi bi-arrow-left"></i> {{ t('nav_dashboard') }}
+  </a>
+{% endcall %}
 
 <div class="row g-3 mb-4">
   <div class="col-md-4">

@@ -3,16 +3,12 @@
 {% block title %}{{ t('dashboard_title') }} - Gameroom{% endblock %}
 
 {% block content %}
-<section class="dashboard-hero mb-4">
-    <div class="dashboard-hero-copy">
-        <span class="eyebrow"><span class="live-dot"></span> {{ t('dashboard_title') }}</span>
-        <h1>{{ t('dashboard_welcome') }}, <span>{{ current_user.gaming_center_name }}</span></h1>
-        <p>{{ get_tashkent_time().strftime('%d.%m.%Y') }} <span class="hero-divider">/</span> Tashkent</p>
-    </div>
+{% from "partials/page_header.html" import page_header %}
+{% call page_header(t('dashboard_welcome') ~ ', ' ~ current_user.gaming_center_name, get_tashkent_time().strftime('%d.%m.%Y') ~ ' / Tashkent', 'bi-grid-1x2-fill') %}
     <button type="button" class="btn btn-primary dashboard-primary-action" data-bs-toggle="modal" data-bs-target="#newSessionModal">
         <i class="bi bi-plus-lg"></i> {{ t('sessions_new') }}
     </button>
-</section>
+{% endcall %}
 
 <!-- Modern Statistics Cards -->
 <div class="row g-3 mb-4">

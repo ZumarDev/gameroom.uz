@@ -3,17 +3,10 @@
 {% block title %}{{ t('room_categories_title') }} - Gameroom{% endblock %}
 
 {% block content %}
+{% from "partials/page_header.html" import page_header %}
 <div class="container-fluid">
     <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <div class="page-header">
-                <i class="bi bi-collection display-4 mb-3"></i>
-                <h1 class="display-5 fw-bold">{{ t('room_categories_title') }}</h1>
-                <p class="lead text-muted">{{ t('room_categories_subtitle') }}</p>
-            </div>
-        </div>
-    </div>
+    {{ page_header(t('room_categories_title'), t('room_categories_subtitle'), 'bi-collection') }}
 
     <!-- Search and Filter Bar -->
     <div class="row mb-4">

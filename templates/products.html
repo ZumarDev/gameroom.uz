@@ -3,16 +3,10 @@
 {% block title %}{{ t('products_title') }} - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
 
 {% block content %}
+{% from "partials/page_header.html" import page_header %}
 <div class="products-page">
-<!-- Page Header -->
-<div class="row mb-4">
-    <div class="col-12 text-center">
-        <div class="page-header products-page-header">
-            <h1 class="display-5 fw-bold">
-                <i class="bi bi-shop"></i> {{ t('products_title') }}
-            </h1>
-            <p class="lead text-muted">{{ t('nav_products') }}</p>
-            {% if plan_details %}
+{{ page_header(t('products_title'), t('nav_products'), 'bi-shop') }}
+{% if plan_details %}
             <div class="alert alert-info py-3 mt-3 products-plan-alert" role="alert">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                     <div>
@@ -30,10 +24,7 @@
                     </button>
                 </div>
             </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
+{% endif %}
 
     <!-- Navigation Tabs -->
     <ul class="nav nav-tabs product-tabs mb-4" id="productManagementTabs" role="tablist">

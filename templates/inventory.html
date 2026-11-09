@@ -1,13 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Header Section -->
-<div class="text-center page-header">
-    <h1 class="display-5 fw-bold">
-        <i class="bi bi-boxes"></i> {{ t('inventory_title') }}
-    </h1>
-    <p class="lead text-muted">{{ t('nav_inventory') }}</p>
-</div>
+{% from "partials/page_header.html" import page_header %}
+{{ page_header(t('inventory_title'), t('nav_inventory'), 'bi-boxes') }}
 
 <!-- Stock Overview Cards -->
 <div class="row g-3 mb-4">
@@ -122,7 +117,7 @@
             </div>
         </div>
 
-        <div class="col-12 mb-4">
+        <div class="col-md-8 mb-4">
             <div class="card mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="bi bi-graph-up"></i> Smart Inventar Tahlili</h5>

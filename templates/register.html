@@ -3,6 +3,7 @@
 {% block title %}{{ t('auth_register') }} - {{ current_user.gaming_center_name if current_user.is_authenticated else "Gameroom" }}{% endblock %}
 
 {% block content %}
+{% from "partials/page_header.html" import page_header %}
 <div class="container-fluid">
     <!-- Til tanlash - Register sahifasi uchun -->
     <div class="row mb-3">
@@ -27,16 +28,7 @@
         </div>
     </div>
 
-    <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <div class="page-header">
-                <i class="bi bi-person-plus display-4 mb-3"></i>
-                <h1 class="display-5 fw-bold">{{ t('auth_register') }}</h1>
-                <p class="lead text-muted">{{ t('auth_create_account') }}</p>
-            </div>
-        </div>
-    </div>
+    {{ page_header(t('auth_register'), t('auth_create_account'), 'bi-person-plus') }}
     
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-5">

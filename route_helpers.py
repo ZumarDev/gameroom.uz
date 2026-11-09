@@ -127,6 +127,8 @@ def generate_ai_report_insights(
     *,
     plan_details,
     report_sessions,
+    total_sessions_count=None,
+    sessions_with_product_sales_count=None,
     total_revenue,
     session_revenue,
     products_revenue,
@@ -140,8 +142,16 @@ def generate_ai_report_insights(
         return []
 
     insights = []
-    total_sessions = len(report_sessions)
-    products_with_sales = sum(1 for session in report_sessions if (session.products_total or 0) > 0)
+    total_sessions = (
+        total_sessions_count
+        if total_sessions_count is not None
+        else len(report_sessions)
+    )
+    products_with_sales = (
+        sessions_with_product_sales_count
+        if sessions_with_product_sales_count is not None
+        else sum(1 for session in report_sessions if (session.products_total or 0) > 0)
+    )
     product_attach_rate = (products_with_sales / total_sessions * 100) if total_sessions else 0
     products_share = (products_revenue / total_revenue * 100) if total_revenue else 0
     avg_session_value = (total_revenue / total_sessions) if total_sessions else 0
